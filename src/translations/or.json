@@ -1,0 +1,171 @@
+{
+  "nav": {
+    "home": "Fuula Durtii",
+    "products": "Oomishalee",
+    "becomeAgent": "Ergamaa Ta'i",
+    "about": "Waa'ee Keenya",
+    "contact": "Nu Quunnamaa",
+    "login": "Seenu",
+    "dashboard": "Daashboordii"
+  },
+  "hero": {
+    "title": "Imala Keessanii Booda ETUK Tiin",
+    "subtitle": "Saadaraa Sibiila 3-Wheeler Kan Itoophiyaa",
+    "description": "Daandii Afrikaaf qophaa'e baay'ee cimaa ta'e saadaraa sibiila. Torban ergamtoota Itoophiyaa hundi keessanitti Makamoo fi jijjiirraa geejjibaa fiighee dhaabbataa ta'e hirmaattota ta'aa.",
+    "cta": "Ergamaa Ta'i",
+    "learnMore": "Waa'ee Beekuu"
+  },
+  "features": {
+    "title": "Maalif ETUK Filattaa?",
+    "subtitle": "Daandii Itoophiyaaaf hoijjete, konkolataa Itoophiyaafti qophaa'e",
+    "powerful": {
+      "title": "Humna Cimaa",
+      "description": "Motor 4000W dandeettii jijjiiraa 960 N.M qabu daandii cimaaaf"
+    },
+    "range": {
+      "title": "Fagoo Dheeraa",
+      "description": "Geejjibaa tokkoon hanga 180km"
+    },
+    "durable": {
+      "title": "Ijaarsa Cimaa",
+      "description": "Daandii Afrikaaf dandeettii dhukkubbii hambisuu qabu ijaarsa cimaa"
+    },
+    "smart": {
+      "title": "Teeknooloojii Sartuu",
+      "description": "Raadiyoo GPS,.Cluster Diijiitaalaa fi qabiinsa fagaa"
+    },
+    "eco": {
+      "title": "Haala Jireenyaa Eeguu",
+      "description": "Bakka bu'ii zero, teeknooloojii batrii lifiyeeri ayiraan foosfeetii"
+    },
+    "spacious": {
+      "title": "Kabin Bal'aa",
+      "description": "Bakka ija'uu mijataa ifa dheeraa nagaa qabu"
+    }
+  },
+  "specs": {
+    "title": "Ibsa Teknikaalaa",
+    "engine": "Motor",
+    "engineType": "Gosa Motor",
+    "motorPower": "Humna Motor",
+    "torque": "Dandeettii Jijjiiraa Ol'aanaa",
+    "acceleration": "Saffisa Guddisuu",
+    "driveType": "Gosa Kuusaa Humnaa",
+    "performance": "Hojiirra Oomishuu",
+    "topSpeed": "Saffisa Ol'aanaa",
+    "maxRange": "Fagoo Ol'aanaa",
+    "battery": "Batrii",
+    "batteryType": "Gosa Batrii",
+    "batteryCapacity": "Dandeettii Batrii",
+    "charger": "Batrii Kakuu",
+    "chargingTime": "Yeroo Kakachuuf",
+    "dimensions": "Safara",
+    "dimension": "Safara (MM)",
+    "groundClearance": "Dheedhii Dachiiraa Gara Dachiitti",
+    "weight": "Ummama"
+  },
+  "agent": {
+    "title": "Ergamaa ETUK Ta'i",
+    "subtitle": "Torban ergamtoota Itoophiyaa guddachaa jirutti makamoo",
+    "benefits": "Fayyaa Ergamaa Ta'uu",
+    "benefit1": "Mirga naannoo keessanii qofaaf",
+    "benefit2": "Caasaa komishinii morkaa'aa",
+    "benefit3": "Leenjii guutuu fi deeggarsa madaa'aa",
+    "benefit4": "Gara qabiinsa gosa sirritti fayyadamuu",
+    "benefit5": "Torban deeggarsa erga bitachuu booda",
+    "form": {
+      "personalInfo": "Odeeffannoo Dhuunfaa",
+      "firstName": "Maqaa Jalqabaa",
+      "lastName": "Maqaa Abbaa",
+      "email": "Teessoo Imeyilii",
+      "phone": "Lakkoofsa Bilbilaa",
+      "altPhone": "Bilbila Biraa",
+      "businessInfo": "Odeeffannoo Daldagaa",
+      "businessName": "Maqaa Daldagaa",
+      "businessType": "Gosa Daldagaa",
+      "individual": "Dhuunfaa",
+      "company": "Dhaabbata",
+      "partnership": "Hiriya",
+      "experience": "Waggaa Hayyamaa",
+      "location": "Bakka",
+      "region": "Naannoo",
+      "city": "Magaalaa",
+      "woreda": "Aanaa",
+      "kebele": "Ganda",
+      "address": "Teessoo Guutuu",
+      "facilities": "Dhaabbilee",
+      "hasWarehouse": "Kuusaa qabdaa?",
+      "warehouseSize": "Safara Kuusaa (mitira iskuweeri)",
+      "existingBrands": "Biroota Kan Waliin Hojjettu",
+      "staffCount": "Lakkoofsa Hojjattootaa",
+      "financial": "Odeeffannoo Maallaqaa",
+      "estimatedCapital": "Kapitaala Tilmaamame",
+      "bankName": "Maqaa Baankii",
+      "accountNumber": "Lakkoofsa Herregaa",
+      "documents": "Galmeewwan",
+      "tradeLicense": "Layisansi Daldagaa",
+      "idDocument": "Galmeessi Ayyaannoo",
+      "tinNumber": "Lakkoofsa TIN",
+      "additional": "Odeeffannoo Dabalataa",
+      "message": "Ergaa Dabalataa",
+      "howDidYouHear": "Akka ati nu dhagaherraa? Eessaa?",
+      "submit": "Galmee Ergi",
+      "success": "Galmee milkaa'inaan ergameera! Dhahaa dhiyaatanii nu qunnamsiina.",
+      "error": "Galmee erguu hin dandeenye. Irreedha yaalaa."
+    }
+  },
+  "contact": {
+    "title": "Nu Quunnamaa",
+    "title": "Nu Quunnamaa",
+    "subtitle": "Soreti International Trading waliin qunnamuu",
+    "address": "Teessoo",
+    "phone": "Bilbila",
+    "email": "Imeyilii",
+    "sendMessage": "Ergaa Ergi",
+    "name": "Maqaa Keessan",
+    "message": "Ergaa Keessan",
+    "send": "Ergi"
+  },
+  "footer": {
+    "company": "Soreti International Trading",
+    "brand": "ETUK - Saadaraa Sibiila 3-Wheeler",
+    "rights": "Mirgoonni hundi eegamoo",
+    "assembly": "Itoophiyaa, Moojoo keessatti qophaa'e"
+  },
+  "admin": {
+    "dashboard": "Daashboordii",
+    "agents": "Ergamtoota",
+    "users": "Fayyadamtoota",
+    "products": "Oomishalee",
+    "settings": "Qindaa'ina",
+    "logout": "Ba'i",
+    "pending": "Eegamaa jira",
+    "approved": "Hayyamamee",
+    "rejected": "Hin Hayyamamne",
+    "totalAgents": "Ergamtoota Waliigalaa",
+    "pendingApplications": "Galmeewwan Eegaman",
+    "approvedAgents": "Ergamtoota Hayyamaman",
+    "rejectedApplications": "Galmeewwan Hin Hayyamamne",
+    "totalUsers": "Fayyadamtoota Waliigalaa",
+    "recentApplications": "Galmeewwan Yeroo Dhiyoonaa",
+    "viewAll": "Hunda Ilaalaa",
+    "approve": "Hayyami",
+    "reject": "Dhiisi",
+    "review": "Ilaali",
+    "notes": "Yaadannoowwan",
+    "save": "Kuusaa"
+  },
+  "common": {
+    "loading": "Fe'amaa jira...",
+    "error": "Dogoggora uumameera",
+    "success": "Milkaa'eera",
+    "cancel": "Haquu",
+    "confirm": "Mirkaneessuu",
+    "delete": "Haquu",
+    "edit": "Gulaalu",
+    "view": "Ilaaluu",
+    "search": "Barbaaduu",
+    "filter": "Baay'isuu",
+    "noResults": "Bu'aan hin argamne"
+  }
+}

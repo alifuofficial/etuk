@@ -1,0 +1,170 @@
+{
+  "nav": {
+    "home": "ዋና ገጽ",
+    "products": "ምርቶች",
+    "becomeAgent": "ወኪል ይሁኑ",
+    "about": "ስለ እኛ",
+    "contact": "አግኙን",
+    "login": "ግባ",
+    "dashboard": "ዳሽቦርድ"
+  },
+  "hero": {
+    "title": "ጉዞዎን በETUK ይንቀሳቀሱ",
+    "subtitle": "በኢትዮጵያ የመጀመሪያው ኤሌክትሪክ 3-ጎማ",
+    "description": "ለአፍሪካ መንገዶች የተነደፈ ጠንካራ ኤሌክትሪክ ተሽከርካሪ። በኢትዮጵያ ዙሪያ ያሉ ወኪሎች አውታረመረቃችንን ይቀላቀሉ እና የተከታታይ ትራንስፖርት አብዮት አካል ይሁኑ።",
+    "cta": "ወኪል ይሁኑ",
+    "learnMore": "ተጨማሪ ይወቁ"
+  },
+  "features": {
+    "title": "ETUKን ለምን ይምረጡ?",
+    "subtitle": "ለኢትዮጵያ መንገዶች የተሰራ፣ ለኢትዮጵያ አሽከርካሪዎች የተነደፈ",
+    "powerful": {
+      "title": "ኃይለኛ አፈጻጸም",
+      "description": "ለአስቸጋሪ መሬቶች 4000W ሞተር ከ960 N.M ማዞሪያ ጋር"
+    },
+    "range": {
+      "title": "የተራዘመ ርቀት",
+      "description": "በአንድ ሙሉ ባትሪ እስከ 180ኪሜ"
+    },
+    "durable": {
+      "title": "ጠንካራ ግንባታ",
+      "description": "ለአፍሪካ መንገዶች ፀረ-ተጽዋጭ መቋቋሚያ ያለው ጠንካራ ግንባታ"
+    },
+    "smart": {
+      "title": "ስልታዊ ቴክኖሎጂ",
+      "description": "GPS መከታተል፣ ዲጂታል ክላስተር እና ሪሞት ግንኙነት"
+    },
+    "eco": {
+      "title": "አካባቢ መጠበቂያ",
+      "description": "ዜሮ ልቀት፣ ሊቲየም አይረን ፎስፌት ባትሪ ቴክኖሎጂ"
+    },
+    "spacious": {
+      "title": "ሰፊ ካቢን",
+      "description": "ምቹ የመቀመጫ ቦታ ከረጅም ቢም ብርሃን ጋር"
+    }
+  },
+  "specs": {
+    "title": "ቴክኒካል መግለጫዎች",
+    "engine": "ሞተር",
+    "engineType": "የሞተር ዓይነት",
+    "motorPower": "የሞተር ኃይል",
+    "torque": "ከፍተኛ ማዞሪያ",
+    "acceleration": "ፍጥነት መጨመሪያ",
+    "driveType": "የኃይል አይነት",
+    "performance": "አፈጻጸም",
+    "topSpeed": "ከፍተኛ ፍጥነት",
+    "maxRange": "ከፍተኛ ርቀት",
+    "battery": "ባትሪ",
+    "batteryType": "የባትሪ ዓይነት",
+    "batteryCapacity": "የባትሪ አቅም",
+    "charger": "ባትሪ ማስገቢያ",
+    "chargingTime": "የማስገባት ጊዜ",
+    "dimensions": "መጠኖች",
+    "dimension": "መጠን (MM)",
+    "groundClearance": "ከመሬት እርቀት",
+    "weight": "ክብደት"
+  },
+  "agent": {
+    "title": "የETUK ወኪል ይሁኑ",
+    "subtitle": "በኢትዮጵያ ዙሪያ በእድገት ላይ ያለ የወኪሎች አውታረመረቃችንን ይቀላቀሉ",
+    "benefits": "ወኪል መሆን ጥቅሞች",
+    "benefit1": "በክልልዎ ልዩ ግዛት መብቶች",
+    "benefit2": "የተወዳዳሪ ኮሚሽን መዋቅር",
+    "benefit3": "ሙሉ ስልጠና እና የግብይት ድጋፍ",
+    "benefit4": "ወደ እውነተኛ ተረፊ ክፍሎች መዳረሻ",
+    "benefit5": "የሽያጭ በኋላ ድጋፍ አውታረመረቅ",
+    "form": {
+      "personalInfo": "የግል መረጃ",
+      "firstName": "የመጀመሪያ ስም",
+      "lastName": "የአባት ስም",
+      "email": "ኢሜል አድራሻ",
+      "phone": "ስልክ ቁጥር",
+      "altPhone": "አማራጭ ስልክ",
+      "businessInfo": "የንግድ መረጃ",
+      "businessName": "የንግድ ስም",
+      "businessType": "የንግድ ዓይነት",
+      "individual": "ግለሰብ",
+      "company": "ድርጅት",
+      "partnership": "ትስስር",
+      "experience": "የስራ ልምድ ዓመታት",
+      "location": "አካባቢ",
+      "region": "ክልል",
+      "city": "ከተማ",
+      "woreda": "ወረዳ",
+      "kebele": "ቀበሌ",
+      "address": "ሙሉ አድራሻ",
+      "facilities": "ተቋማት",
+      "hasWarehouse": "መጋዘን አሎት?",
+      "warehouseSize": "የመጋዘን መጠን (ሜትር ስኩዌር)",
+      "existingBrands": "ከእነዚህ ብራንዶች ጋር የሚሰሩ",
+      "staffCount": "የሰራተኞች ቁጥር",
+      "financial": "ማህደረ ገንዘብ መረጃ",
+      "estimatedCapital": "የተገመተ ካፒታል",
+      "bankName": "የባንክ ስም",
+      "accountNumber": "የሂሳብ ቁጥር",
+      "documents": "ሰነዶች",
+      "tradeLicense": "የንግድ ፈቃድ",
+      "idDocument": "የመታወቂያ ሰነድ",
+      "tinNumber": "የTIN ቁጥር",
+      "additional": "ተጨማሪ መረጃ",
+      "message": "ተጨማሪ መልዕክት",
+      "howDidYouHear": "ስለ እኛ ከየት ሰሙ?",
+      "submit": "ማመልከቻ አስገባ",
+      "success": "ማመልከቻ በተሳካ ሁኔታ ተልኳል! በቅርቡ እናገናኝዎታለን።",
+      "error": "ማመልከቻ ማስገባት አልተሳካም። እባክዎ እንደገና ይሞክሩ።"
+    }
+  },
+  "contact": {
+    "title": "አግኙን",
+    "subtitle": "ከሶሬቲ ኢንተርናሽናል ትሬዲንግ ጋር ይገናኙ",
+    "address": "አድራሻ",
+    "phone": "ስልክ",
+    "email": "ኢሜል",
+    "sendMessage": "መልዕክት ላክ",
+    "name": "የእርስዎ ስም",
+    "message": "የእርስዎ መልዕክት",
+    "send": "ላክ"
+  },
+  "footer": {
+    "company": "ሶሬቲ ኢንተርናሽናል ትሬዲንግ",
+    "brand": "ETUK - ኤሌክትሪክ 3-ጎማዎች",
+    "rights": "መብቶች ተጠብቀዋል",
+    "assembly": "በሞጆ፣ ኢትዮጵያ የተሰበሰበ"
+  },
+  "admin": {
+    "dashboard": "ዳሽቦርድ",
+    "agents": "ወኪሎች",
+    "users": "ተጠቃሚዎች",
+    "products": "ምርቶች",
+    "settings": "ቅንብሮች",
+    "logout": "ውጣ",
+    "pending": "በመጠባበቅ ላይ",
+    "approved": "ተፈቅዷል",
+    "rejected": "ተቀባይነት አላገኘም",
+    "totalAgents": "ጠቅላላ ወኪሎች",
+    "pendingApplications": "በመጠባበቅ ላይ ያሉ ማመልከቻዎች",
+    "approvedAgents": "የጸደቁ ወኪሎች",
+    "rejectedApplications": "ተቀባይነት ያላገኙ ማመልከቻዎች",
+    "totalUsers": "ጠቅላላ ተጠቃሚዎች",
+    "recentApplications": "የቅርብ ጊዜ ማመልከቻዎች",
+    "viewAll": "ሁሉንም ይመልከቱ",
+    "approve": "አፅድቅ",
+    "reject": "አልቀቅ",
+    "review": "ገምግም",
+    "notes": "ማስታወሻዎች",
+    "save": "አስቀምጥ"
+  },
+  "common": {
+    "loading": "በመጫን ላይ...",
+    "error": "ስህተት ተከስቷል",
+    "success": "ተሳክቷል",
+    "cancel": "ሰርዝ",
+    "confirm": "አረጋግጥ",
+    "delete": "ሰርዝ",
+    "edit": "አርትዕ",
+    "view": "ተመልከት",
+    "search": "ፈልግ",
+    "filter": "አጣራ",
+    "noResults": "ውጤት አልተገኘም"
+  }
+}

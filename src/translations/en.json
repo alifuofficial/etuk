@@ -1,0 +1,170 @@
+{
+  "nav": {
+    "home": "Home",
+    "products": "Products",
+    "becomeAgent": "Become an Agent",
+    "about": "About Us",
+    "contact": "Contact",
+    "login": "Login",
+    "dashboard": "Dashboard"
+  },
+  "hero": {
+    "title": "Power Your Journey with ETUK",
+    "subtitle": "Ethiopia's Premier Electric 3-Wheeler",
+    "description": "Heavy-duty electric vehicles designed for African roads. Join our network of agents across Ethiopia and be part of the sustainable transportation revolution.",
+    "cta": "Become an Agent",
+    "learnMore": "Learn More"
+  },
+  "features": {
+    "title": "Why Choose ETUK?",
+    "subtitle": "Built for Ethiopian roads, designed for Ethiopian drivers",
+    "powerful": {
+      "title": "Powerful Performance",
+      "description": "4000W motor with 960 N.M torque for tough terrains"
+    },
+    "range": {
+      "title": "Extended Range",
+      "description": "Up to 180km on a single charge for all-day operation"
+    },
+    "durable": {
+      "title": "Heavy-Duty Build",
+      "description": "Robust construction with anti-shock absorbers for African roads"
+    },
+    "smart": {
+      "title": "Smart Technology",
+      "description": "GPS tracking, digital cluster, and remote connectivity"
+    },
+    "eco": {
+      "title": "Eco-Friendly",
+      "description": "Zero emissions, lithium iron phosphate battery technology"
+    },
+    "spacious": {
+      "title": "Spacious Cabin",
+      "description": "Comfortable seating with long beam lights for safety"
+    }
+  },
+  "specs": {
+    "title": "Technical Specifications",
+    "engine": "Engine",
+    "engineType": "Engine Type",
+    "motorPower": "Motor Power",
+    "torque": "Max Torque",
+    "acceleration": "Acceleration",
+    "driveType": "Drive Type",
+    "performance": "Performance",
+    "topSpeed": "Top Speed",
+    "maxRange": "Max Range",
+    "battery": "Battery",
+    "batteryType": "Battery Type",
+    "batteryCapacity": "Battery Capacity",
+    "charger": "Charger",
+    "chargingTime": "Charging Time",
+    "dimensions": "Dimensions",
+    "dimension": "Dimension (MM)",
+    "groundClearance": "Ground Clearance",
+    "weight": "Weight"
+  },
+  "agent": {
+    "title": "Become an ETUK Agent",
+    "subtitle": "Join our growing network of agents across Ethiopia",
+    "benefits": "Benefits of Being an Agent",
+    "benefit1": "Exclusive territorial rights in your region",
+    "benefit2": "Competitive commission structure",
+    "benefit3": "Full training and marketing support",
+    "benefit4": "Access to genuine spare parts",
+    "benefit5": "After-sales support network",
+    "form": {
+      "personalInfo": "Personal Information",
+      "firstName": "First Name",
+      "lastName": "Last Name",
+      "email": "Email Address",
+      "phone": "Phone Number",
+      "altPhone": "Alternative Phone",
+      "businessInfo": "Business Information",
+      "businessName": "Business Name",
+      "businessType": "Business Type",
+      "individual": "Individual",
+      "company": "Company",
+      "partnership": "Partnership",
+      "experience": "Years of Experience",
+      "location": "Location",
+      "region": "Region",
+      "city": "City",
+      "woreda": "Woreda",
+      "kebele": "Kebele",
+      "address": "Full Address",
+      "facilities": "Facilities",
+      "hasWarehouse": "Do you have a warehouse?",
+      "warehouseSize": "Warehouse Size (sq meters)",
+      "existingBrands": "Existing Brands You Deal With",
+      "staffCount": "Number of Staff",
+      "financial": "Financial Information",
+      "estimatedCapital": "Estimated Capital",
+      "bankName": "Bank Name",
+      "accountNumber": "Account Number",
+      "documents": "Documents",
+      "tradeLicense": "Trade License",
+      "idDocument": "ID Document",
+      "tinNumber": "TIN Number",
+      "additional": "Additional Information",
+      "message": "Additional Message",
+      "howDidYouHear": "How did you hear about us?",
+      "submit": "Submit Application",
+      "success": "Application submitted successfully! We will contact you soon.",
+      "error": "Failed to submit application. Please try again."
+    }
+  },
+  "contact": {
+    "title": "Contact Us",
+    "subtitle": "Get in touch with Soreti International Trading",
+    "address": "Address",
+    "phone": "Phone",
+    "email": "Email",
+    "sendMessage": "Send Message",
+    "name": "Your Name",
+    "message": "Your Message",
+    "send": "Send"
+  },
+  "footer": {
+    "company": "Soreti International Trading",
+    "brand": "ETUK - Electric 3-Wheelers",
+    "rights": "All rights reserved",
+    "assembly": "Assembled in Modjo, Ethiopia"
+  },
+  "admin": {
+    "dashboard": "Dashboard",
+    "agents": "Agents",
+    "users": "Users",
+    "products": "Products",
+    "settings": "Settings",
+    "logout": "Logout",
+    "pending": "Pending",
+    "approved": "Approved",
+    "rejected": "Rejected",
+    "totalAgents": "Total Agents",
+    "pendingApplications": "Pending Applications",
+    "approvedAgents": "Approved Agents",
+    "rejectedApplications": "Rejected Applications",
+    "totalUsers": "Total Users",
+    "recentApplications": "Recent Applications",
+    "viewAll": "View All",
+    "approve": "Approve",
+    "reject": "Reject",
+    "review": "Review",
+    "notes": "Notes",
+    "save": "Save"
+  },
+  "common": {
+    "loading": "Loading...",
+    "error": "An error occurred",
+    "success": "Success",
+    "cancel": "Cancel",
+    "confirm": "Confirm",
+    "delete": "Delete",
+    "edit": "Edit",
+    "view": "View",
+    "search": "Search",
+    "filter": "Filter",
+    "noResults": "No results found"
+  }
+}

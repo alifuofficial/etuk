@@ -1,0 +1,146 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "sqlite"
+  url      = env("DATABASE_URL")
+}
+
+// User roles: ADMIN, MARKETING_MANAGER, MARKETING_OFFICER
+model User {
+  id            String   @id @default(cuid())
+  email         String   @unique
+  name          String
+  password      String
+  role          String   @default("MARKETING_OFFICER") // ADMIN, MARKETING_MANAGER, MARKETING_OFFICER
+  phone         String?
+  isActive      Boolean  @default(true)
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+  agents        Agent[]
+}
+
+// Agent applications and approved agents
+model Agent {
+  id                String   @id @default(cuid())
+  // Personal Information
+  firstName         String
+  lastName          String
+  email             String
+  phone             String
+  alternativePhone  String?
+  
+  // Business Information
+  businessName      String?
+  businessType      String?  // Individual, Company, Partnership
+  experience        String?  // Years of experience in automotive/spare parts
+  
+  // Location
+  region            String   // Ethiopian region
+  city              String
+  woreda            String?
+  kebele            String?
+  address           String?
+  
+  // Business Details
+  hasWarehouse      Boolean  @default(false)
+  warehouseSize     String?  // Size in sq meters
+  existingBrands    String?  // Other brands they deal with
+  staffCount        Int?
+  
+  // Financial
+  estimatedCapital  String?
+  bankName          String?
+  accountNumber     String?
+  
+  // Documents (file paths)
+  tradeLicense      String?  // Path to uploaded trade license
+  idDocument        String?  // Path to uploaded ID
+  tinNumber         String?
+  
+  // Application Status
+  status            String   @default("PENDING") // PENDING, UNDER_REVIEW, APPROVED, REJECTED
+  reviewedBy        String?  // User ID who reviewed
+  reviewedAt        DateTime?
+  reviewNotes       String?
+  
+  // Additional Info
+  message           String?  // Additional message from applicant
+  howDidYouHear     String?  // How they heard about etuk
+  
+  // Timestamps
+  createdAt         DateTime @default(now())
+  updatedAt         DateTime @updatedAt
+  
+  // Relations
+  reviewer          User?    @relation(fields: [reviewedBy], references: [id])
+  
+  // Contact person after approval
+  contactPerson     String?
+  contactPhone      String?
+}
+
+// Product catalog
+model Product {
+  id                String   @id @default(cuid())
+  name              String
+  nameAm            String?  // Amharic name
+  nameOr            String?  // Afaan Oromoo name
+  description       String?
+  descriptionAm     String?
+  descriptionOr     String?
+  category          String   // 3W, SPARE_PARTS, ACCESSORIES
+  specifications    String?  // JSON string with specs
+  price             Float?
+  images            String?  // JSON array of image paths
+  isActive          Boolean  @default(true)
+  featured          Boolean  @default(false)
+  createdAt         DateTime @default(now())
+  updatedAt         DateTime @updatedAt
+}
+
+// Regions of Ethiopia for agent registration
+model Region {
+  id                String   @id @default(cuid())
+  name              String   // English
+  nameAm            String?  // Amharic
+  nameOr            String?  // Afaan Oromoo
+  code              String   @unique
+  isActive          Boolean  @default(true)
+  cities            City[]
+}
+
+model City {
+  id                String   @id @default(cuid())
+  name              String
+  nameAm            String?
+  nameOr            String?
+  regionId          String
+  region            Region   @relation(fields: [regionId], references: [id])
+  isActive          Boolean  @default(true)
+}
+
+// Activity logs for admin actions
+model ActivityLog {
+  id                String   @id @default(cuid())
+  userId            String
+  action            String   // CREATE, UPDATE, DELETE, APPROVE, REJECT
+  entityType        String   // AGENT, USER, PRODUCT
+  entityId          String
+  description       String
+  ipAddress         String?
+  createdAt         DateTime @default(now())
+}
+
+// Settings for the application
+model Setting {
+  id                String   @id @default(cuid())
+  key               String   @unique
+  value             String
+  description       String?
+  updatedAt         DateTime @updatedAt
+}

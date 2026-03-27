@@ -1,12 +1,15 @@
 import { NextResponse } from 'next/server';
-import { db } from '@/lib/db';
-import bcrypt from 'bcryptjs';
 import { exec } from 'child_process';
 import { promisify } from 'util';
+import bcrypt from 'bcryptjs';
+import fs from 'fs';
+import path from 'path';
 
 const execAsync = promisify(exec);
 
 export async function GET(request: Request) {
+  const logs: string[] = [];
+  
   try {
     // Check for secret key to prevent unauthorized access
     const { searchParams } = new URL(request.url);
@@ -16,23 +19,61 @@ export async function GET(request: Request) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
 
+    logs.push('Starting seed process...');
+    
+    // Dynamic import of Prisma to catch errors
+    let db: any;
+    try {
+      const dbModule = await import('@/lib/db');
+      db = dbModule.db;
+      logs.push('Prisma client loaded successfully');
+    } catch (e) {
+      logs.push(`Failed to load Prisma client: ${e instanceof Error ? e.message : String(e)}`);
+      return NextResponse.json({ 
+        error: 'Prisma client not available',
+        logs,
+        suggestion: 'Make sure Prisma is properly generated in the container'
+      }, { status: 500 });
+    }
+
     const results = {
       users: [] as string[],
       regions: 0,
       cities: 0,
-      databaseInitialized: false,
+      errors: [] as string[],
     };
 
-    // First, try to push the database schema
+    // Test database connection
     try {
-      await execAsync('npx prisma db push --skip-generate');
-      results.databaseInitialized = true;
+      await db.$connect();
+      logs.push('Database connected successfully');
     } catch (e) {
-      console.log('Database might already exist or push failed:', e);
-      // Continue anyway, database might already be set up
+      logs.push(`Database connection failed: ${e instanceof Error ? e.message : String(e)}`);
+      
+      // Try to push schema
+      try {
+        logs.push('Attempting to push database schema...');
+        const { stdout, stderr } = await execAsync('npx prisma db push --skip-generate 2>&1 || true');
+        logs.push(`Schema push output: ${stdout}`);
+        if (stderr) logs.push(`Schema push stderr: ${stderr}`);
+        
+        // Try connecting again
+        await db.$connect();
+        logs.push('Database connected after schema push');
+      } catch (e2) {
+        logs.push(`Schema push failed: ${e2 instanceof Error ? e2.message : String(e2)}`);
+      }
     }
 
-    // Create admin users
+    // Check if users table exists and has users
+    try {
+      const existingUsers = await db.user.findMany();
+      logs.push(`Found ${existingUsers.length} existing users`);
+    } catch (e) {
+      logs.push(`Error checking users: ${e instanceof Error ? e.message : String(e)}`);
+    }
+
+    // Create admin users with fresh hashes
     const users = [
       { email: 'admin@etuk.et', name: 'Admin User', password: 'admin123', role: 'ADMIN', phone: '+251911000001' },
       { email: 'manager@etuk.et', name: 'Marketing Manager', password: 'manager123', role: 'MARKETING_MANAGER', phone: '+251911000002' },
@@ -41,8 +82,26 @@ export async function GET(request: Request) {
 
     for (const user of users) {
       try {
+        logs.push(`Processing user: ${user.email}`);
+        
+        // Check if exists
         const existing = await db.user.findUnique({ where: { email: user.email } });
-        if (!existing) {
+        
+        if (existing) {
+          // Update the password to ensure it's correct
+          const hashedPassword = await bcrypt.hash(user.password, 10);
+          await db.user.update({
+            where: { email: user.email },
+            data: {
+              password: hashedPassword,
+              isActive: true,
+              role: user.role,
+            },
+          });
+          results.users.push(`${user.email} (updated)`);
+          logs.push(`Updated existing user: ${user.email}`);
+        } else {
+          // Create new user
           const hashedPassword = await bcrypt.hash(user.password, 10);
           await db.user.create({
             data: {
@@ -54,13 +113,23 @@ export async function GET(request: Request) {
               isActive: true,
             },
           });
-          results.users.push(`${user.email} / ${user.password}`);
-        } else {
-          results.users.push(`${user.email} (already exists)`);
+          results.users.push(`${user.email} (created)`);
+          logs.push(`Created new user: ${user.email}`);
         }
       } catch (e) {
-        console.error(`Error creating user ${user.email}:`, e);
+        const errorMsg = `Error with user ${user.email}: ${e instanceof Error ? e.message : String(e)}`;
+        logs.push(errorMsg);
+        results.errors.push(errorMsg);
       }
+    }
+
+    // Verify users were created
+    try {
+      const finalUsers = await db.user.findMany();
+      logs.push(`Final user count: ${finalUsers.length}`);
+      logs.push(`Users in DB: ${finalUsers.map((u: any) => u.email).join(', ')}`);
+    } catch (e) {
+      logs.push(`Error verifying users: ${e instanceof Error ? e.message : String(e)}`);
     }
 
     // Create regions
@@ -87,7 +156,7 @@ export async function GET(request: Request) {
         });
         results.regions++;
       } catch (e) {
-        console.log('Region error:', e);
+        logs.push(`Region error: ${e instanceof Error ? e.message : String(e)}`);
       }
     }
 
@@ -137,14 +206,17 @@ export async function GET(request: Request) {
           }
         }
       } catch (e) {
-        console.log('City creation error:', e);
+        logs.push(`City creation error: ${e instanceof Error ? e.message : String(e)}`);
       }
     }
+
+    logs.push('Seed process completed!');
 
     return NextResponse.json({
       success: true,
       message: 'Database seeded successfully!',
       results,
+      logs,
       credentials: {
         admin: 'admin@etuk.et / admin123',
         manager: 'manager@etuk.et / manager123',
@@ -152,9 +224,10 @@ export async function GET(request: Request) {
       },
     });
   } catch (error) {
-    console.error('Seed error:', error);
+    logs.push(`Fatal error: ${error instanceof Error ? error.message : String(error)}`);
     return NextResponse.json({ 
       error: 'Failed to seed database',
+      logs,
       details: error instanceof Error ? error.message : 'Unknown error'
     }, { status: 500 });
   }

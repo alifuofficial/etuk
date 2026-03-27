@@ -1,16 +1,4 @@
 {
   "schemaVersion": 2,
-  "dockerfilePath": "./Dockerfile",
-  "buildArgs": [],
-  "exposedPort": 3000,
-  "environmentVariables": [
-    {
-      "key": "NODE_ENV",
-      "value": "production"
-    }
-  ],
-  "dockerfileLines": [],
-  "gitHash": "",
-  "imageName": "",
-  "notExposePort": false
+  "dockerfilePath": "./Dockerfile"
 }

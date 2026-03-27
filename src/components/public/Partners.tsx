@@ -2,37 +2,40 @@
 
 import { useI18n } from '@/lib/i18n/useI18n';
 import { motion } from 'framer-motion';
+import { Factory, Zap, Shield, Award } from 'lucide-react';
 
 export default function Partners() {
   const { t } = useI18n();
 
-  // Partners grid - removing competitor references
-  const partners = [
-    { name: 'Soreti International', logo: '/images/tuk-front.png' },
-    { name: 'ETUK EV', logo: '/images/tuk-side.png' },
-    { name: 'YETU Mobility', logo: '/images/tuk-front.png' },
+  const highlights = [
+    { icon: Factory, label: 'Local Assembly', value: 'Modjo, Ethiopia' },
+    { icon: Zap, label: 'Electric Power', value: '100% Eco-Friendly' },
+    { icon: Shield, label: 'Quality Assured', value: 'ISO Standards' },
+    { icon: Award, label: 'Warranty', value: '3 Years Coverage' },
   ];
 
   return (
-    <section className="py-20 bg-white border-y border-slate-100 overflow-hidden">
+    <section className="py-16 bg-slate-50 border-y border-slate-100 overflow-hidden">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        <div className="text-center mb-12">
+        <div className="text-center mb-10">
           <h3 className="text-sm font-black text-slate-400 uppercase tracking-[0.3em] mb-2">{t('partners.title')}</h3>
           <p className="text-slate-900 font-bold">{t('partners.subtitle')}</p>
         </div>
 
-        <div className="flex flex-wrap items-center justify-center gap-12 md:gap-24 opacity-50 grayscale hover:grayscale-0 transition-all duration-700">
-          {partners.map((partner, index) => (
+        <div className="grid grid-cols-2 md:grid-cols-4 gap-6 md:gap-10">
+          {highlights.map((item, index) => (
             <motion.div
               key={index}
-              initial={{ opacity: 0 }}
-              whileInView={{ opacity: 1 }}
+              initial={{ opacity: 0, y: 10 }}
+              whileInView={{ opacity: 1, y: 0 }}
               transition={{ delay: index * 0.1 }}
-              className="flex flex-col items-center gap-3"
+              className="flex flex-col items-center text-center p-6 bg-white rounded-2xl border border-slate-100 hover:border-deep-sky-blue/30 hover:shadow-lg transition-all group"
             >
-              <div className="h-12 w-auto flex items-center justify-center font-black text-slate-900 text-2xl tracking-tighter">
-                {partner.name.split(' ')[0]} <span className="text-deep-sky-blue">{partner.name.split(' ')[1] || 'EV'}</span>
+              <div className="w-12 h-12 bg-deep-sky-blue/10 rounded-xl flex items-center justify-center mb-4 group-hover:bg-deep-sky-blue transition-colors">
+                <item.icon className="w-6 h-6 text-deep-sky-blue group-hover:text-white transition-colors" />
               </div>
+              <div className="text-slate-400 text-[10px] font-black uppercase tracking-widest mb-1">{item.label}</div>
+              <div className="text-slate-900 font-bold text-sm">{item.value}</div>
             </motion.div>
           ))}
         </div>

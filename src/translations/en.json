@@ -215,7 +215,8 @@
     "assembly": "Assembled in Modjo, Ethiopia",
     "assemblyTitle": "Local Assembly",
     "operational": "Operational",
-    "builtIn": "Built in"
+    "builtIn": "Built in",
+    "craftedBy": "Crafted by"
   },
   "howItWorks": {
     "title": "How It Works",

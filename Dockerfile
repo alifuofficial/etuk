@@ -36,8 +36,10 @@ WORKDIR /app
 
 ENV NODE_ENV=production
 ENV NEXT_TELEMETRY_DISABLED=1
+# Set the database URL to use a path in /app/data
+ENV DATABASE_URL="file:/app/data/etuk.db"
 
-RUN apk add --no-cache openssl
+RUN apk add --no-cache openssl sqlite
 
 RUN addgroup --system --gid 1001 nodejs
 RUN adduser --system --uid 1001 nextjs
@@ -52,20 +54,20 @@ RUN chown nextjs:nodejs .next
 COPY --from=builder --chown=nextjs:nodejs /app/.next/standalone ./
 COPY --from=builder --chown=nextjs:nodejs /app/.next/static ./.next/static
 
+# Copy all node_modules for prisma and other dependencies
+COPY --from=builder /app/node_modules ./node_modules
+
 # Copy prisma for runtime
 COPY --from=builder /app/prisma ./prisma
-COPY --from=builder /app/node_modules/.prisma ./node_modules/.prisma
-COPY --from=builder /app/node_modules/@prisma ./node_modules/@prisma
-COPY --from=builder /app/node_modules/prisma ./node_modules/prisma
-
-# Copy bcryptjs for authentication
-COPY --from=builder /app/node_modules/bcryptjs ./node_modules/bcryptjs
 
 # Copy translations
 COPY --from=builder /app/src/translations ./src/translations
 
-# Create data directory for SQLite
-RUN mkdir -p /app/data && chown -R nextjs:nodejs /app/data
+# Create data directory for SQLite with proper permissions
+RUN mkdir -p /app/data && chown -R nextjs:nodejs /app/data && chmod 755 /app/data
+
+# Make sure nextjs user owns everything
+RUN chown -R nextjs:nodejs /app
 
 USER nextjs
 

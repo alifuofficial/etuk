@@ -2,7 +2,6 @@ import { NextResponse } from 'next/server';
 import { exec } from 'child_process';
 import { promisify } from 'util';
 import bcrypt from 'bcryptjs';
-import fs from 'fs';
 import path from 'path';
 
 const execAsync = promisify(exec);
@@ -20,6 +19,8 @@ export async function GET(request: Request) {
     }
 
     logs.push('Starting seed process...');
+    logs.push(`DATABASE_URL: ${process.env.DATABASE_URL}`);
+    logs.push(`Working directory: ${process.cwd()}`);
     
     // Dynamic import of Prisma to catch errors
     let db: any;
@@ -43,26 +44,32 @@ export async function GET(request: Request) {
       errors: [] as string[],
     };
 
+    // Try to push database schema using local prisma
+    try {
+      logs.push('Attempting to push database schema...');
+      const prismaBinPath = path.join(process.cwd(), 'node_modules', '.bin', 'prisma');
+      logs.push(`Prisma binary path: ${prismaBinPath}`);
+      
+      const { stdout, stderr } = await execAsync(
+        `node ${prismaBinPath} db push --skip-generate --accept-data-loss 2>&1`,
+        { 
+          cwd: process.cwd(),
+          env: { ...process.env, DATABASE_URL: process.env.DATABASE_URL }
+        }
+      );
+      logs.push(`Schema push output: ${stdout}`);
+      if (stderr) logs.push(`Schema push stderr: ${stderr}`);
+    } catch (e) {
+      logs.push(`Schema push attempt: ${e instanceof Error ? e.message : String(e)}`);
+      // Continue anyway - database might already exist
+    }
+
     // Test database connection
     try {
       await db.$connect();
       logs.push('Database connected successfully');
     } catch (e) {
       logs.push(`Database connection failed: ${e instanceof Error ? e.message : String(e)}`);
-      
-      // Try to push schema
-      try {
-        logs.push('Attempting to push database schema...');
-        const { stdout, stderr } = await execAsync('npx prisma db push --skip-generate 2>&1 || true');
-        logs.push(`Schema push output: ${stdout}`);
-        if (stderr) logs.push(`Schema push stderr: ${stderr}`);
-        
-        // Try connecting again
-        await db.$connect();
-        logs.push('Database connected after schema push');
-      } catch (e2) {
-        logs.push(`Schema push failed: ${e2 instanceof Error ? e2.message : String(e2)}`);
-      }
     }
 
     // Check if users table exists and has users

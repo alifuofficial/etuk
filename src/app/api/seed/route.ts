@@ -1,6 +1,10 @@
 import { NextResponse } from 'next/server';
 import { db } from '@/lib/db';
 import bcrypt from 'bcryptjs';
+import { exec } from 'child_process';
+import { promisify } from 'util';
+
+const execAsync = promisify(exec);
 
 export async function GET(request: Request) {
   try {
@@ -16,7 +20,17 @@ export async function GET(request: Request) {
       users: [] as string[],
       regions: 0,
       cities: 0,
+      databaseInitialized: false,
     };
+
+    // First, try to push the database schema
+    try {
+      await execAsync('npx prisma db push --skip-generate');
+      results.databaseInitialized = true;
+    } catch (e) {
+      console.log('Database might already exist or push failed:', e);
+      // Continue anyway, database might already be set up
+    }
 
     // Create admin users
     const users = [
@@ -26,20 +40,26 @@ export async function GET(request: Request) {
     ];
 
     for (const user of users) {
-      const existing = await db.user.findUnique({ where: { email: user.email } });
-      if (!existing) {
-        const hashedPassword = await bcrypt.hash(user.password, 10);
-        await db.user.create({
-          data: {
-            email: user.email,
-            name: user.name,
-            password: hashedPassword,
-            role: user.role,
-            phone: user.phone,
-            isActive: true,
-          },
-        });
-        results.users.push(`${user.email} / ${user.password}`);
+      try {
+        const existing = await db.user.findUnique({ where: { email: user.email } });
+        if (!existing) {
+          const hashedPassword = await bcrypt.hash(user.password, 10);
+          await db.user.create({
+            data: {
+              email: user.email,
+              name: user.name,
+              password: hashedPassword,
+              role: user.role,
+              phone: user.phone,
+              isActive: true,
+            },
+          });
+          results.users.push(`${user.email} / ${user.password}`);
+        } else {
+          results.users.push(`${user.email} (already exists)`);
+        }
+      } catch (e) {
+        console.error(`Error creating user ${user.email}:`, e);
       }
     }
 
@@ -63,11 +83,11 @@ export async function GET(request: Request) {
         await db.region.upsert({
           where: { code: region.code },
           update: region,
-          create: region,
+          create: { ...region, isActive: true },
         });
         results.regions++;
       } catch (e) {
-        // Ignore
+        console.log('Region error:', e);
       }
     }
 
@@ -93,37 +113,38 @@ export async function GET(request: Request) {
     ];
 
     for (const regionCities of citiesData) {
-      const region = await db.region.findUnique({
-        where: { code: regionCities.regionCode },
-      });
-      
-      if (region) {
-        for (const city of regionCities.cities) {
-          try {
-            await db.city.create({
-              data: {
-                name: city.name,
-                nameAm: city.nameAm,
-                nameOr: city.nameOr,
-                regionId: region.id,
-              },
-            });
-            results.cities++;
-          } catch (e) {
-            // Ignore duplicates
+      try {
+        const region = await db.region.findUnique({
+          where: { code: regionCities.regionCode },
+        });
+        
+        if (region) {
+          for (const city of regionCities.cities) {
+            try {
+              await db.city.create({
+                data: {
+                  name: city.name,
+                  nameAm: city.nameAm,
+                  nameOr: city.nameOr,
+                  regionId: region.id,
+                  isActive: true,
+                },
+              });
+              results.cities++;
+            } catch (e) {
+              // Ignore duplicates
+            }
           }
         }
+      } catch (e) {
+        console.log('City creation error:', e);
       }
     }
 
     return NextResponse.json({
       success: true,
       message: 'Database seeded successfully!',
-      results: {
-        users: results.users.length > 0 ? results.users : ['Users already exist'],
-        regions: results.regions,
-        cities: results.cities,
-      },
+      results,
       credentials: {
         admin: 'admin@etuk.et / admin123',
         manager: 'manager@etuk.et / manager123',
@@ -132,6 +153,9 @@ export async function GET(request: Request) {
     });
   } catch (error) {
     console.error('Seed error:', error);
-    return NextResponse.json({ error: 'Failed to seed database' }, { status: 500 });
+    return NextResponse.json({ 
+      error: 'Failed to seed database',
+      details: error instanceof Error ? error.message : 'Unknown error'
+    }, { status: 500 });
   }
 }

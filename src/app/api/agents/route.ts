@@ -1,5 +1,8 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { db } from '@/lib/db';
+import { writeFile, mkdir } from 'node:fs/promises';
+import { join } from 'node:path';
+import { v4 as uuidv4 } from 'uuid';
 
 // GET - List all agents
 export async function GET(request: NextRequest) {
@@ -47,7 +50,37 @@ export async function GET(request: NextRequest) {
 // POST - Create new agent application
 export async function POST(request: NextRequest) {
   try {
-    const data = await request.json();
+    const formData = await request.formData();
+    
+    // Extract text fields
+    const data: Record<string, any> = {};
+    formData.forEach((value, key) => {
+      if (typeof value === 'string') {
+        data[key] = value;
+      }
+    });
+
+    // Handle file upload
+    let tradeLicensePath: string | null = null;
+    const file = formData.get('tradeLicense') as File | null;
+    
+    if (file) {
+      const bytes = await file.arrayBuffer();
+      const buffer = Buffer.from(bytes);
+
+      // Create unique filename
+      const extension = file.name.split('.').pop();
+      const filename = `${uuidv4()}.${extension}`;
+      const uploadDir = join(process.cwd(), 'public/uploads/agents');
+      
+      // Ensure directory exists
+      await mkdir(uploadDir, { recursive: true });
+      
+      const path = join(uploadDir, filename);
+      await writeFile(path, buffer);
+      
+      tradeLicensePath = `/uploads/agents/${filename}`;
+    }
     
     const agent = await db.agent.create({
       data: {
@@ -64,14 +97,14 @@ export async function POST(request: NextRequest) {
         woreda: data.woreda || null,
         kebele: data.kebele || null,
         address: data.address || null,
-        hasWarehouse: data.hasWarehouse || false,
+        hasWarehouse: data.hasWarehouse === 'true',
         warehouseSize: data.warehouseSize || null,
         existingBrands: data.existingBrands || null,
-        staffCount: data.staffCount || null,
+        staffCount: data.staffCount ? parseInt(data.staffCount) : null,
         estimatedCapital: data.estimatedCapital || null,
         bankName: data.bankName || null,
         accountNumber: data.accountNumber || null,
-        tradeLicense: data.tradeLicense || null,
+        tradeLicense: tradeLicensePath,
         idDocument: data.idDocument || null,
         tinNumber: data.tinNumber || null,
         message: data.message || null,

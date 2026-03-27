@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from 'react';
 import { Button } from '@/components/ui/button';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Card, CardContent } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
@@ -14,27 +14,25 @@ import {
   SelectValue,
 } from '@/components/ui/select';
 import { Checkbox } from '@/components/ui/checkbox';
-import { Badge } from '@/components/ui/badge';
 import { toast } from '@/hooks/use-toast';
-import {
-  Zap,
-  User,
-  Building2,
-  MapPin,
-  Warehouse,
-  FileText,
-  CheckCircle,
-  Loader2,
-  Shield,
-  TrendingUp,
-  Users,
-  HeadphonesIcon,
-  ChevronLeft,
-  ChevronRight,
+import { 
+  Zap, 
+  User, 
+  Building2, 
+  MapPin, 
+  FileText, 
+  CheckCircle, 
+  Loader2, 
+  Shield, 
+  TrendingUp, 
+  Users, 
+  HeadphonesIcon, 
+  ChevronLeft 
 } from 'lucide-react';
 import { useI18n } from '@/lib/i18n/useI18n';
-import { Locale, localeNames, localeFlags } from '@/lib/i18n/config';
 import Link from 'next/link';
+import Header from '@/components/public/Header';
+import Footer from '@/components/public/Footer';
 
 interface Region {
   id: string;
@@ -52,35 +50,18 @@ interface City {
 }
 
 const benefits = [
-  {
-    icon: Shield,
-    title: 'Exclusive Territory',
-    desc: 'Protected sales territory in your region',
-  },
-  {
-    icon: TrendingUp,
-    title: 'High Margins',
-    desc: 'Competitive commission structure',
-  },
-  {
-    icon: Users,
-    title: 'Full Training',
-    desc: 'Complete product & sales training',
-  },
-  {
-    icon: HeadphonesIcon,
-    title: '24/7 Support',
-    desc: 'Dedicated support team',
-  },
+  { icon: Shield, title: 'agent.benefits.territory', desc: 'agent.benefits.territoryDesc' },
+  { icon: TrendingUp, title: 'agent.benefits.margins', desc: 'agent.benefits.marginsDesc' },
+  { icon: Users, title: 'agent.benefits.training', desc: 'agent.benefits.trainingDesc' },
+  { icon: HeadphonesIcon, title: 'agent.benefits.support', desc: 'agent.benefits.supportDesc' },
 ];
 
 export default function BecomeAgentPage() {
-  const { locale, setLocale, t } = useI18n();
+  const { locale, t } = useI18n();
   const [regions, setRegions] = useState<Region[]>([]);
   const [loading, setLoading] = useState(false);
   const [submitted, setSubmitted] = useState(false);
   const [selectedRegion, setSelectedRegion] = useState<string>('');
-  const [step, setStep] = useState(1);
 
   const [formData, setFormData] = useState({
     firstName: '',
@@ -107,6 +88,7 @@ export default function BecomeAgentPage() {
     message: '',
     howDidYouHear: '',
   });
+  const [tradeLicenseFile, setTradeLicenseFile] = useState<File | null>(null);
 
   useEffect(() => {
     fetchRegions();
@@ -127,24 +109,29 @@ export default function BecomeAgentPage() {
     setLoading(true);
 
     try {
+      const submissionData = new FormData();
+      Object.entries(formData).forEach(([key, value]) => {
+        submissionData.append(key, value.toString());
+      });
+      if (tradeLicenseFile) {
+        submissionData.append('tradeLicense', tradeLicenseFile);
+      }
+
       const response = await fetch('/api/agents', {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(formData),
+        body: submissionData,
       });
 
       if (response.ok) {
         setSubmitted(true);
-        toast({
-          title: t('agent.form.success'),
-          description: 'We will contact you soon.',
-        });
+        window.scrollTo({ top: 0, behavior: 'smooth' });
       } else {
         throw new Error('Failed to submit');
       }
     } catch {
       toast({
-        title: t('agent.form.error'),
+        title: 'Submission Error',
+        description: 'Please try again or contact support.',
         variant: 'destructive',
       });
     } finally {
@@ -164,588 +151,311 @@ export default function BecomeAgentPage() {
     return city.name;
   };
 
-  const nextStep = () => setStep((s) => Math.min(s + 1, 4));
-  const prevStep = () => setStep((s) => Math.max(s - 1, 1));
-
   if (submitted) {
     return (
-      <div className="min-h-screen bg-black flex items-center justify-center p-4 relative overflow-hidden">
-        {/* Background Effects */}
-        <div className="absolute inset-0">
-          <div className="absolute top-1/4 left-1/4 w-96 h-96 bg-cyan-500/10 rounded-full blur-[100px]" />
-          <div className="absolute bottom-1/4 right-1/4 w-96 h-96 bg-green-500/10 rounded-full blur-[100px]" />
+      <div className="min-h-screen bg-white">
+        <Header />
+        <div className="flex flex-col items-center justify-center min-h-[70vh] p-6 text-center">
+          <div className="w-16 h-16 bg-blue-50 rounded-full flex items-center justify-center mb-6">
+            <CheckCircle className="w-8 h-8 text-deepSkyBlue" />
+          </div>
+          <h2 className="text-3xl font-bold text-gray-900 mb-2">{t('agent.form.successTitle')}</h2>
+          <p className="text-gray-500 max-w-sm mb-8">
+            {t('agent.form.successMessage')}
+          </p>
+          <div className="flex gap-4">
+            <Link href="/">
+               <Button variant="outline">{t('agent.form.backHome')}</Button>
+            </Link>
+            <Button onClick={() => setSubmitted(false)} className="bg-gray-900 hover:bg-black text-white font-bold">
+               {t('agent.form.sendAnother')}
+            </Button>
+          </div>
         </div>
-
-        <Card className="relative z-10 max-w-lg w-full bg-gray-900/50 border-gray-800 backdrop-blur-xl">
-          <CardContent className="p-12 text-center">
-            <div className="w-24 h-24 bg-gradient-to-br from-green-400 to-emerald-500 rounded-full flex items-center justify-center mx-auto mb-6 shadow-lg shadow-green-500/30">
-              <CheckCircle className="w-12 h-12 text-white" />
-            </div>
-            <h2 className="text-3xl font-bold text-white mb-4">
-              Application Submitted!
-            </h2>
-            <p className="text-gray-400 mb-8">
-              Thank you for your interest in becoming an ETUK agent. 
-              Our team will review your application and contact you within 2-3 business days.
-            </p>
-            <div className="flex flex-col sm:flex-row gap-4 justify-center">
-              <Link href="/">
-                <Button variant="outline" className="border-gray-700 text-gray-300">
-                  Back to Home
-                </Button>
-              </Link>
-              <Button
-                onClick={() => {
-                  setSubmitted(false);
-                  setStep(1);
-                  setFormData({
-                    firstName: '', lastName: '', email: '', phone: '', alternativePhone: '',
-                    businessName: '', businessType: '', experience: '', region: '', city: '',
-                    woreda: '', kebele: '', address: '', hasWarehouse: false, warehouseSize: '',
-                    existingBrands: '', staffCount: '', estimatedCapital: '', bankName: '',
-                    accountNumber: '', tinNumber: '', message: '', howDidYouHear: '',
-                  });
-                }}
-                className="bg-gradient-to-r from-cyan-500 to-blue-600 text-white"
-              >
-                Submit Another Application
-              </Button>
-            </div>
-          </CardContent>
-        </Card>
+        <Footer />
       </div>
     );
   }
 
   return (
-    <div className="min-h-screen bg-black relative overflow-hidden">
-      {/* Background Effects */}
-      <div className="absolute inset-0">
-        <div className="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-transparent via-cyan-500 to-transparent" />
-        <div className="absolute top-1/4 left-0 w-96 h-96 bg-cyan-500/5 rounded-full blur-[100px]" />
-        <div className="absolute bottom-1/4 right-0 w-96 h-96 bg-blue-500/5 rounded-full blur-[100px]" />
-        <div 
-          className="absolute inset-0 opacity-5"
-          style={{
-            backgroundImage: `linear-gradient(rgba(0,255,255,0.1) 1px, transparent 1px), linear-gradient(90deg, rgba(0,255,255,0.1) 1px, transparent 1px)`,
-            backgroundSize: '50px 50px',
-          }}
-        />
+    <div className="min-h-screen bg-slate-50 text-gray-900 font-sans relative overflow-hidden">
+      {/* Brand Watermark */}
+      <div className="fixed -bottom-24 -right-24 w-96 h-96 opacity-[0.03] pointer-events-none z-0 rotate-12">
+        <img src="/images/soreti-logo.png" alt="" className="w-full h-full object-contain grayscale" />
+      </div>
+      <div className="fixed -top-24 -left-24 w-64 h-64 opacity-[0.02] pointer-events-none z-0 -rotate-12">
+        <img src="/images/soreti-logo.png" alt="" className="w-full h-full object-contain grayscale" />
       </div>
 
-      {/* Header */}
-      <header className="relative z-20 border-b border-gray-800 bg-black/50 backdrop-blur-xl">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="flex items-center justify-between h-16">
-            {/* Logo */}
-            <Link href="/" className="flex items-center gap-3">
-              <div className="relative">
-                <div className="absolute inset-0 bg-cyan-400 blur-lg opacity-30" />
-                <div className="relative w-10 h-10 bg-gradient-to-br from-cyan-400 to-blue-600 rounded-xl flex items-center justify-center border border-cyan-400/50">
-                  <Zap className="w-5 h-5 text-white" />
-                </div>
-              </div>
-              <span className="font-black text-xl text-white">ETUK</span>
-            </Link>
-
-            <div className="flex items-center gap-4">
-              {/* Language Selector */}
-              <div className="flex items-center gap-2">
-                {(['en', 'am', 'or'] as Locale[]).map((lang) => (
-                  <button
-                    key={lang}
-                    onClick={() => setLocale(lang)}
-                    className={`px-3 py-1.5 rounded-lg text-sm font-medium transition-all ${
-                      locale === lang
-                        ? 'bg-cyan-500/20 text-cyan-400 border border-cyan-500/50'
-                        : 'text-gray-400 hover:text-white'
-                    }`}
-                  >
-                    {localeFlags[lang]} {localeNames[lang]}
-                  </button>
-                ))}
-              </div>
-            </div>
-          </div>
-        </div>
-      </header>
-
-      {/* Main Content */}
-      <main className="relative z-10 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
-        {/* Hero Section */}
+      <Header />
+      
+      <main className="max-w-4xl mx-auto px-4 py-12 pt-32 relative z-10">
+        {/* Simple Hero */}
         <div className="text-center mb-12">
-          <Badge className="bg-cyan-500/20 text-cyan-400 border-cyan-500/30 mb-4">
-            <Zap className="w-3 h-3 mr-1" />
-            Business Opportunity
-          </Badge>
-          <h1 className="text-4xl sm:text-5xl font-black text-white mb-4">
-            Become an
-            <span className="block bg-gradient-to-r from-cyan-400 to-blue-400 bg-clip-text text-transparent">
-              ETUK Agent
-            </span>
-          </h1>
-          <p className="text-lg text-gray-400 max-w-2xl mx-auto">
-            Join Ethiopia's leading electric 3-wheeler network. Get exclusive territorial rights, 
-            competitive commissions, and full training support.
+          <div className="flex justify-center mb-6">
+            <img 
+              src="/images/soreti-logo.png" 
+              alt="Soreti Logo" 
+              className="h-20 w-auto object-contain drop-shadow-sm" 
+            />
+          </div>
+          <h1 className="text-4xl font-bold tracking-tight text-gray-900 mb-4">{t('agent.form.heroTitle')}</h1>
+          <p className="text-gray-500 max-w-lg mx-auto">
+            {t('agent.form.heroDesc')}
           </p>
         </div>
 
-        <div className="grid lg:grid-cols-3 gap-8">
-          {/* Benefits Sidebar */}
-          <div className="lg:col-span-1 order-2 lg:order-1">
-            <div className="sticky top-24 space-y-6">
-              {/* Benefits Card */}
-              <Card className="bg-gray-900/50 border-gray-800 backdrop-blur">
-                <CardHeader className="border-b border-gray-800">
-                  <CardTitle className="text-white">Why Join ETUK?</CardTitle>
-                </CardHeader>
-                <CardContent className="p-6 space-y-4">
-                  {benefits.map((benefit, i) => (
-                    <div key={i} className="flex items-start gap-3">
-                      <div className="w-10 h-10 bg-cyan-500/10 rounded-lg flex items-center justify-center flex-shrink-0">
-                        <benefit.icon className="w-5 h-5 text-cyan-400" />
-                      </div>
-                      <div>
-                        <h4 className="font-medium text-white">{benefit.title}</h4>
-                        <p className="text-sm text-gray-400">{benefit.desc}</p>
-                      </div>
-                    </div>
-                  ))}
-                </CardContent>
-              </Card>
-
-              {/* Stats Card */}
-              <Card className="bg-gradient-to-br from-cyan-500/10 to-blue-500/10 border-cyan-500/20">
-                <CardContent className="p-6">
-                  <div className="grid grid-cols-2 gap-4 text-center">
-                    <div>
-                      <div className="text-3xl font-bold text-white">11</div>
-                      <div className="text-sm text-gray-400">Regions</div>
-                    </div>
-                    <div>
-                      <div className="text-3xl font-bold text-white">50+</div>
-                      <div className="text-sm text-gray-400">Cities</div>
-                    </div>
-                  </div>
-                </CardContent>
-              </Card>
+        {/* Benefits Grid */}
+        <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-12">
+          {benefits.map((benefit, i) => (
+            <div key={i} className="bg-white p-4 rounded-xl border border-gray-100 text-center shadow-sm">
+              <benefit.icon className="w-5 h-5 text-deepSkyBlue mx-auto mb-2" />
+              <h4 className="text-xs font-bold text-gray-900">{t(benefit.title)}</h4>
+              <p className="text-[10px] text-gray-400 mt-1">{t(benefit.desc)}</p>
             </div>
-          </div>
+          ))}
+        </div>
 
-          {/* Application Form */}
-          <div className="lg:col-span-2 order-1 lg:order-2">
-            <Card className="bg-gray-900/50 border-gray-800 backdrop-blur">
-              {/* Progress Steps */}
-              <div className="border-b border-gray-800 p-6">
-                <div className="flex items-center justify-between">
-                  {[
-                    { num: 1, label: 'Personal' },
-                    { num: 2, label: 'Business' },
-                    { num: 3, label: 'Location' },
-                    { num: 4, label: 'Additional' },
-                  ].map((s, i) => (
-                    <div key={i} className="flex items-center">
-                      <div className="flex flex-col items-center">
-                        <div
-                          className={`w-10 h-10 rounded-full flex items-center justify-center font-bold transition-all ${
-                            step >= s.num
-                              ? 'bg-gradient-to-r from-cyan-500 to-blue-600 text-white'
-                              : 'bg-gray-800 text-gray-500'
-                          }`}
-                        >
-                          {step > s.num ? <CheckCircle className="w-5 h-5" /> : s.num}
-                        </div>
-                        <span className={`text-xs mt-2 ${step >= s.num ? 'text-cyan-400' : 'text-gray-500'}`}>
-                          {s.label}
-                        </span>
-                      </div>
-                      {i < 3 && (
-                        <div
-                          className={`w-12 lg:w-20 h-0.5 mx-2 ${
-                            step > s.num ? 'bg-cyan-500' : 'bg-gray-800'
-                          }`}
-                        />
-                      )}
-                    </div>
-                  ))}
+        {/* Unified Application Form */}
+        <form onSubmit={handleSubmit} className="space-y-8">
+          {/* Section 1: Identity */}
+          <SectionCard title={t('agent.form.personal')} icon={<User className="w-5 h-5 text-blue-500" />}>
+            <div className="grid sm:grid-cols-2 gap-6">
+              <div className="space-y-1.5">
+                <Label className="text-xs font-bold text-gray-400">{t('agent.form.firstName')}</Label>
+                <Input
+                  value={formData.firstName}
+                  onChange={(e) => setFormData({ ...formData, firstName: e.target.value })}
+                  className="bg-gray-50"
+                  required
+                />
+              </div>
+              <div className="space-y-1.5">
+                <Label className="text-xs font-bold text-gray-400">{t('agent.form.lastName')}</Label>
+                <Input
+                  value={formData.lastName}
+                  onChange={(e) => setFormData({ ...formData, lastName: e.target.value })}
+                  className="bg-gray-50"
+                  required
+                />
+              </div>
+              <div className="space-y-1.5">
+                <Label className="text-xs font-bold text-gray-400">{t('agent.form.email')}</Label>
+                <Input
+                  type="email"
+                  value={formData.email}
+                  onChange={(e) => setFormData({ ...formData, email: e.target.value })}
+                  className="bg-gray-50"
+                  required
+                />
+              </div>
+              <div className="space-y-1.5">
+                <Label className="text-xs font-bold text-gray-400">{t('agent.form.phone')}</Label>
+                <Input
+                  value={formData.phone}
+                  onChange={(e) => setFormData({ ...formData, phone: e.target.value })}
+                  className="bg-gray-50"
+                  placeholder="+251 ..."
+                  required
+                />
+              </div>
+            </div>
+          </SectionCard>
+
+          {/* Section 2: Business & Legal */}
+          <SectionCard title={t('agent.form.business')} icon={<Building2 className="w-5 h-5 text-slate-500" />}>
+            <div className="grid sm:grid-cols-2 gap-6">
+              <div className="space-y-1.5">
+                <Label className="text-xs font-bold text-gray-400">{t('agent.form.businessName')}</Label>
+                <Input
+                  value={formData.businessName}
+                  onChange={(e) => setFormData({ ...formData, businessName: e.target.value })}
+                  className="bg-gray-50"
+                  placeholder="Optional"
+                />
+              </div>
+              <div className="space-y-1.5">
+                <Label className="text-xs font-bold text-gray-400">{t('agent.form.tinNumber')}</Label>
+                <Input
+                  value={formData.tinNumber}
+                  onChange={(e) => setFormData({ ...formData, tinNumber: e.target.value })}
+                  className="bg-gray-50"
+                  placeholder={t('agent.form.tinPlaceholder')}
+                />
+              </div>
+              <div className="space-y-1.5">
+                <Label className="text-xs font-bold text-gray-400">{t('agent.form.businessType')}</Label>
+                <Select value={formData.businessType} onValueChange={(v) => setFormData({ ...formData, businessType: v })}>
+                  <SelectTrigger className="bg-gray-50 h-11">
+                    <SelectValue placeholder={t('agent.form.selectType')} />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="individual">{t('agent.form.individual')}</SelectItem>
+                    <SelectItem value="company">{t('agent.form.company')}</SelectItem>
+                    <SelectItem value="partnership">{t('agent.form.partnership')}</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+              <div className="space-y-1.5 sm:col-span-2">
+                <Label className="text-xs font-bold text-gray-400">{t('agent.form.experience')}</Label>
+                <Textarea
+                  value={formData.experience}
+                  onChange={(e) => setFormData({ ...formData, experience: e.target.value })}
+                  className="bg-gray-50 min-h-[80px]"
+                  placeholder={t('agent.form.experiencePlaceholder')}
+                  required
+                />
+              </div>
+              <div className="space-y-1.5">
+                <Label className="text-xs font-bold text-gray-400">{t('agent.form.licenseLabel')}</Label>
+                <div className="flex flex-col gap-2">
+                  <Input
+                    type="file"
+                    accept="image/*,.pdf"
+                    onChange={(e) => {
+                      const file = e.target.files?.[0];
+                      if (file) setTradeLicenseFile(file);
+                    }}
+                    className="bg-gray-50 h-11 file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-xs file:font-semibold file:bg-blue-50 file:text-blue-700 hover:file:bg-blue-100 cursor-pointer"
+                  />
+                  {tradeLicenseFile && (
+                    <p className="text-[10px] text-green-600 font-bold ml-1 flex items-center gap-1">
+                      <CheckCircle className="w-3 h-3" />
+                      {tradeLicenseFile.name} {t('agent.form.uploadSuccess')}
+                    </p>
+                  )}
                 </div>
               </div>
+              <div className="sm:col-span-2 py-2 flex items-center gap-3">
+                 <Checkbox 
+                  id="hasWarehouse" 
+                  checked={formData.hasWarehouse} 
+                  onCheckedChange={(c) => setFormData({...formData, hasWarehouse: c as boolean})}
+                 />
+                 <Label htmlFor="hasWarehouse" className="text-sm font-medium cursor-pointer">{t('agent.form.warehouseLabel')}</Label>
+              </div>
+            </div>
+          </SectionCard>
 
-              <form onSubmit={handleSubmit}>
-                <CardContent className="p-6 space-y-6">
-                  {/* Step 1: Personal Info */}
-                  {step === 1 && (
-                    <div className="space-y-4">
-                      <h3 className="flex items-center gap-2 text-lg font-semibold text-white">
-                        <User className="w-5 h-5 text-cyan-400" />
-                        Personal Information
-                      </h3>
-                      <div className="grid sm:grid-cols-2 gap-4">
-                        <div>
-                          <Label htmlFor="firstName" className="text-gray-300">First Name *</Label>
-                          <Input
-                            id="firstName"
-                            value={formData.firstName}
-                            onChange={(e) => setFormData({ ...formData, firstName: e.target.value })}
-                            className="bg-gray-800/50 border-gray-700 text-white focus:border-cyan-500"
-                            required
-                          />
-                        </div>
-                        <div>
-                          <Label htmlFor="lastName" className="text-gray-300">Last Name *</Label>
-                          <Input
-                            id="lastName"
-                            value={formData.lastName}
-                            onChange={(e) => setFormData({ ...formData, lastName: e.target.value })}
-                            className="bg-gray-800/50 border-gray-700 text-white focus:border-cyan-500"
-                            required
-                          />
-                        </div>
-                        <div>
-                          <Label htmlFor="email" className="text-gray-300">Email *</Label>
-                          <Input
-                            id="email"
-                            type="email"
-                            value={formData.email}
-                            onChange={(e) => setFormData({ ...formData, email: e.target.value })}
-                            className="bg-gray-800/50 border-gray-700 text-white focus:border-cyan-500"
-                            required
-                          />
-                        </div>
-                        <div>
-                          <Label htmlFor="phone" className="text-gray-300">Phone *</Label>
-                          <Input
-                            id="phone"
-                            value={formData.phone}
-                            onChange={(e) => setFormData({ ...formData, phone: e.target.value })}
-                            className="bg-gray-800/50 border-gray-700 text-white focus:border-cyan-500"
-                            placeholder="+251 ..."
-                            required
-                          />
-                        </div>
-                        <div className="sm:col-span-2">
-                          <Label htmlFor="altPhone" className="text-gray-300">Alternative Phone</Label>
-                          <Input
-                            id="altPhone"
-                            value={formData.alternativePhone}
-                            onChange={(e) => setFormData({ ...formData, alternativePhone: e.target.value })}
-                            className="bg-gray-800/50 border-gray-700 text-white focus:border-cyan-500"
-                          />
-                        </div>
-                      </div>
-                    </div>
-                  )}
+          {/* Section 3: Location */}
+          <SectionCard title={t('agent.form.location')} icon={<MapPin className="w-5 h-5 text-red-500" />}>
+            <div className="grid sm:grid-cols-2 gap-6">
+              <div className="space-y-1.5">
+                <Label className="text-xs font-bold text-gray-400">{t('agent.form.region')}</Label>
+                <Select value={selectedRegion} onValueChange={(v) => { setSelectedRegion(v); setFormData({ ...formData, region: v, city: '' }); }}>
+                  <SelectTrigger className="bg-gray-50">
+                    <SelectValue placeholder={t('agent.form.selectRegion')} />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {regions.map((region) => (
+                      <SelectItem key={region.id} value={region.name}>{getRegionName(region)}</SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+              <div className="space-y-1.5">
+                <Label className="text-xs font-bold text-gray-400">{t('agent.form.city')}</Label>
+                <Select value={formData.city} onValueChange={(v) => setFormData({ ...formData, city: v })} disabled={!selectedRegion}>
+                  <SelectTrigger className="bg-gray-50">
+                    <SelectValue placeholder={t('agent.form.selectCity')} />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {regions.find((r) => r.name === selectedRegion)?.cities.map((city) => (
+                      <SelectItem key={city.id} value={city.name}>{getCityName(city)}</SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+              <div className="sm:col-span-2 space-y-1.5">
+                <Label className="text-xs font-bold text-gray-400">{t('agent.form.address')}</Label>
+                <Input
+                  value={formData.address}
+                  onChange={(e) => setFormData({ ...formData, address: e.target.value })}
+                  className="bg-gray-50"
+                  placeholder={t('agent.form.addressPlaceholder')}
+                />
+              </div>
+            </div>
+          </SectionCard>
 
-                  {/* Step 2: Business Info */}
-                  {step === 2 && (
-                    <div className="space-y-4">
-                      <h3 className="flex items-center gap-2 text-lg font-semibold text-white">
-                        <Building2 className="w-5 h-5 text-cyan-400" />
-                        Business Information
-                      </h3>
-                      <div className="grid sm:grid-cols-2 gap-4">
-                        <div>
-                          <Label htmlFor="businessName" className="text-gray-300">Business Name</Label>
-                          <Input
-                            id="businessName"
-                            value={formData.businessName}
-                            onChange={(e) => setFormData({ ...formData, businessName: e.target.value })}
-                            className="bg-gray-800/50 border-gray-700 text-white focus:border-cyan-500"
-                          />
-                        </div>
-                        <div>
-                          <Label htmlFor="businessType" className="text-gray-300">Business Type</Label>
-                          <Select
-                            value={formData.businessType}
-                            onValueChange={(value) => setFormData({ ...formData, businessType: value })}
-                          >
-                            <SelectTrigger className="bg-gray-800/50 border-gray-700 text-white">
-                              <SelectValue placeholder="Select type" />
-                            </SelectTrigger>
-                            <SelectContent className="bg-gray-800 border-gray-700">
-                              <SelectItem value="individual" className="text-white hover:bg-gray-700">Individual</SelectItem>
-                              <SelectItem value="company" className="text-white hover:bg-gray-700">Company</SelectItem>
-                              <SelectItem value="partnership" className="text-white hover:bg-gray-700">Partnership</SelectItem>
-                            </SelectContent>
-                          </Select>
-                        </div>
-                        <div>
-                          <Label htmlFor="experience" className="text-gray-300">Years of Experience</Label>
-                          <Input
-                            id="experience"
-                            value={formData.experience}
-                            onChange={(e) => setFormData({ ...formData, experience: e.target.value })}
-                            className="bg-gray-800/50 border-gray-700 text-white focus:border-cyan-500"
-                            placeholder="e.g., 5 years"
-                          />
-                        </div>
-                        <div>
-                          <Label htmlFor="staffCount" className="text-gray-300">Number of Staff</Label>
-                          <Input
-                            id="staffCount"
-                            type="number"
-                            value={formData.staffCount}
-                            onChange={(e) => setFormData({ ...formData, staffCount: e.target.value })}
-                            className="bg-gray-800/50 border-gray-700 text-white focus:border-cyan-500"
-                          />
-                        </div>
-                        <div className="sm:col-span-2">
-                          <Label htmlFor="existingBrands" className="text-gray-300">Existing Brands You Deal With</Label>
-                          <Input
-                            id="existingBrands"
-                            value={formData.existingBrands}
-                            onChange={(e) => setFormData({ ...formData, existingBrands: e.target.value })}
-                            className="bg-gray-800/50 border-gray-700 text-white focus:border-cyan-500"
-                            placeholder="e.g., Bajaj, TVS, etc."
-                          />
-                        </div>
-                        <div className="sm:col-span-2">
-                          <div className="flex items-center space-x-2 py-4">
-                            <Checkbox
-                              id="hasWarehouse"
-                              checked={formData.hasWarehouse}
-                              onCheckedChange={(checked) =>
-                                setFormData({ ...formData, hasWarehouse: checked as boolean })
-                              }
-                              className="border-gray-600 data-[state=checked]:bg-cyan-500"
-                            />
-                            <Label htmlFor="hasWarehouse" className="text-gray-300">I have a warehouse/showroom</Label>
-                          </div>
-                          {formData.hasWarehouse && (
-                            <Input
-                              value={formData.warehouseSize}
-                              onChange={(e) => setFormData({ ...formData, warehouseSize: e.target.value })}
-                              className="bg-gray-800/50 border-gray-700 text-white focus:border-cyan-500"
-                              placeholder="Size in square meters"
-                            />
-                          )}
-                        </div>
-                      </div>
-                    </div>
-                  )}
-
-                  {/* Step 3: Location */}
-                  {step === 3 && (
-                    <div className="space-y-4">
-                      <h3 className="flex items-center gap-2 text-lg font-semibold text-white">
-                        <MapPin className="w-5 h-5 text-cyan-400" />
-                        Location Details
-                      </h3>
-                      <div className="grid sm:grid-cols-2 gap-4">
-                        <div>
-                          <Label className="text-gray-300">Region *</Label>
-                          <Select
-                            value={selectedRegion}
-                            onValueChange={(value) => {
-                              setSelectedRegion(value);
-                              setFormData({ ...formData, region: value, city: '' });
-                            }}
-                          >
-                            <SelectTrigger className="bg-gray-800/50 border-gray-700 text-white">
-                              <SelectValue placeholder="Select region" />
-                            </SelectTrigger>
-                            <SelectContent className="bg-gray-800 border-gray-700">
-                              {regions.map((region) => (
-                                <SelectItem key={region.id} value={region.name} className="text-white hover:bg-gray-700">
-                                  {getRegionName(region)}
-                                </SelectItem>
-                              ))}
-                            </SelectContent>
-                          </Select>
-                        </div>
-                        <div>
-                          <Label className="text-gray-300">City *</Label>
-                          <Select
-                            value={formData.city}
-                            onValueChange={(value) => setFormData({ ...formData, city: value })}
-                            disabled={!selectedRegion}
-                          >
-                            <SelectTrigger className="bg-gray-800/50 border-gray-700 text-white">
-                              <SelectValue placeholder="Select city" />
-                            </SelectTrigger>
-                            <SelectContent className="bg-gray-800 border-gray-700">
-                              {regions
-                                .find((r) => r.name === selectedRegion)
-                                ?.cities.map((city) => (
-                                  <SelectItem key={city.id} value={city.name} className="text-white hover:bg-gray-700">
-                                    {getCityName(city)}
-                                  </SelectItem>
-                                ))}
-                            </SelectContent>
-                          </Select>
-                        </div>
-                        <div>
-                          <Label htmlFor="woreda" className="text-gray-300">Woreda</Label>
-                          <Input
-                            id="woreda"
-                            value={formData.woreda}
-                            onChange={(e) => setFormData({ ...formData, woreda: e.target.value })}
-                            className="bg-gray-800/50 border-gray-700 text-white focus:border-cyan-500"
-                          />
-                        </div>
-                        <div>
-                          <Label htmlFor="kebele" className="text-gray-300">Kebele</Label>
-                          <Input
-                            id="kebele"
-                            value={formData.kebele}
-                            onChange={(e) => setFormData({ ...formData, kebele: e.target.value })}
-                            className="bg-gray-800/50 border-gray-700 text-white focus:border-cyan-500"
-                          />
-                        </div>
-                        <div className="sm:col-span-2">
-                          <Label htmlFor="address" className="text-gray-300">Full Address</Label>
-                          <Textarea
-                            id="address"
-                            value={formData.address}
-                            onChange={(e) => setFormData({ ...formData, address: e.target.value })}
-                            className="bg-gray-800/50 border-gray-700 text-white focus:border-cyan-500"
-                            rows={2}
-                          />
-                        </div>
-                      </div>
-                    </div>
-                  )}
-
-                  {/* Step 4: Additional Info */}
-                  {step === 4 && (
-                    <div className="space-y-4">
-                      <h3 className="flex items-center gap-2 text-lg font-semibold text-white">
-                        <FileText className="w-5 h-5 text-cyan-400" />
-                        Additional Information
-                      </h3>
-                      <div className="grid sm:grid-cols-2 gap-4">
-                        <div>
-                          <Label htmlFor="estimatedCapital" className="text-gray-300">Estimated Capital (ETB)</Label>
-                          <Input
-                            id="estimatedCapital"
-                            value={formData.estimatedCapital}
-                            onChange={(e) => setFormData({ ...formData, estimatedCapital: e.target.value })}
-                            className="bg-gray-800/50 border-gray-700 text-white focus:border-cyan-500"
-                            placeholder="e.g., 500,000"
-                          />
-                        </div>
-                        <div>
-                          <Label htmlFor="tinNumber" className="text-gray-300">TIN Number</Label>
-                          <Input
-                            id="tinNumber"
-                            value={formData.tinNumber}
-                            onChange={(e) => setFormData({ ...formData, tinNumber: e.target.value })}
-                            className="bg-gray-800/50 border-gray-700 text-white focus:border-cyan-500"
-                          />
-                        </div>
-                        <div>
-                          <Label htmlFor="bankName" className="text-gray-300">Bank Name</Label>
-                          <Input
-                            id="bankName"
-                            value={formData.bankName}
-                            onChange={(e) => setFormData({ ...formData, bankName: e.target.value })}
-                            className="bg-gray-800/50 border-gray-700 text-white focus:border-cyan-500"
-                          />
-                        </div>
-                        <div>
-                          <Label htmlFor="accountNumber" className="text-gray-300">Account Number</Label>
-                          <Input
-                            id="accountNumber"
-                            value={formData.accountNumber}
-                            onChange={(e) => setFormData({ ...formData, accountNumber: e.target.value })}
-                            className="bg-gray-800/50 border-gray-700 text-white focus:border-cyan-500"
-                          />
-                        </div>
-                        <div className="sm:col-span-2">
-                          <Label className="text-gray-300">How did you hear about us?</Label>
-                          <Select
-                            value={formData.howDidYouHear}
-                            onValueChange={(value) => setFormData({ ...formData, howDidYouHear: value })}
-                          >
-                            <SelectTrigger className="bg-gray-800/50 border-gray-700 text-white">
-                              <SelectValue placeholder="Select option" />
-                            </SelectTrigger>
-                            <SelectContent className="bg-gray-800 border-gray-700">
-                              <SelectItem value="social_media" className="text-white hover:bg-gray-700">Social Media</SelectItem>
-                              <SelectItem value="friend" className="text-white hover:bg-gray-700">Friend/Colleague</SelectItem>
-                              <SelectItem value="advertisement" className="text-white hover:bg-gray-700">Advertisement</SelectItem>
-                              <SelectItem value="website" className="text-white hover:bg-gray-700">Website</SelectItem>
-                              <SelectItem value="other" className="text-white hover:bg-gray-700">Other</SelectItem>
-                            </SelectContent>
-                          </Select>
-                        </div>
-                        <div className="sm:col-span-2">
-                          <Label htmlFor="message" className="text-gray-300">Additional Message</Label>
-                          <Textarea
-                            id="message"
-                            value={formData.message}
-                            onChange={(e) => setFormData({ ...formData, message: e.target.value })}
-                            className="bg-gray-800/50 border-gray-700 text-white focus:border-cyan-500"
-                            rows={4}
-                            placeholder="Tell us more about your business goals..."
-                          />
-                        </div>
-                      </div>
-                    </div>
-                  )}
-                </CardContent>
-
-                {/* Navigation Buttons */}
-                <div className="border-t border-gray-800 p-6 flex justify-between">
-                  <Button
-                    type="button"
-                    variant="outline"
-                    onClick={prevStep}
-                    disabled={step === 1}
-                    className="border-gray-700 text-gray-300 hover:text-white"
-                  >
-                    <ChevronLeft className="w-4 h-4 mr-2" />
-                    Previous
-                  </Button>
-                  
-                  {step < 4 ? (
-                    <Button
-                      type="button"
-                      onClick={nextStep}
-                      className="bg-gradient-to-r from-cyan-500 to-blue-600 text-white"
-                    >
-                      Next Step
-                      <ChevronRight className="w-4 h-4 ml-2" />
-                    </Button>
-                  ) : (
-                    <Button
-                      type="submit"
-                      disabled={loading}
-                      className="bg-gradient-to-r from-cyan-500 to-blue-600 text-white font-semibold px-8"
-                    >
-                      {loading ? (
-                        <>
-                          <Loader2 className="w-4 h-4 mr-2 animate-spin" />
-                          Submitting...
-                        </>
-                      ) : (
-                        <>
-                          <Zap className="w-4 h-4 mr-2" />
-                          Submit Application
-                        </>
-                      )}
-                    </Button>
-                  )}
+          {/* Section 4: Message */}
+          <SectionCard title={t('agent.form.additional')} icon={<FileText className="w-5 h-5 text-amber-500" />}>
+            <div className="space-y-6">
+              <div className="grid sm:grid-cols-2 gap-6">
+                <div className="space-y-1.5">
+                  <Label className="text-xs font-bold text-gray-400">{t('agent.form.capitalLabel')}</Label>
+                  <Input
+                    value={formData.estimatedCapital}
+                    onChange={(e) => setFormData({ ...formData, estimatedCapital: e.target.value })}
+                    className="bg-gray-50"
+                    placeholder={t('agent.form.capitalPlaceholder')}
+                  />
                 </div>
-              </form>
-            </Card>
+                <div className="space-y-1.5">
+                  <Label className="text-xs font-bold text-gray-400">{t('agent.form.howDidYouHear')}</Label>
+                  <Select value={formData.howDidYouHear} onValueChange={(v) => setFormData({ ...formData, howDidYouHear: v })}>
+                    <SelectTrigger className="bg-gray-50">
+                      <SelectValue placeholder={t('agent.form.selectSource')} />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="social_media">Social Media</SelectItem>
+                      <SelectItem value="friend">Friend/Referral</SelectItem>
+                      <SelectItem value="website">ETUK Website</SelectItem>
+                      <SelectItem value="other">Other</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
+              </div>
+              <div className="space-y-1.5">
+                <Label className="text-xs font-bold text-gray-400">{t('agent.form.statementLabel')}</Label>
+                <Textarea
+                  value={formData.message}
+                  onChange={(e) => setFormData({ ...formData, message: e.target.value })}
+                  className="bg-gray-50 min-h-[120px]"
+                  placeholder={t('agent.form.statementPlaceholder')}
+                />
+              </div>
+            </div>
+          </SectionCard>
+
+          {/* Submit Button */}
+          <div className="pt-4">
+            <Button
+              type="submit"
+              disabled={loading}
+              className="w-full h-14 bg-gray-900 hover:bg-black text-white font-bold text-lg rounded-xl shadow-lg shadow-gray-200 transition-all"
+            >
+              {loading ? (
+                <>
+                  <Loader2 className="w-5 h-5 mr-2 animate-spin" />
+                  {t('agent.form.submitting')}
+                </>
+              ) : (
+                t('agent.form.submit')
+              )}
+            </Button>
+            <p className="text-center text-[10px] text-gray-400 mt-4 uppercase tracking-widest font-bold">
+              {t('agent.form.privacy')}
+            </p>
           </div>
-        </div>
+        </form>
       </main>
 
-      {/* Footer */}
-      <footer className="relative z-10 border-t border-gray-800 mt-16">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-          <div className="flex flex-col md:flex-row items-center justify-between gap-4">
-            <div className="flex items-center gap-2 text-gray-500 text-sm">
-              © {new Date().getFullYear()} Soreti International Trading. All rights reserved.
-            </div>
-            <Link href="/" className="text-cyan-400 hover:text-cyan-300 text-sm">
-              ← Back to Home
-            </Link>
-          </div>
-        </div>
-      </footer>
+      <Footer />
     </div>
+  );
+}
+
+function SectionCard({ title, icon, children }: { title: string; icon: React.ReactNode; children: React.ReactNode }) {
+  return (
+    <Card className="bg-white border border-gray-200 rounded-2xl overflow-hidden shadow-sm">
+      <div className="bg-slate-50/50 px-6 py-4 border-b border-gray-100 flex items-center gap-3">
+        {icon}
+        <h3 className="text-lg font-bold text-gray-900 tracking-tight">{title}</h3>
+      </div>
+      <CardContent className="p-6 lg:p-8">
+        {children}
+      </CardContent>
+    </Card>
   );
 }

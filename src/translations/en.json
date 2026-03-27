@@ -6,18 +6,30 @@
     "about": "About Us",
     "contact": "Contact",
     "login": "Login",
-    "dashboard": "Dashboard"
+    "dashboard": "Dashboard",
+    "heritage": "Heritage",
+    "technology": "Technology",
+    "navigator": "Navigator"
   },
   "hero": {
+    "company": "Soreti International Trading",
+    "headOffice": "Head Office: Addis Ababa",
+    "assembly": "Assembled in Modjo, Ethiopia",
     "title": "Power Your Journey with ETUK",
     "subtitle": "Ethiopia's Premier Electric 3-Wheeler",
     "description": "Heavy-duty electric vehicles designed for African roads. Join our network of agents across Ethiopia and be part of the sustainable transportation revolution.",
     "cta": "Become an Agent",
-    "learnMore": "Learn More"
+    "learnMore": "Learn More",
+    "badge": "Ethiopia's EV Leader",
+    "titleTop": "ELECTRIC POWER FOR",
+    "titleBottom": "EVERYDAY HUSTLE.",
+    "motorTag": "4000W Electric Motor",
+    "chargeTag": "Fast Charging"
   },
   "features": {
     "title": "Why Choose ETUK?",
     "subtitle": "Built for Ethiopian roads, designed for Ethiopian drivers",
+    "heroTitle": "Get the best experience of our vehicle",
     "powerful": {
       "title": "Powerful Performance",
       "description": "4000W motor with 960 N.M torque for tough terrains"
@@ -39,9 +51,21 @@
       "description": "Zero emissions, lithium iron phosphate battery technology"
     },
     "spacious": {
-      "title": "Spacious Cabin",
-      "description": "Comfortable seating with long beam lights for safety"
-    }
+      "title": "Big & Spacious",
+      "description": "Comfortable seating with high load capacity (up to 750kg)"
+    },
+    "tech": {
+      "battery": "Lithium Iron Phosphate (7.6 kWh)",
+      "power": "4000W / 960 N.M Max Torque",
+      "load": "750 kg GVW",
+      "loadDesc": "High Load Capacity",
+      "sds": "Smart SDS Tech",
+      "sdsDesc": "Advanced Anti-Skid Braking",
+      "cabin": "Spacious Cabin Design",
+      "range": "Up to 180 KM Range",
+      "zeroEmission": "Zero Emission"
+    },
+    "registerNow": "Register Now"
   },
   "specs": {
     "title": "Technical Specifications",
@@ -49,7 +73,6 @@
     "engineType": "Engine Type",
     "motorPower": "Motor Power",
     "torque": "Max Torque",
-    "acceleration": "Acceleration",
     "driveType": "Drive Type",
     "performance": "Performance",
     "topSpeed": "Top Speed",
@@ -62,18 +85,60 @@
     "dimensions": "Dimensions",
     "dimension": "Dimension (MM)",
     "groundClearance": "Ground Clearance",
-    "weight": "Weight"
+    "weight": "Weight",
+    "payload": "Load Capacity",
+    "acceleration": "Acceleration (0-50 km/h)",
+    "warranty": "Warranty",
+    "warrantyVal": "3 Years*",
+    "batteryTypeVal": "LiFePO4 (7.6 kWh)",
+    "charging": "Charging",
+    "chargingVal": "≤ 6 Hours",
+    "loadCapacityVal": "Up to 750 kg"
+  },
+  "story": {
+    "badge": "Quality Engineering",
+    "showcase": {
+      "version": "Modjo Assembly V1.2",
+      "production": "Local Production",
+      "region": "Oromia, Ethiopia"
+    },
+    "title": "An Ethiopian Heritage of Modern Excellence",
+    "description": "Soreti International Trading is proud to lead the electric revolution at home. Our state-of-the-art assembly plant in Modjo combines global technology with local expertise to build vehicles that truly understand our terrain.",
+    "addis": {
+      "title": "Addis Ababa",
+      "desc": "Strategic Head Office handling nationwide logistics and agent support."
+    },
+    "modjo": {
+      "title": "Modjo Plant",
+      "desc": "High-capacity assembly line ensuring genuine parts and local servicing."
+    }
   },
   "agent": {
     "title": "Become an ETUK Agent",
     "subtitle": "Join our growing network of agents across Ethiopia",
-    "benefits": "Benefits of Being an Agent",
-    "benefit1": "Exclusive territorial rights in your region",
-    "benefit2": "Competitive commission structure",
-    "benefit3": "Full training and marketing support",
-    "benefit4": "Access to genuine spare parts",
-    "benefit5": "After-sales support network",
+    "benefits": {
+      "title": "Benefits of Being an Agent",
+      "benefit1": "Exclusive territorial rights in your region",
+      "benefit2": "Competitive commission structure",
+      "benefit3": "Full training and marketing support",
+      "benefit4": "Access to genuine spare parts",
+      "benefit5": "After-sales support network",
+      "territory": "Exclusive Territory",
+      "territoryDesc": "Protected region rights",
+      "margins": "High Margins",
+      "marginsDesc": "Competitive commissions",
+      "training": "Full Training",
+      "trainingDesc": "Sales & technical help",
+      "support": "24/7 Support",
+      "supportDesc": "Dedicated team access"
+    },
     "form": {
+      "heroTitle": "Partner with Soreti",
+      "heroDesc": "Expand your business by joining Ethiopia's largest electric 3-wheeler distribution network.",
+      "personal": "Personal Details",
+      "business": "Business & Legal",
+      "location": "Target Location",
+      "additional": "Additional Details",
       "personalInfo": "Personal Information",
       "firstName": "First Name",
       "lastName": "Last Name",
@@ -86,10 +151,23 @@
       "individual": "Individual",
       "company": "Company",
       "partnership": "Partnership",
-      "experience": "Years of Experience",
-      "location": "Location",
+      "experience": "Relevant Experience",
+      "experiencePlaceholder": "Tell us about your previous business experience...",
       "region": "Region",
       "city": "City",
+      "selectType": "Select type",
+      "selectRegion": "Select region",
+      "selectCity": "Select city",
+      "selectSource": "Select source",
+      "tinPlaceholder": "Tax Identification Number",
+      "licenseLabel": "Business License (Photo/File)",
+      "uploadSuccess": "uploaded successfully",
+      "warehouseLabel": "I have a warehouse or showroom space",
+      "addressPlaceholder": "Street, Kebele, Landmark...",
+      "capitalLabel": "Estimated Capital (ETB)",
+      "capitalPlaceholder": "e.g., 1,000,000",
+      "statementLabel": "Brief Statement",
+      "statementPlaceholder": "Tell us about your interest in becoming an agent...",
       "woreda": "Woreda",
       "kebele": "Kebele",
       "address": "Full Address",
@@ -106,12 +184,17 @@
       "tradeLicense": "Trade License",
       "idDocument": "ID Document",
       "tinNumber": "TIN Number",
-      "additional": "Additional Information",
       "message": "Additional Message",
       "howDidYouHear": "How did you hear about us?",
       "submit": "Submit Application",
+      "submitting": "Submitting Application...",
       "success": "Application submitted successfully! We will contact you soon.",
-      "error": "Failed to submit application. Please try again."
+      "error": "Failed to submit application. Please try again.",
+      "successTitle": "Application Sent",
+      "successMessage": "Thank you for choosing Soreti. Our team will review your details and contact you within 48 hours.",
+      "backHome": "Back to Home",
+      "sendAnother": "Send Another",
+      "privacy": "By submitting, you agree to our privacy policy and terms of engagement."
     }
   },
   "contact": {
@@ -129,7 +212,61 @@
     "company": "Soreti International Trading",
     "brand": "ETUK - Electric 3-Wheelers",
     "rights": "All rights reserved",
-    "assembly": "Assembled in Modjo, Ethiopia"
+    "assembly": "Assembled in Modjo, Ethiopia",
+    "assemblyTitle": "Local Assembly",
+    "operational": "Operational",
+    "builtIn": "Built in"
+  },
+  "howItWorks": {
+    "title": "How It Works",
+    "subtitle": "Join our network in 3 simple steps",
+    "step1": {
+      "title": "Register Today",
+      "description": "Fill out the agent application form"
+    },
+    "step2": {
+      "title": "Wait for Approval",
+      "description": "Our team will review and contact you"
+    },
+    "step3": {
+      "title": "Start Your Business",
+      "description": "Get trained and start selling ETUK"
+    }
+  },
+  "partners": {
+    "title": "In Collaboration With",
+    "subtitle": "Working with industry leaders to power Ethiopia"
+  },
+  "locations": {
+    "title": "Our Network",
+    "subtitle": "Headquartered in Addis Ababa, Assembled in Modjo",
+    "network": "Our Network",
+    "heroTitle": "Powered by Ethiopian Excellence",
+    "description": "Strategically positioned to serve the nation. From our assembly hub in Modjo to our central coordination in Addis Ababa.",
+    "hq": {
+      "title": "Soreti Headquarters",
+      "address": "Addis Ababa, Ethiopia",
+      "type": "Headquarters"
+    },
+    "plant": {
+      "title": "Modjo Assembly Plant",
+      "address": "Modjo, Ethiopia",
+      "type": "Primary Plant"
+    }
+  },
+  "cta": {
+    "badge": "Partner Opportunity",
+    "title": "Scale with Ethiopia's EV Giant",
+    "desc": "Join Soreti International Trading in bringing clean, efficient transport to all 11 regions. We provide the tech; you lead the community.",
+    "stats": {
+      "network": "National Network",
+      "rights": "Exclusive Rights",
+      "training": "Tech Training",
+      "returns": "High Returns",
+      "coverage": "11/11",
+      "regions": "Regions Covered"
+    },
+    "button": "Apply to Become an Agent"
   },
   "admin": {
     "dashboard": "Dashboard",
@@ -165,6 +302,7 @@
     "view": "View",
     "search": "Search",
     "filter": "Filter",
-    "noResults": "No results found"
+    "noResults": "No results found",
+    "ethiopia": "Ethiopia"
   }
 }

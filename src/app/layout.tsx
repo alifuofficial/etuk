@@ -5,6 +5,8 @@ import { Toaster } from "@/components/ui/toaster";
 import { ThemeProvider } from "next-themes";
 import { I18nProvider } from "@/lib/i18n/useI18n";
 
+import { AuthProvider } from "@/components/providers/SessionProvider";
+
 const geistSans = Geist({
   variable: "--font-geist-sans",
   subsets: ["latin"],
@@ -16,16 +18,17 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata: Metadata = {
+  metadataBase: new URL(process.env.NEXT_PUBLIC_APP_URL || "http://localhost:3000"),
   title: "ETUK - Electric 3-Wheelers | Soreti International Trading",
-  description: "Ethiopia's premier electric 3-wheeler. Heavy-duty electric vehicles designed for African roads. Join our network of agents across Ethiopia.",
-  keywords: ["ETUK", "Electric 3-Wheeler", "Ethiopia", "Soreti", "Electric Vehicle", "Sustainable Transport"],
+  description: "Ethiopia's premier electric 3-wheeler by Soreti International Trading. Assembled in Modjo, Head Office in Addis Ababa. Join our network of agents across Ethiopia.",
+  keywords: ["ETUK", "Electric 3-Wheeler", "Ethiopia", "Soreti", "Electric Vehicle", "Sustainable Transport", "Addis Ababa", "Modjo"],
   authors: [{ name: "Soreti International Trading" }],
   icons: {
     icon: "/logo.svg",
   },
   openGraph: {
-    title: "ETUK - Electric 3-Wheelers",
-    description: "Power Your Journey with ETUK - Ethiopia's Premier Electric 3-Wheeler",
+    title: "ETUK - Electric 3-Wheelers | Soreti International Trading",
+    description: "Power Your Journey with ETUK - Ethiopia's Premier Electric 3-Wheeler. Assembled in Modjo, Ethiopia.",
     type: "website",
   },
 };
@@ -46,10 +49,12 @@ export default function RootLayout({
           enableSystem
           disableTransitionOnChange
         >
-          <I18nProvider>
-            {children}
-            <Toaster />
-          </I18nProvider>
+          <AuthProvider>
+            <I18nProvider>
+              {children}
+              <Toaster />
+            </I18nProvider>
+          </AuthProvider>
         </ThemeProvider>
       </body>
     </html>

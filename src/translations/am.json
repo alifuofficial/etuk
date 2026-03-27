@@ -6,18 +6,30 @@
     "about": "ስለ እኛ",
     "contact": "አግኙን",
     "login": "ግባ",
-    "dashboard": "ዳሽቦርድ"
+    "dashboard": "ዳሽቦርድ",
+    "heritage": "ቅርስ",
+    "technology": "ቴክኖሎጂ",
+    "navigator": "አሰሳ"
   },
   "hero": {
-    "title": "ጉዞዎን በETUK ይንቀሳቀሱ",
-    "subtitle": "በኢትዮጵያ የመጀመሪያው ኤሌክትሪክ 3-ጎማ",
-    "description": "ለአፍሪካ መንገዶች የተነደፈ ጠንካራ ኤሌክትሪክ ተሽከርካሪ። በኢትዮጵያ ዙሪያ ያሉ ወኪሎች አውታረመረቃችንን ይቀላቀሉ እና የተከታታይ ትራንስፖርት አብዮት አካል ይሁኑ።",
+    "company": "ሶሬቲ ኢንተርናሽናል ትሬዲንግ",
+    "headOffice": "ዋና መስሪያ ቤት፡ አዲስ አበባ",
+    "assembly": "በሞጆ፣ ኢትዮጵያ የተገጠመ",
+    "title": "ጉዞዎን ከ ETUK ጋር ያጠናክሩ",
+    "subtitle": "የኢትዮጵያ ቀዳሚ የኤሌክትሪክ ባለ 3 እግር ተሽከርካሪ",
+    "description": "ለአፍሪካ መንገዶች የተነደፉ ከፍተኛ ጥንካሬ ያላቸው የኤሌክትሪክ ተሽከርካሪዎች:: በመላው ኢትዮጵያ ያለውን የወኪሎች ኔትወርክ ይቀላቀሉ::",
     "cta": "ወኪል ይሁኑ",
-    "learnMore": "ተጨማሪ ይወቁ"
+    "learnMore": "ተጨማሪ ይወቁ",
+    "badge": "የኢትዮጵያ የኤሌክትሪክ ተሽከርካሪ መሪ",
+    "titleTop": "የኤሌክትሪክ ኃይል ለ",
+    "titleBottom": "የቀን ተቀን ስራ::",
+    "motorTag": "4000W የኤሌክትሪክ ሞተር",
+    "chargeTag": "ፈጣን ባትሪ መሙያ"
   },
   "features": {
     "title": "ETUKን ለምን ይምረጡ?",
     "subtitle": "ለኢትዮጵያ መንገዶች የተሰራ፣ ለኢትዮጵያ አሽከርካሪዎች የተነደፈ",
+    "heroTitle": "ስለ ተሽከርካሪዎቻችን ምርጥ ልምድ ያግኙ",
     "powerful": {
       "title": "ኃይለኛ አፈጻጸም",
       "description": "ለአስቸጋሪ መሬቶች 4000W ሞተር ከ960 N.M ማዞሪያ ጋር"
@@ -39,9 +51,21 @@
       "description": "ዜሮ ልቀት፣ ሊቲየም አይረን ፎስፌት ባትሪ ቴክኖሎጂ"
     },
     "spacious": {
-      "title": "ሰፊ ካቢን",
-      "description": "ምቹ የመቀመጫ ቦታ ከረጅም ቢም ብርሃን ጋር"
-    }
+      "title": "ትልቅ እና ሰፊ",
+      "description": "ምቹ የመቀመጫ ቦታ እስከ 750 ኪ.ግ የመጫን አቅም ያለው"
+    },
+    "tech": {
+      "battery": "ሊቲየም አይረን ፎስፌት (7.6 kWh)",
+      "power": "4000W / 960 N.M ከፍተኛ ማዞሪያ",
+      "load": "750 ኪ.ግ GVW",
+      "loadDesc": "ከፍተኛ የመጫን አቅም",
+      "sds": "ስማርት SDS ቴክ",
+      "sdsDesc": "የላቀ ጸረ-ተንሸራታች ብሬኪንግ",
+      "cabin": "ሰፊ የካቢን ዲዛይን",
+      "range": "እስከ 180 ኪ.ሜ",
+      "zeroEmission": "ዜሮ ልቀት"
+    },
+    "registerNow": "አሁኑኑ ይመዝገቡ"
   },
   "specs": {
     "title": "ቴክኒካል መግለጫዎች",
@@ -49,7 +73,6 @@
     "engineType": "የሞተር ዓይነት",
     "motorPower": "የሞተር ኃይል",
     "torque": "ከፍተኛ ማዞሪያ",
-    "acceleration": "ፍጥነት መጨመሪያ",
     "driveType": "የኃይል አይነት",
     "performance": "አፈጻጸም",
     "topSpeed": "ከፍተኛ ፍጥነት",
@@ -62,18 +85,60 @@
     "dimensions": "መጠኖች",
     "dimension": "መጠን (MM)",
     "groundClearance": "ከመሬት እርቀት",
-    "weight": "ክብደት"
+    "weight": "ክብደት",
+    "payload": "የመጫን አቅም",
+    "acceleration": "ፍጥነት መጨመሪያ (0-50 ኪ.ሜ/ሰ)",
+    "warranty": "ዋስትና",
+    "warrantyVal": "3 ዓመታት*",
+    "batteryTypeVal": "LiFePO4 (7.6 kWh)",
+    "charging": "ባትሪ መሙላት",
+    "chargingVal": "≤ 6 ሰዓታት",
+    "loadCapacityVal": "እስከ 750 ኪ.ግ"
+  },
+  "story": {
+    "badge": "ጥራት ያለው ምህንድስና",
+    "showcase": {
+      "version": "ሞጆ የመገጣጠሚያ V1.2",
+      "production": "የሀገር ውስጥ ምርት",
+      "region": "ኦሮሚያ፣ ኢትዮጵያ"
+    },
+    "title": "የኢትዮጵያ የዘመናዊ የልህቀት ቅርስ",
+    "description": "ሶሬቲ ኢንተርናሽናል ትሬዲንግ በሀገር ውስጥ ያለውን የኤሌክትሪክ ተሽከርካሪ አብዮት በመምራቱ ኩራት ይሰማዋል። በሞጆ የሚገኘው ዘመናዊ የመገጣጠሚያ ፋብሪካችን ዓለም አቀፍ ቴክኖሎጂን ከሀገር ውስጥ እውቀት ጋር በማጣመር የመሬታችንን ሁኔታ የሚረዱ ተሽከርካሪዎችን ለመገንባት ያስችለናል።",
+    "addis": {
+      "title": "አዲስ አበባ",
+      "desc": "ሀገር አቀፍ ሎጂስቲክስ እና የወኪል ድጋፍን የሚይዝ ስልታዊ የዋና መስሪያ ቤት::"
+    },
+    "modjo": {
+      "title": "የሞጆ ፋብሪካ",
+      "desc": "የመገጣጠሚያ መስመር እውነተኛ ክፍሎችን እና የአካባቢ ጥገናን የሚያረጋግጥ::"
+    }
   },
   "agent": {
     "title": "የETUK ወኪል ይሁኑ",
     "subtitle": "በኢትዮጵያ ዙሪያ በእድገት ላይ ያለ የወኪሎች አውታረመረቃችንን ይቀላቀሉ",
-    "benefits": "ወኪል መሆን ጥቅሞች",
-    "benefit1": "በክልልዎ ልዩ ግዛት መብቶች",
-    "benefit2": "የተወዳዳሪ ኮሚሽን መዋቅር",
-    "benefit3": "ሙሉ ስልጠና እና የግብይት ድጋፍ",
-    "benefit4": "ወደ እውነተኛ ተረፊ ክፍሎች መዳረሻ",
-    "benefit5": "የሽያጭ በኋላ ድጋፍ አውታረመረቅ",
+    "benefits": {
+      "title": "ወኪል መሆን ጥቅሞች",
+      "benefit1": "በክልልዎ ልዩ ግዛት መብቶች",
+      "benefit2": "የተወዳዳሪ ኮሚሽን መዋቅር",
+      "benefit3": "ሙሉ ስልጠና እና የግብይት ድጋፍ",
+      "benefit4": "ወደ እውነተኛ ተረፊ ክፍሎች መዳረሻ",
+      "benefit5": "የሽያጭ በኋላ ድጋፍ አውታረመረቅ",
+      "territory": "ልዩ ግዛት",
+      "territoryDesc": "የተጠበቁ የክልል መብቶች",
+      "margins": "ከፍተኛ ትርፍ",
+      "marginsDesc": "ተወዳዳሪ ኮሚሽኖች",
+      "training": "ሙሉ ስልጠና",
+      "trainingDesc": "የሽያጭ እና የቴክኒክ እርዳታ",
+      "support": "የ24/7 ድጋፍ",
+      "supportDesc": "ቁርጠኛ የቡድን መዳረሻ"
+    },
     "form": {
+      "heroTitle": "ከሶሬቲ ጋር ይስሩ",
+      "heroDesc": "በኢትዮጵያ ትልቁ የኤሌክትሪክ ባለ 3 እግር ተሽከርካሪ አከፋፋይ አውታረ መረብ በመቀላቀል ንግድዎን ያስፋፉ።",
+      "personal": "የግል ዝርዝሮች",
+      "business": "ንግድ እና ህጋዊ",
+      "location": "ዒላማ ቦታ",
+      "additional": "ተጨማሪ ዝርዝሮች",
       "personalInfo": "የግል መረጃ",
       "firstName": "የመጀመሪያ ስም",
       "lastName": "የአባት ስም",
@@ -87,9 +152,22 @@
       "company": "ድርጅት",
       "partnership": "ትስስር",
       "experience": "የስራ ልምድ ዓመታት",
-      "location": "አካባቢ",
+      "experiencePlaceholder": "ስለ ቀድሞ የንግድ ልምድዎ ይንገሩን...",
       "region": "ክልል",
       "city": "ከተማ",
+      "selectType": "ዓይነት ይምረጡ",
+      "selectRegion": "ክልል ይምረጡ",
+      "selectCity": "ከተማ ይምረጡ",
+      "selectSource": "ምንጭ ይምረጡ",
+      "tinPlaceholder": "የግብር ከፋይ መለያ ቁጥር",
+      "licenseLabel": "የንግድ ፈቃድ (ፎቶ/ፋይል)",
+      "uploadSuccess": "በተሳካ ሁኔታ ተጭኗል",
+      "warehouseLabel": "መጋዘን ወይም መሸጫ ቦታ አለኝ",
+      "addressPlaceholder": "መንገድ፣ ቀበሌ፣ መለያ...",
+      "capitalLabel": "የተገመተ ካፒታል (ETB)",
+      "capitalPlaceholder": "ለምሳሌ 1,000,000",
+      "statementLabel": "አጭር መግለጫ",
+      "statementPlaceholder": "ወኪል ለመሆን ያለዎትን ፍላጎት ይንገሩን...",
       "woreda": "ወረዳ",
       "kebele": "ቀበሌ",
       "address": "ሙሉ አድራሻ",
@@ -106,12 +184,17 @@
       "tradeLicense": "የንግድ ፈቃድ",
       "idDocument": "የመታወቂያ ሰነድ",
       "tinNumber": "የTIN ቁጥር",
-      "additional": "ተጨማሪ መረጃ",
       "message": "ተጨማሪ መልዕክት",
       "howDidYouHear": "ስለ እኛ ከየት ሰሙ?",
       "submit": "ማመልከቻ አስገባ",
+      "submitting": "ማመልከቻው እየገባ ነው...",
       "success": "ማመልከቻ በተሳካ ሁኔታ ተልኳል! በቅርቡ እናገናኝዎታለን።",
-      "error": "ማመልከቻ ማስገባት አልተሳካም። እባክዎ እንደገና ይሞክሩ።"
+      "error": "ማመልከቻ ማስገባት አልተሳካም። እባክዎ እንደገና ይሞክሩ።",
+      "successTitle": "ማመልከቻው ተልኳል",
+      "successMessage": "ሶሬቲን ስለመረጡ እናመሰግናለን። ቡድናችን ዝርዝሮችዎን ገምግሞ በ 48 ሰዓታት ውስጥ ያነጋግርዎታል።",
+      "backHome": "ወደ ዋና ገጽ",
+      "sendAnother": "ሌላ ላክ",
+      "privacy": "በማስገባትዎ በግላዊነት ፖሊሲያችን እና በስምምነት ውሎች ተስማምተዋል።"
     }
   },
   "contact": {
@@ -129,7 +212,48 @@
     "company": "ሶሬቲ ኢንተርናሽናል ትሬዲንግ",
     "brand": "ETUK - ኤሌክትሪክ 3-ጎማዎች",
     "rights": "መብቶች ተጠብቀዋል",
-    "assembly": "በሞጆ፣ ኢትዮጵያ የተሰበሰበ"
+    "assembly": "በሞጆ፣ ኢትዮጵያ የተሰበሰበ",
+    "assemblyTitle": "የአካባቢ መገጣጠሚያ",
+    "operational": "በስራ ላይ",
+    "builtIn": "የተሰራው በ",
+    "craftedBy": "የተሰራው በ"
+  },
+  "howItWorks": {
+    "title": "እንዴት እንደሚሰራ",
+    "subtitle": "በ 3 ቀላል እርምጃዎች የእኛን አውታረ መረብ ይቀላቀሉ",
+    "step1": {
+      "title": "ዛሬ ይመዝገቡ",
+      "description": "የወኪል ማመልከቻ ቅጹን ይሙሉ"
+    },
+    "step2": {
+      "title": "ፀደቅ እስኪሆን ይጠብቁ",
+      "description": "ቡድናችን ገምግሞ ያገኝዎታል"
+    },
+    "step3": {
+      "title": "ንግድዎን ይጀምሩ",
+      "description": "ሰልጥነው ኢቱክን መሸጥ ይጀምሩ"
+    }
+  },
+  "partners": {
+    "title": "ከሚከተሉት ጋር በመተባበር",
+    "subtitle": "ኢትዮጵያን ለማብቃት ከኢንዱስትሪ መሪዎች ጋር መስራት"
+  },
+  "locations": {
+    "title": "የእኛ አውታረ መረብ",
+    "subtitle": "ዋና መስሪያ ቤት አዲስ አበባ፣ በሞጆ ተገጣጥሟል",
+    "network": "የእኛ አውታረ መረብ",
+    "heroTitle": "በኢትዮጵያ ምርጥ ልምድ የተደገፈ",
+    "description": "ሀገሪቱን ለማገልገል ስልታዊ በሆነ መንገድ የተቀመጠ። ከሞጆ የመገጣጠሚያ ማዕከላችን እስከ አዲስ አበባ ማዕከላዊ ቅንጅት።",
+    "hq": {
+      "title": "ሶሬቲ ዋና መስሪያ ቤት",
+      "address": "አዲስ አበባ፣ ኢትዮጵያ",
+      "type": "ዋና መስሪያ ቤት"
+    },
+    "plant": {
+      "title": "የሞጆ መገጣጠሚያ ፋብሪካ",
+      "address": "ሞጆ፣ ኢትዮጵያ",
+      "type": "ዋና ፋብሪካ"
+    }
   },
   "admin": {
     "dashboard": "ዳሽቦርድ",
@@ -165,6 +289,7 @@
     "view": "ተመልከት",
     "search": "ፈልግ",
     "filter": "አጣራ",
-    "noResults": "ውጤት አልተገኘም"
+    "noResults": "ውጤት አልተገኘም",
+    "ethiopia": "ኢትዮጵያ"
   }
 }

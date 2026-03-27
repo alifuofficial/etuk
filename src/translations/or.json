@@ -6,18 +6,30 @@
     "about": "Waa'ee Keenya",
     "contact": "Nu Quunnamaa",
     "login": "Seenu",
-    "dashboard": "Daashboordii"
+    "dashboard": "Daashboordii",
+    "heritage": "Dhaalmaya",
+    "technology": "Teeknooloojii",
+    "navigator": "Naaviigeetara"
   },
   "hero": {
-    "title": "Imala Keessanii Booda ETUK Tiin",
-    "subtitle": "Saadaraa Sibiila 3-Wheeler Kan Itoophiyaa",
-    "description": "Daandii Afrikaaf qophaa'e baay'ee cimaa ta'e saadaraa sibiila. Torban ergamtoota Itoophiyaa hundi keessanitti Makamoo fi jijjiirraa geejjibaa fiighee dhaabbataa ta'e hirmaattota ta'aa.",
+    "company": "Soreti International Trading",
+    "headOffice": "Waajjira Guddaa: Finfinnee",
+    "assembly": "Moojoo, Itoophiyaatti kan hojjetame",
+    "title": "Imala Keessan ETUK Waliin Cimsaa",
+    "subtitle": "Konkolaataa Elektirikii Miila 3ffaa Itoophiyaa Keessatti Jalqabaa",
+    "description": "Konkolaattoota elektirikii ciccimoo daandiiwwan Afrikaatiif qophaa'an. Neetworkii bakka bu'oota keenyaa guutummaa Itoophiyaatti makamaa.",
     "cta": "Ergamaa Ta'i",
-    "learnMore": "Waa'ee Beekuu"
+    "learnMore": "Waa'ee Beekuu",
+    "badge": "Giddu-gala Elektiriikaa Itoophiyaa",
+    "titleTop": "HUMNA ELEKTIRIIKAA",
+    "titleBottom": "HOJII GUUYAA GUUYAA.",
+    "motorTag": "Motor 4000W",
+    "chargeTag": "Batrii Saffisaan Kakuu"
   },
   "features": {
     "title": "Maalif ETUK Filattaa?",
     "subtitle": "Daandii Itoophiyaaaf hoijjete, konkolataa Itoophiyaafti qophaa'e",
+    "heroTitle": "Muuxannoo konkolaataa keenyaa isa gaarii argadhaa",
     "powerful": {
       "title": "Humna Cimaa",
       "description": "Motor 4000W dandeettii jijjiiraa 960 N.M qabu daandii cimaaaf"
@@ -39,9 +51,21 @@
       "description": "Bakka bu'ii zero, teeknooloojii batrii lifiyeeri ayiraan foosfeetii"
     },
     "spacious": {
-      "title": "Kabin Bal'aa",
-      "description": "Bakka ija'uu mijataa ifa dheeraa nagaa qabu"
-    }
+      "title": "Guddaa fi Bal'aa",
+      "description": "Bakka ija'uu mijataa dandeettii fe'umsaa ol'aanaa (hanga 750kg)"
+    },
+    "tech": {
+      "battery": "Liitiyeem Ayiraan Foosfeetii (7.6 kWh)",
+      "power": "4000W / 960 N.M Max Torque",
+      "load": "750 kg GVW",
+      "loadDesc": "Dandeettii Fe'umsaa Ol'aanaa",
+      "sds": "Smart SDS Tech",
+      "sdsDesc": "Advanced Anti-Skid Braking",
+      "cabin": "Diizaayinii Kaabiinii Bal'aa",
+      "range": "Hanga 180 KM",
+      "zeroEmission": "Faalama Maleessa"
+    },
+    "registerNow": "Amma Galmaa'aa"
   },
   "specs": {
     "title": "Ibsa Teknikaalaa",
@@ -49,7 +73,6 @@
     "engineType": "Gosa Motor",
     "motorPower": "Humna Motor",
     "torque": "Dandeettii Jijjiiraa Ol'aanaa",
-    "acceleration": "Saffisa Guddisuu",
     "driveType": "Gosa Kuusaa Humnaa",
     "performance": "Hojiirra Oomishuu",
     "topSpeed": "Saffisa Ol'aanaa",
@@ -62,18 +85,60 @@
     "dimensions": "Safara",
     "dimension": "Safara (MM)",
     "groundClearance": "Dheedhii Dachiiraa Gara Dachiitti",
-    "weight": "Ummama"
+    "weight": "Ummama",
+    "payload": "Dandeettii Fe'umsaa",
+    "acceleration": "Saffisa Guddisuu (0-50 km/h)",
+    "warranty": "Warranti",
+    "warrantyVal": "Waggaa 3*",
+    "batteryTypeVal": "LiFePO4 (7.6 kWh)",
+    "charging": "Kakuu Batrii",
+    "chargingVal": "≤ Sa'aatii 6",
+    "loadCapacityVal": "Hanga 750 kg"
+  },
+  "story": {
+    "badge": "Injineeringii Qulqullinaa",
+    "showcase": {
+      "version": "Walitti Qabiinsa Moojoo V1.2",
+      "production": "Oomisha Naannoo",
+      "region": "Oromiyaa, Itoophiyaa"
+    },
+    "title": "Dhaalmaya Jireenya Ammayyaa Itoophiyaa",
+    "description": "Soreti International Trading warraaqsa konkolaataa elektirikii biyya keessaatti gaggeessuun boona. Warshaan walitti qabiinsaa ammayyaa Moojootti argamu teeknooloojii addunyaa beekumsa naannoo waliin bulchuun konkolaattoota dachi keenya hubatan ijaaruuf nu dandeessisa.",
+    "addis": {
+      "title": "Finfinnee",
+      "desc": "Waajjira muummee loojistiikii biyyaalessaa fi deeggarsa ajeentii to'atu."
+    },
+    "modjo": {
+      "title": "Warshaa Moojoo",
+      "desc": "Sarara walitti qabiinsaa dandeettii ol'aanaa kutaa sirrii fi tajaajila naannoo mirkaneessu."
+    }
   },
   "agent": {
     "title": "Ergamaa ETUK Ta'i",
     "subtitle": "Torban ergamtoota Itoophiyaa guddachaa jirutti makamoo",
-    "benefits": "Fayyaa Ergamaa Ta'uu",
-    "benefit1": "Mirga naannoo keessanii qofaaf",
-    "benefit2": "Caasaa komishinii morkaa'aa",
-    "benefit3": "Leenjii guutuu fi deeggarsa madaa'aa",
-    "benefit4": "Gara qabiinsa gosa sirritti fayyadamuu",
-    "benefit5": "Torban deeggarsa erga bitachuu booda",
+    "benefits": {
+      "title": "Fayyaa Ergamaa Ta'uu",
+      "benefit1": "Mirga naannoo keessanii qofaaf",
+      "benefit2": "Caasaa komishinii morkaa'aa",
+      "benefit3": "Leenjii guutuu fi deeggarsa madaa'aa",
+      "benefit4": "Gara qabiinsa gosa sirritti fayyadamuu",
+      "benefit5": "Torban deeggarsa erga bitachuu booda",
+      "territory": "Naannoo Qofaaf",
+      "territoryDesc": "Mirga naannoo eegame",
+      "margins": "Bu'aa Ol'aanaa",
+      "marginsDesc": "Komishinii morkata",
+      "training": "Leenjii Guutuu",
+      "trainingDesc": "Gurgurtaa fi gargaarsa teknikaa",
+      "support": "Deeggarsa 24/7",
+      "supportDesc": "Dandeettii garee qunnamuu"
+    },
     "form": {
+      "heroTitle": "Soreti Waliin Hojjedhaa",
+      "heroDesc": "Neetworkii raabsama konkolaataa elektirikii miila 3ffaa Itoophiyaa isa guddaa makamuun daldala keessan bal'ifadhaa.",
+      "personal": "Odeeffannoo Dhuunfaa",
+      "business": "Daldala fi Seera",
+      "location": "Bakka Ija'ame",
+      "additional": "Odeeffannoo Dabalataa",
       "personalInfo": "Odeeffannoo Dhuunfaa",
       "firstName": "Maqaa Jalqabaa",
       "lastName": "Maqaa Abbaa",
@@ -87,9 +152,22 @@
       "company": "Dhaabbata",
       "partnership": "Hiriya",
       "experience": "Waggaa Hayyamaa",
-      "location": "Bakka",
+      "experiencePlaceholder": "Muuxannoo daldala keessan isa kanaan duraa nuuf ibsaa...",
       "region": "Naannoo",
       "city": "Magaalaa",
+      "selectType": "Gosa filadhu",
+      "selectRegion": "Naannoo filadhu",
+      "selectCity": "Magaalaa filadhu",
+      "selectSource": "Madda filadhu",
+      "tinPlaceholder": "Lakkoofsa TIN",
+      "licenseLabel": "Hayyama Daldalaa (Suuraa/Faayila)",
+      "uploadSuccess": "milkaa'inaan fe'ameera",
+      "warehouseLabel": "Bakka kuusaa ykn agarsiisaa qaba",
+      "addressPlaceholder": "Daandii, Ganda, Mallattoo...",
+      "capitalLabel": "Kaapitaala Tilmaamame (ETB)",
+      "capitalPlaceholder": "fkn, 1,000,000",
+      "statementLabel": "Ibsa Gabaabaa",
+      "statementPlaceholder": "Fedhii ajeentii ta'uuf qabdan nuuf ibsaa...",
       "woreda": "Aanaa",
       "kebele": "Ganda",
       "address": "Teessoo Guutuu",
@@ -106,16 +184,20 @@
       "tradeLicense": "Layisansi Daldagaa",
       "idDocument": "Galmeessi Ayyaannoo",
       "tinNumber": "Lakkoofsa TIN",
-      "additional": "Odeeffannoo Dabalataa",
       "message": "Ergaa Dabalataa",
       "howDidYouHear": "Akka ati nu dhagaherraa? Eessaa?",
       "submit": "Galmee Ergi",
+      "submitting": "Galmeen ergaa jira...",
       "success": "Galmee milkaa'inaan ergameera! Dhahaa dhiyaatanii nu qunnamsiina.",
-      "error": "Galmee erguu hin dandeenye. Irreedha yaalaa."
+      "error": "Galmee erguu hin dandeenye. Irreedha yaalaa.",
+      "successTitle": "Iyyannoon Ergameera",
+      "successMessage": "Soreti filachuu keessaniif galatoomaa. Gareen keenya odeeffannoo keessan sakatta'ee sa'aatii 48 keessatti isin quunnama.",
+      "backHome": "Gara Fuula Durtii",
+      "sendAnother": "Kan biraa Ergi",
+      "privacy": "Erguu keessaniin, poolisii dhuunfaa fi shartii keenya irratti walii galtu."
     }
   },
   "contact": {
-    "title": "Nu Quunnamaa",
     "title": "Nu Quunnamaa",
     "subtitle": "Soreti International Trading waliin qunnamuu",
     "address": "Teessoo",
@@ -130,7 +212,48 @@
     "company": "Soreti International Trading",
     "brand": "ETUK - Saadaraa Sibiila 3-Wheeler",
     "rights": "Mirgoonni hundi eegamoo",
-    "assembly": "Itoophiyaa, Moojoo keessatti qophaa'e"
+    "assembly": "Itoophiyaa, Moojoo keessatti qophaa'e",
+    "assemblyTitle": "Walitti Qabiinsa Naannoo",
+    "operational": "Hojii Irra Jira",
+    "builtIn": "Kan Hojjetame",
+    "craftedBy": "Kan Tolche"
+  },
+  "howItWorks": {
+    "title": "Akkaataa Itti Hojjetu",
+    "subtitle": "Tarkaanfiiwwan salphaa 3n marsariitii keenya dabalamaa",
+    "step1": {
+      "title": "Har'a Galmaa'aa",
+      "description": "Unka iyyannoo bakka bu'aa guutaa"
+    },
+    "step2": {
+      "title": "Mirkaneessa Egaa",
+      "description": "Garee keenyaan sakatta'amee isin quunnama"
+    },
+    "step3": {
+      "title": "Hojii Keessan Jalqabaa",
+      "description": "Leenjifamaa ETUK gurguruu jalqabaa"
+    }
+  },
+  "partners": {
+    "title": "Wajjiin Ta'uun",
+    "subtitle": "Itoophiyaa humneessuuf hoggantoota indastirii waliin hojjechuu"
+  },
+  "locations": {
+    "title": "Neetworkii Keenya",
+    "subtitle": "Waajjira Muummee Finfinnee, Moojjootti kan walitti qabame",
+    "network": "Neetworkii Keenya",
+    "heroTitle": "Dandeettii Itoophiyaatiin kan Humneeffame",
+    "description": "Biyyattii tajaajiluuf tarsiimoodhaan kan qophaa'e. Giddu-gala walitti qabiinsaa keenya Moojootii hanga qindoomina muummee keenya Finfinneetti.",
+    "hq": {
+      "title": "Waajjira Muummee Soreti",
+      "address": "Finfinnee, Itoophiyaa",
+      "type": "Waajjira Muummee"
+    },
+    "plant": {
+      "title": "Warshaa Walitti Qabiinsaa Moojoo",
+      "address": "Moojjoo, Itoophiyaatti kan walitti qabame",
+      "type": "Warshaa Muummee"
+    }
   },
   "admin": {
     "dashboard": "Daashboordii",
@@ -166,6 +289,7 @@
     "view": "Ilaaluu",
     "search": "Barbaaduu",
     "filter": "Baay'isuu",
-    "noResults": "Bu'aan hin argamne"
+    "noResults": "Bu'aan hin argamne",
+    "ethiopia": "Itoophiyaa"
   }
 }

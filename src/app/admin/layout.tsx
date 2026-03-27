@@ -21,19 +21,22 @@ import {
   UserCircle,
   Package,
   Settings,
+  MapPin,
   LogOut,
   Menu,
   X,
-  Zap,
   ChevronDown,
+  Bell,
 } from 'lucide-react';
 import { signOut } from 'next-auth/react';
 
 const navItems = [
   { href: '/admin', label: 'Dashboard', icon: LayoutDashboard },
-  { href: '/admin/agents', label: 'Agents', icon: Users },
-  { href: '/admin/users', label: 'Users', icon: UserCircle },
-  { href: '/admin/products', label: 'Products', icon: Package },
+  { href: '/admin/agents', label: 'Agents', icon: Users, roles: ['ADMIN', 'MARKETING_MANAGER'] },
+  { href: '/admin/locations', label: 'Locations', icon: MapPin, roles: ['ADMIN', 'MARKETING_MANAGER'] },
+  { href: '/admin/users', label: 'Users', icon: UserCircle, roles: ['ADMIN'] },
+  { href: '/admin/products', label: 'Products', icon: Package, roles: ['ADMIN'] },
+  { href: '/admin/settings', label: 'Settings', icon: Settings, roles: ['ADMIN', 'MARKETING_MANAGER'] },
 ];
 
 export default function AdminLayout({
@@ -54,133 +57,132 @@ export default function AdminLayout({
 
   if (status === 'loading') {
     return (
-      <div className="min-h-screen flex items-center justify-center">
-        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-sky-500" />
+      <div className="min-h-screen flex items-center justify-center bg-gray-50">
+        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-deepSkyBlue" />
       </div>
     );
   }
 
-  if (!session) {
-    return null;
-  }
+  if (!session) return null;
 
   const handleLogout = async () => {
     await signOut({ callbackUrl: '/auth/login' });
   };
 
-  const getRoleColor = (role: string) => {
-    switch (role) {
-      case 'ADMIN':
-        return 'bg-red-100 text-red-700';
-      case 'MARKETING_MANAGER':
-        return 'bg-purple-100 text-purple-700';
-      case 'MARKETING_OFFICER':
-        return 'bg-blue-100 text-blue-700';
-      default:
-        return 'bg-gray-100 text-gray-700';
-    }
-  };
-
   return (
-    <div className="min-h-screen bg-gray-50">
+    <div className="min-h-screen bg-gray-50 font-sans">
       {/* Mobile Sidebar Overlay */}
       {sidebarOpen && (
         <div
-          className="fixed inset-0 bg-black/50 z-40 lg:hidden"
+          className="fixed inset-0 bg-black/20 backdrop-blur-sm z-40 lg:hidden"
           onClick={() => setSidebarOpen(false)}
         />
       )}
 
       {/* Sidebar */}
       <aside
-        className={`fixed top-0 left-0 z-50 h-full w-64 bg-white shadow-lg transform transition-transform duration-300 lg:translate-x-0 ${
+        className={`fixed top-0 left-0 z-50 h-full w-64 bg-white border-r border-gray-200 transform transition-transform duration-300 ease-in-out lg:translate-x-0 ${
           sidebarOpen ? 'translate-x-0' : '-translate-x-full'
         }`}
       >
-        <div className="p-4 border-b">
-          <Link href="/" className="flex items-center gap-2">
-            <div className="w-10 h-10 bg-sky-500 rounded-lg flex items-center justify-center">
-              <Zap className="w-6 h-6 text-white" />
-            </div>
-            <span className="font-bold text-xl text-gray-900">ETUK Admin</span>
-          </Link>
-        </div>
+        <div className="flex flex-col h-full">
+          {/* Logo Area */}
+          <div className="h-16 flex items-center px-6 border-b border-gray-100">
+            <Link href="/" className="flex items-center gap-3">
+              <img 
+                src="/images/soreti-logo.png" 
+                alt="Soreti Logo" 
+                className="h-10 w-auto object-contain"
+              />
+              <span className="font-bold text-xl tracking-tight text-gray-900">Soreti <span className="text-gray-400 text-xs font-medium tracking-normal">Admin</span></span>
+            </Link>
+          </div>
 
-        <nav className="p-4 space-y-1">
-          {navItems.map((item) => {
-            const isActive = pathname === item.href;
-            return (
-              <Link
-                key={item.href}
-                href={item.href}
-                className={`flex items-center gap-3 px-4 py-3 rounded-lg transition-colors ${
-                  isActive
-                    ? 'bg-sky-50 text-sky-600 font-medium'
-                    : 'text-gray-600 hover:bg-gray-100'
-                }`}
-                onClick={() => setSidebarOpen(false)}
-              >
-                <item.icon className="w-5 h-5" />
-                {item.label}
-              </Link>
-            );
-          })}
-        </nav>
+          <nav className="flex-1 px-4 py-6 space-y-1 overflow-y-auto">
+            {navItems
+              .filter((item) => !item.roles || item.roles.includes(session.user.role))
+              .map((item) => {
+              const isActive = pathname === item.href;
+              return (
+                <Link
+                  key={item.href}
+                  href={item.href}
+                  className={`flex items-center gap-3 px-4 py-3 rounded-lg transition-colors ${
+                    isActive
+                      ? 'bg-deepSkyBlue/10 text-deepSkyBlue'
+                      : 'text-gray-600 hover:bg-gray-50 hover:text-gray-900'
+                  }`}
+                  onClick={() => setSidebarOpen(false)}
+                >
+                  <item.icon className="w-5 h-5 flex-shrink-0" />
+                  <span className="text-sm font-medium">{item.label}</span>
+                </Link>
+              );
+            })}
+          </nav>
 
-        {/* Settings at bottom */}
-        <div className="absolute bottom-0 left-0 right-0 p-4 border-t">
-          <button
-            onClick={handleLogout}
-            className="flex items-center gap-3 px-4 py-3 rounded-lg text-red-600 hover:bg-red-50 w-full transition-colors"
-          >
-            <LogOut className="w-5 h-5" />
-            Logout
-          </button>
+          <div className="p-4 border-t border-gray-100">
+             <button
+              onClick={handleLogout}
+              className="flex items-center gap-3 px-4 py-3 rounded-lg text-red-600 hover:bg-red-50 w-full transition-colors"
+            >
+              <LogOut className="w-5 h-5" />
+              <span className="text-sm font-medium">Logout</span>
+            </button>
+          </div>
         </div>
       </aside>
 
-      {/* Main Content */}
-      <div className="lg:pl-64">
-        {/* Top Bar */}
-        <header className="bg-white shadow-sm sticky top-0 z-30">
-          <div className="flex items-center justify-between px-4 py-3">
-            {/* Mobile Menu Button */}
+      {/* Main Content Area */}
+      <div className="lg:pl-64 flex flex-col min-h-screen">
+        {/* Top Header */}
+        <header className="sticky top-0 z-30 h-16 bg-white border-b border-gray-200 px-6 flex items-center justify-between">
+          <div className="flex items-center gap-4">
             <button
               onClick={() => setSidebarOpen(!sidebarOpen)}
-              className="lg:hidden p-2 rounded-lg hover:bg-gray-100"
+              className="lg:hidden p-2 -ml-2 text-gray-500 hover:bg-gray-100 rounded-lg"
             >
               {sidebarOpen ? <X className="w-6 h-6" /> : <Menu className="w-6 h-6" />}
             </button>
+            <h2 className="text-sm font-semibold text-gray-900 capitalize hidden sm:block">
+              {pathname === '/admin' ? 'Dashboard' : pathname.split('/').pop()?.replace('-', ' ')}
+            </h2>
+          </div>
 
-            <div className="flex-1 lg:flex-none" />
+          <div className="flex items-center gap-3">
+            <Button variant="ghost" size="icon" className="text-gray-400 hover:text-gray-900 hover:bg-gray-50 rounded-full">
+              <Bell className="w-5 h-5" />
+            </Button>
 
-            {/* User Menu */}
             <DropdownMenu>
               <DropdownMenuTrigger asChild>
-                <Button variant="ghost" className="gap-2">
+                <button className="flex items-center gap-2 p-1 pl-2 rounded-full border border-gray-200 hover:bg-gray-50 transition-colors">
+                  <span className="text-xs font-medium text-gray-700 hidden md:block">
+                    {session.user?.name}
+                  </span>
                   <Avatar className="w-8 h-8">
-                    <AvatarFallback className="bg-sky-500 text-white">
+                    <AvatarFallback className="bg-deepSkyBlue text-white text-xs font-bold uppercase">
                       {session.user?.name?.[0] || 'U'}
                     </AvatarFallback>
                   </Avatar>
-                  <div className="hidden sm:block text-left">
-                    <p className="text-sm font-medium">{session.user?.name}</p>
-                    <p className="text-xs text-gray-500">{session.user?.email}</p>
-                  </div>
-                  <ChevronDown className="w-4 h-4 text-gray-400" />
-                </Button>
+                  <ChevronDown className="w-4 h-4 text-gray-400 mr-1" />
+                </button>
               </DropdownMenuTrigger>
-              <DropdownMenuContent align="end" className="w-56">
-                <DropdownMenuLabel>
-                  <div className="flex flex-col gap-1">
-                    <span>{session.user?.name}</span>
-                    <span className={`text-xs px-2 py-0.5 rounded-full inline-block w-fit ${getRoleColor(session.user?.role || '')}`}>
-                      {session.user?.role?.replace('_', ' ')}
-                    </span>
-                  </div>
+              <DropdownMenuContent align="end" className="w-56 mt-2 rounded-xl border-gray-200 p-1">
+                <DropdownMenuLabel className="px-3 py-2 text-xs font-medium text-gray-500 uppercase">
+                  Account
                 </DropdownMenuLabel>
-                <DropdownMenuSeparator />
-                <DropdownMenuItem onClick={handleLogout}>
+                <div className="px-3 py-2 mb-1">
+                  <p className="text-sm font-bold text-gray-900 truncate">{session.user?.name}</p>
+                  <p className="text-xs text-gray-500 truncate">{session.user?.email}</p>
+                </div>
+                <DropdownMenuSeparator className="bg-gray-100" />
+                <DropdownMenuItem className="p-2 rounded-lg text-gray-700 focus:bg-gray-50 cursor-pointer">
+                  <Settings className="w-4 h-4 mr-2 text-gray-400" />
+                  Settings
+                </DropdownMenuItem>
+                <DropdownMenuSeparator className="bg-gray-100" />
+                <DropdownMenuItem onClick={handleLogout} className="p-2 rounded-lg text-red-600 focus:bg-red-50 cursor-pointer">
                   <LogOut className="w-4 h-4 mr-2" />
                   Logout
                 </DropdownMenuItem>
@@ -190,7 +192,9 @@ export default function AdminLayout({
         </header>
 
         {/* Page Content */}
-        <main className="p-4 md:p-6">{children}</main>
+        <main className="p-6 md:p-8 max-w-7xl mx-auto w-full">
+          {children}
+        </main>
       </div>
     </div>
   );

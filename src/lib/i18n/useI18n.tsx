@@ -1,35 +1,80 @@
 'use client';
 
-import { createContext, useContext, useState, useCallback, ReactNode } from 'react';
-import { locales, defaultLocale, Locale } from '@/lib/i18n/config';
+import { createContext, useContext, useState, useCallback, ReactNode, useEffect } from 'react';
+import { defaultLocale } from '@/lib/i18n/config';
 
-// Import translations
-import en from '@/translations/en.json';
-import am from '@/translations/am.json';
-import or from '@/translations/or.json';
-
-const translations: Record<Locale, Record<string, unknown>> = { en, am, or };
+interface Language {
+  code: string;
+  name: string;
+  flag: string | null;
+  isDefault: boolean;
+}
 
 interface I18nContextType {
-  locale: Locale;
-  setLocale: (locale: Locale) => void;
+  locale: string;
+  setLocale: (locale: string) => void;
   t: (key: string) => string;
+  languages: Language[];
+  isLoading: boolean;
 }
 
 const I18nContext = createContext<I18nContextType | undefined>(undefined);
 
 export function I18nProvider({ children }: { children: ReactNode }) {
-  const [locale, setLocaleState] = useState<Locale>(() => {
+  const [locale, setLocaleState] = useState<string>(() => {
     if (typeof window !== 'undefined') {
       const saved = localStorage.getItem('locale');
-      if (saved && locales.includes(saved as Locale)) {
-        return saved as Locale;
-      }
+      if (saved) return saved;
     }
     return defaultLocale;
   });
 
-  const setLocale = useCallback((newLocale: Locale) => {
+  const [languages, setLanguages] = useState<Language[]>([]);
+  const [translations, setTranslations] = useState<Record<string, string>>({});
+  const [isLoading, setIsLoading] = useState(true);
+
+  // Fetch available languages
+  useEffect(() => {
+    async function fetchLanguages() {
+      try {
+        const response = await fetch('/api/languages');
+        if (response.ok) {
+          const data = await response.json();
+          setLanguages(data);
+          
+          // If current locale is not in available languages, fallback to default
+          if (data.length > 0 && !data.find((l: Language) => l.code === locale)) {
+            const defaultLang = data.find((l: Language) => l.isDefault) || data[0];
+            setLocaleState(defaultLang.code);
+          }
+        }
+      } catch (error) {
+        console.error('Failed to fetch languages:', error);
+      }
+    }
+    fetchLanguages();
+  }, [locale]);
+
+  // Fetch translations when locale changes
+  useEffect(() => {
+    async function fetchTranslations() {
+      setIsLoading(true);
+      try {
+        const response = await fetch(`/api/translations?locale=${locale}`);
+        if (response.ok) {
+          const data = await response.json();
+          setTranslations(data);
+        }
+      } catch (error) {
+        console.error('Failed to fetch translations:', error);
+      } finally {
+        setIsLoading(false);
+      }
+    }
+    fetchTranslations();
+  }, [locale]);
+
+  const setLocale = useCallback((newLocale: string) => {
     setLocaleState(newLocale);
     if (typeof window !== 'undefined') {
       localStorage.setItem('locale', newLocale);
@@ -38,33 +83,19 @@ export function I18nProvider({ children }: { children: ReactNode }) {
 
   const t = useCallback(
     (key: string): string => {
-      const keys = key.split('.');
-      let value: unknown = translations[locale];
-
-      for (const k of keys) {
-        if (value && typeof value === 'object' && k in value) {
-          value = (value as Record<string, unknown>)[k];
-        } else {
-          // Fallback to English
-          value = translations['en'];
-          for (const fallbackKey of keys) {
-            if (value && typeof value === 'object' && fallbackKey in value) {
-              value = (value as Record<string, unknown>)[fallbackKey];
-            } else {
-              return key;
-            }
-          }
-          break;
-        }
+      // Direct lookup in flattened object
+      if (translations[key]) {
+        return translations[key];
       }
-
-      return typeof value === 'string' ? value : key;
+      
+      // Return key if not found
+      return key;
     },
-    [locale]
+    [translations]
   );
 
   return (
-    <I18nContext.Provider value={{ locale, setLocale, t }}>
+    <I18nContext.Provider value={{ locale, setLocale, t, languages, isLoading }}>
       {children}
     </I18nContext.Provider>
   );
@@ -77,6 +108,3 @@ export function useI18n() {
   }
   return context;
 }
-
-export { locales, localeNames, localeFlags };
-export type { Locale };

@@ -21,7 +21,7 @@ const nextConfig: NextConfig = {
   },
   
   // Server external packages (not in experimental for Next.js 16)
-  serverExternalPackages: ['bcryptjs', '@prisma/client', 'prisma'],
+  serverExternalPackages: ['bcryptjs', '@prisma/client'],
   
   // Headers for security and caching
   async headers() {

@@ -20,6 +20,10 @@ if [ -n "$DATABASE_URL" ]; then
   # Push schema to database
   echo "Pushing schema to database..."
   npx prisma db push --skip-generate --accept-data-loss
+
+  # Run seeding to ensure admin account exists
+  echo "Running database seed..."
+  npx prisma db seed
 fi
 
 # Start the application - executes CMD from Dockerfile

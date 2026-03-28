@@ -81,7 +81,11 @@
     "vaul": "^1.1.2",
     "z-ai-web-dev-sdk": "^0.0.17",
     "zod": "^4.0.2",
-    "zustand": "^5.0.6"
+    "zustand": "^5.0.6",
+    "tsx": "^4.19.2"
+  },
+  "prisma": {
+    "seed": "tsx prisma/seed.ts"
   },
   "devDependencies": {
     "@tailwindcss/postcss": "^4",

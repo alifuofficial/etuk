@@ -49,27 +49,22 @@ RUN apk add --no-cache openssl sqlite
 RUN addgroup --system --gid 1001 nodejs
 RUN adduser --system --uid 1001 nextjs
 
-# Copy public files
+# Create required directories with proper permissions
+RUN mkdir -p /app/data && chown -R nextjs:nodejs /app/data && chmod 755 /app/data
+RUN mkdir -p /app/.next && chown nextjs:nodejs /app/.next
+
+# Copy public files and static assets
 COPY --from=builder /app/public ./public
-
-# Set up .next directory
-RUN mkdir .next && chown nextjs:nodejs .next
-
-# Copy standalone output
-COPY --from=builder --chown=nextjs:nodejs /app/.next/standalone ./
 COPY --from=builder --chown=nextjs:nodejs /app/.next/static ./.next/static
 
-# Copy node_modules for Prisma
-COPY --from=builder /app/node_modules ./node_modules
+# Copy standalone output (this includes its own node_modules)
+COPY --from=builder --chown=nextjs:nodejs /app/.next/standalone ./
 
-# Copy prisma schema
-COPY --from=builder /app/prisma ./prisma
+# Copy Prisma files (schema and migrations)
+COPY --from=builder --chown=nextjs:nodejs /app/prisma ./prisma
 
-# Copy translations
-COPY --from=builder /app/src/translations ./src/translations
-
-# Create data directory with proper permissions
-RUN mkdir -p /app/data && chown -R nextjs:nodejs /app/data && chmod 755 /app/data
+# Copy translations if they are not bundled
+COPY --from=builder --chown=nextjs:nodejs /app/src/translations ./src/translations
 
 # Ensure all files are owned by nextjs
 RUN chown -R nextjs:nodejs /app

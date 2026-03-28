@@ -1,40 +1,22 @@
-# ETUK Next.js Production Dockerfile - Optimized
-FROM node:20-alpine AS base
-
-# Install dependencies only when needed
-FROM base AS deps
-RUN apk add --no-cache libc6-compat openssl
+# ETUK Next.js Production Dockerfile - Emergency Space Optimization
+FROM node:20-alpine AS builder
 WORKDIR /app
 
-# Install bun
-RUN npm install -g bun
+# Combine everything in the builder to minimize intermediate layers
+RUN apk add --no-cache libc6-compat openssl && npm install -g bun
 
-# Copy package files
 COPY package.json bun.lock ./
 RUN bun install --frozen-lockfile
 
-# Rebuild the source code only when needed
-FROM base AS builder
-WORKDIR /app
-
-# Install bun
-RUN npm install -g bun
-
-COPY --from=deps /app/node_modules ./node_modules
 COPY . .
+RUN bunx prisma generate && \
+    NEXT_TELEMETRY_DISABLED=1 NODE_ENV=production bun run build && \
+    # Remove node_modules and cache immediately AFTER build to free ~1GB
+    rm -rf node_modules && \
+    bun pm cache rm
 
-# Generate Prisma Client
-RUN bunx prisma generate
-
-# Set env for build
-ENV NEXT_TELEMETRY_DISABLED=1
-ENV NODE_ENV=production
-
-# Build the application
-RUN bun run build
-
-# Production image, copy all the files and run next
-FROM base AS runner
+# Production image, copy ONLY the standalone results
+FROM node:20-alpine AS runner
 WORKDIR /app
 
 ENV NODE_ENV=production \

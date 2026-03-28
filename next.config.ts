@@ -7,15 +7,6 @@ const nextConfig: NextConfig = {
   },
   reactStrictMode: true,
   
-  // Handle production environment
-  experimental: {
-    serverActions: {
-      allowedOrigins: ['etuk.soretiinternational.com', '*.soretiinternational.com', 'localhost:3000'],
-    },
-    // Include these packages in the standalone output
-    serverExternalPackages: ['bcryptjs', '@prisma/client', 'prisma'],
-  },
-  
   // Image optimization
   images: {
     remotePatterns: [
@@ -24,12 +15,13 @@ const nextConfig: NextConfig = {
         hostname: '**',
       },
     ],
-    // Enable image optimization
-    unoptimized: false,
     formats: ['image/avif', 'image/webp'],
     deviceSizes: [640, 750, 828, 1080, 1200, 1920, 2048],
     imageSizes: [16, 32, 48, 64, 96, 128, 256, 384],
   },
+  
+  // Server external packages (not in experimental for Next.js 16)
+  serverExternalPackages: ['bcryptjs', '@prisma/client', 'prisma'],
   
   // Headers for security and caching
   async headers() {
@@ -37,7 +29,6 @@ const nextConfig: NextConfig = {
       {
         source: '/:path*',
         headers: [
-          // Security headers
           { key: 'X-DNS-Prefetch-Control', value: 'on' },
           { key: 'Strict-Transport-Security', value: 'max-age=63072000; includeSubDomains; preload' },
           { key: 'X-XSS-Protection', value: '1; mode=block' },
@@ -47,7 +38,6 @@ const nextConfig: NextConfig = {
           { key: 'Permissions-Policy', value: 'camera=(), microphone=(), geolocation=()' },
         ],
       },
-      // Cache static assets
       {
         source: '/images/:path*',
         headers: [
@@ -60,7 +50,6 @@ const nextConfig: NextConfig = {
           { key: 'Cache-Control', value: 'public, max-age=86400' },
         ],
       },
-      // Cache Next.js static files
       {
         source: '/_next/static/:path*',
         headers: [
@@ -70,10 +59,7 @@ const nextConfig: NextConfig = {
     ];
   },
   
-  // Compress responses
   compress: true,
-  
-  // Power by header removal
   poweredByHeader: false,
 };
 

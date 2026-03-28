@@ -11,9 +11,9 @@ const nextConfig: NextConfig = {
     serverActions: {
       allowedOrigins: ['etuk.soretiinternational.com', '*.soretiinternational.com'],
     },
-    // Include these packages in the standalone output
-    serverExternalPackages: ['bcryptjs', '@prisma/client', 'prisma'],
   },
+  // Include these packages in the standalone output (Next.js 15+)
+  serverExternalPackages: ['bcryptjs', '@prisma/client', 'prisma'],
   // Ensure images work properly
   images: {
     remotePatterns: [

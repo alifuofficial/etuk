@@ -54,20 +54,20 @@ RUN chown nextjs:nodejs .next
 COPY --from=builder --chown=nextjs:nodejs /app/.next/standalone ./
 COPY --from=builder --chown=nextjs:nodejs /app/.next/static ./.next/static
 
-# Copy all node_modules for prisma and other dependencies
-COPY --from=builder /app/node_modules ./node_modules
-
-# Copy prisma for runtime
-COPY --from=builder /app/prisma ./prisma
+# Copy only necessary node_modules for runtime
+COPY --from=builder /app/node_modules/.prisma ./node_modules/.prisma
+COPY --from=builder /app/node_modules/@prisma ./node_modules/@prisma
+COPY --from=builder /app/node_modules/prisma ./node_modules/prisma
+COPY --from=builder /app/node_modules/bcryptjs ./node_modules/bcryptjs
 
 # Copy translations
 COPY --from=builder /app/src/translations ./src/translations
 
+# Copy prisma schema
+COPY --from=builder /app/prisma ./prisma
+
 # Create data directory for SQLite with proper permissions
 RUN mkdir -p /app/data && chown -R nextjs:nodejs /app/data && chmod 755 /app/data
-
-# Make sure nextjs user owns everything
-RUN chown -R nextjs:nodejs /app
 
 USER nextjs
 

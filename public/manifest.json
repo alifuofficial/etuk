@@ -1,0 +1,22 @@
+{
+  "name": "ETUK - Electric 3-Wheelers",
+  "short_name": "ETUK",
+  "description": "Ethiopia's premier electric 3-wheeler by Soreti International Trading",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#ffffff",
+  "theme_color": "#00BFFF",
+  "orientation": "portrait-primary",
+  "icons": [
+    {
+      "src": "/logo.svg",
+      "sizes": "any",
+      "type": "image/svg+xml"
+    },
+    {
+      "src": "/images/soreti-logo.png",
+      "sizes": "512x512",
+      "type": "image/png"
+    }
+  ]
+}

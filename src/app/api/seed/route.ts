@@ -6,23 +6,31 @@ import path from 'path';
 
 const execAsync = promisify(exec);
 
+// Secret is only from environment variable - no hardcoded fallbacks
+const SEED_SECRET = process.env.SEED_SECRET;
+
 export async function GET(request: Request) {
   const logs: string[] = [];
   
   try {
-    // Check for secret key to prevent unauthorized access
+    // Check for secret key - MUST be set in environment
+    if (!SEED_SECRET) {
+      return NextResponse.json({ 
+        error: 'Seed endpoint disabled. Set SEED_SECRET environment variable.',
+        hint: 'Add SEED_SECRET to your environment variables'
+      }, { status: 503 });
+    }
+
     const { searchParams } = new URL(request.url);
     const secret = searchParams.get('secret');
     
-    if (secret !== process.env.SEED_SECRET && secret !== 'etuk-seed-2024') {
+    if (secret !== SEED_SECRET) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
 
     logs.push('Starting seed process...');
-    logs.push(`DATABASE_URL: ${process.env.DATABASE_URL}`);
-    logs.push(`Working directory: ${process.cwd()}`);
     
-    // Dynamic import of Prisma to catch errors
+    // Dynamic import of Prisma
     let db: any;
     try {
       const dbModule = await import('@/lib/db');
@@ -33,7 +41,6 @@ export async function GET(request: Request) {
       return NextResponse.json({ 
         error: 'Prisma client not available',
         logs,
-        suggestion: 'Make sure Prisma is properly generated in the container'
       }, { status: 500 });
     }
 
@@ -44,24 +51,21 @@ export async function GET(request: Request) {
       errors: [] as string[],
     };
 
-    // Try to push database schema using local prisma
+    // Try to push database schema
     try {
       logs.push('Attempting to push database schema...');
       const prismaBinPath = path.join(process.cwd(), 'node_modules', '.bin', 'prisma');
-      logs.push(`Prisma binary path: ${prismaBinPath}`);
       
-      const { stdout, stderr } = await execAsync(
+      await execAsync(
         `node ${prismaBinPath} db push --skip-generate --accept-data-loss 2>&1`,
         { 
           cwd: process.cwd(),
           env: { ...process.env, DATABASE_URL: process.env.DATABASE_URL }
         }
       );
-      logs.push(`Schema push output: ${stdout}`);
-      if (stderr) logs.push(`Schema push stderr: ${stderr}`);
+      logs.push('Schema push completed');
     } catch (e) {
-      logs.push(`Schema push attempt: ${e instanceof Error ? e.message : String(e)}`);
-      // Continue anyway - database might already exist
+      logs.push(`Schema push note: ${e instanceof Error ? e.message : String(e)}`);
     }
 
     // Test database connection
@@ -72,30 +76,20 @@ export async function GET(request: Request) {
       logs.push(`Database connection failed: ${e instanceof Error ? e.message : String(e)}`);
     }
 
-    // Check if users table exists and has users
-    try {
-      const existingUsers = await db.user.findMany();
-      logs.push(`Found ${existingUsers.length} existing users`);
-    } catch (e) {
-      logs.push(`Error checking users: ${e instanceof Error ? e.message : String(e)}`);
-    }
-
-    // Create admin users with fresh hashes
+    // Create admin users
     const users = [
-      { email: 'admin@etuk.et', name: 'Admin User', password: 'admin123', role: 'ADMIN', phone: '+251911000001' },
-      { email: 'manager@etuk.et', name: 'Marketing Manager', password: 'manager123', role: 'MARKETING_MANAGER', phone: '+251911000002' },
-      { email: 'officer@etuk.et', name: 'Marketing Officer', password: 'officer123', role: 'MARKETING_OFFICER', phone: '+251911000003' },
+      { email: 'admin@etuk.et', name: 'Admin User', password: process.env.ADMIN_PASSWORD || 'admin123', role: 'ADMIN', phone: '+251911000001' },
+      { email: 'manager@etuk.et', name: 'Marketing Manager', password: process.env.MANAGER_PASSWORD || 'manager123', role: 'MARKETING_MANAGER', phone: '+251911000002' },
+      { email: 'officer@etuk.et', name: 'Marketing Officer', password: process.env.OFFICER_PASSWORD || 'officer123', role: 'MARKETING_OFFICER', phone: '+251911000003' },
     ];
 
     for (const user of users) {
       try {
         logs.push(`Processing user: ${user.email}`);
         
-        // Check if exists
         const existing = await db.user.findUnique({ where: { email: user.email } });
         
         if (existing) {
-          // Update the password to ensure it's correct
           const hashedPassword = await bcrypt.hash(user.password, 10);
           await db.user.update({
             where: { email: user.email },
@@ -108,7 +102,6 @@ export async function GET(request: Request) {
           results.users.push(`${user.email} (updated)`);
           logs.push(`Updated existing user: ${user.email}`);
         } else {
-          // Create new user
           const hashedPassword = await bcrypt.hash(user.password, 10);
           await db.user.create({
             data: {
@@ -130,11 +123,10 @@ export async function GET(request: Request) {
       }
     }
 
-    // Verify users were created
+    // Verify users
     try {
       const finalUsers = await db.user.findMany();
       logs.push(`Final user count: ${finalUsers.length}`);
-      logs.push(`Users in DB: ${finalUsers.map((u: any) => u.email).join(', ')}`);
     } catch (e) {
       logs.push(`Error verifying users: ${e instanceof Error ? e.message : String(e)}`);
     }
@@ -207,7 +199,7 @@ export async function GET(request: Request) {
                 },
               });
               results.cities++;
-            } catch (e) {
+            } catch {
               // Ignore duplicates
             }
           }
@@ -224,18 +216,12 @@ export async function GET(request: Request) {
       message: 'Database seeded successfully!',
       results,
       logs,
-      credentials: {
-        admin: 'admin@etuk.et / admin123',
-        manager: 'manager@etuk.et / manager123',
-        officer: 'officer@etuk.et / officer123',
-      },
     });
   } catch (error) {
     logs.push(`Fatal error: ${error instanceof Error ? error.message : String(error)}`);
     return NextResponse.json({ 
       error: 'Failed to seed database',
       logs,
-      details: error instanceof Error ? error.message : 'Unknown error'
     }, { status: 500 });
   }
 }

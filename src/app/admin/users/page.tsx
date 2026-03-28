@@ -409,105 +409,140 @@ export default function UsersPage() {
 
       {/* User Dialog */}
       <Dialog open={showDialog} onOpenChange={setShowDialog}>
-        <DialogContent className="max-w-md p-0 overflow-hidden rounded-2xl shadow-2xl">
-          <div className="bg-gray-900 px-8 py-10 text-white">
-            <DialogHeader className="space-y-4">
-                <div className="w-16 h-16 bg-deepSkyBlue/20 rounded-2xl flex items-center justify-center mb-2">
-                    <UserPlus className="w-8 h-8 text-deepSkyBlue" />
+        <DialogContent className="max-w-xl p-0 overflow-hidden rounded-2xl border-none shadow-2xl">
+          <div className="bg-gradient-to-br from-gray-900 via-gray-800 to-gray-900 px-8 py-8 text-white relative overflow-hidden">
+            <div className="absolute top-0 right-0 w-32 h-32 bg-deepSkyBlue/10 rounded-full -translate-y-16 translate-x-16 blur-2xl" />
+            <DialogHeader className="relative z-10 flex flex-row items-center gap-5">
+                <div className="w-14 h-14 bg-white/10 backdrop-blur-md rounded-2xl flex items-center justify-center border border-white/10 shrink-0">
+                    <UserPlus className="w-7 h-7 text-deepSkyBlue" />
                 </div>
                 <div>
-                  <DialogTitle className="text-2xl font-bold leading-none mb-2">
-                      {editingUser ? 'Update Account' : 'New User Account'}
+                  <DialogTitle className="text-xl font-bold tracking-tight">
+                      {editingUser ? 'Update Employee Account' : 'Onboard New User'}
                   </DialogTitle>
-                  <DialogDescription className="text-gray-300 text-sm font-medium">
+                  <DialogDescription className="text-gray-400 text-xs font-medium mt-1">
                       {editingUser
-                          ? 'Update permissions and credentials for this user.'
-                          : 'Create a new administrative account for the ETUK system.'}
+                          ? `Modify credentials for ${editingUser.name}.`
+                          : 'Set up a new administrative account with specific system permissions.'}
                   </DialogDescription>
                 </div>
             </DialogHeader>
           </div>
 
-          <form onSubmit={handleSubmit} className="p-8 bg-white space-y-6">
-            <div className="space-y-4">
-                <div className="grid grid-cols-2 gap-4">
+          <form onSubmit={handleSubmit} className="p-8 bg-white space-y-8">
+            <div className="space-y-6">
+                {/* Identity Section */}
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
                   <div className="space-y-2">
-                      <Label htmlFor="name" className="text-xs font-bold text-gray-600 uppercase tracking-widest pl-1">Full Name</Label>
-... (omitting intermediate for multi-replace rules compliance if possible, but actually I need to be exact)
+                      <Label htmlFor="name" className="text-[10px] font-black text-gray-400 uppercase tracking-[0.2em] pl-1">Full Identity</Label>
                       <Input
                           id="name"
+                          placeholder="e.g. John Doe"
                           value={formData.name}
                           onChange={(e) => setFormData({ ...formData, name: e.target.value })}
-                          className="h-11 bg-gray-50 border-gray-200 rounded-lg font-medium px-4 focus:bg-white focus:border-deepSkyBlue transition-all shadow-none"
+                          className="h-12 bg-gray-50/50 border-gray-200 rounded-xl font-medium px-4 focus:bg-white focus:border-deepSkyBlue focus:ring-4 focus:ring-deepSkyBlue/5 transition-all shadow-none"
                           required
                       />
                   </div>
                   <div className="space-y-2">
-                      <Label htmlFor="role" className="text-xs font-bold text-gray-600 uppercase tracking-widest pl-1">Role</Label>
+                      <Label htmlFor="role" className="text-[10px] font-black text-gray-400 uppercase tracking-[0.2em] pl-1">System Privilege</Label>
                       <Select
                           value={formData.role}
                           onValueChange={(value) => setFormData({ ...formData, role: value })}
                       >
-                          <SelectTrigger className="h-11 bg-gray-50 border-gray-200 rounded-lg font-medium px-4">
-                              <SelectValue placeholder="Select role" />
+                          <SelectTrigger className="h-12 bg-gray-50/50 border-gray-200 rounded-xl font-medium px-4 focus:ring-4 focus:ring-deepSkyBlue/5 transition-all">
+                              <SelectValue placeholder="Assign Role" />
                           </SelectTrigger>
-                          <SelectContent>
-                              <SelectItem value="ADMIN">Admin</SelectItem>
-                              <SelectItem value="MARKETING_MANAGER">Manager</SelectItem>
-                              <SelectItem value="MARKETING_OFFICER">Officer</SelectItem>
+                          <SelectContent className="rounded-xl border-gray-200 shadow-xl mt-2">
+                              <SelectItem value="ADMIN" className="py-3 font-medium">Administrator</SelectItem>
+                              <SelectItem value="MARKETING_MANAGER" className="py-3 font-medium">Marketing Manager</SelectItem>
+                              <SelectItem value="MARKETING_OFFICER" className="py-3 font-medium">Marketing Officer</SelectItem>
                           </SelectContent>
                       </Select>
                   </div>
                 </div>
 
-                <div className="space-y-2">
-                    <Label htmlFor="email" className="text-xs font-bold text-gray-600 uppercase tracking-widest pl-1">Email Address</Label>
-                    <Input
-                        id="email"
-                        type="email"
-                        value={formData.email}
-                        onChange={(e) => setFormData({ ...formData, email: e.target.value })}
-                        className="h-11 bg-gray-50 border-gray-200 rounded-lg font-medium px-4 focus:bg-white focus:border-deepSkyBlue transition-all shadow-none"
-                        required
-                    />
+                {/* Contact Section */}
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
+                  <div className="space-y-2">
+                      <Label htmlFor="email" className="text-[10px] font-black text-gray-400 uppercase tracking-[0.2em] pl-1">Contact Email</Label>
+                      <Input
+                          id="email"
+                          type="email"
+                          placeholder="name@company.com"
+                          value={formData.email}
+                          onChange={(e) => setFormData({ ...formData, email: e.target.value })}
+                          className="h-12 bg-gray-50/50 border-gray-200 rounded-xl font-medium px-4 focus:bg-white focus:border-deepSkyBlue focus:ring-4 focus:ring-deepSkyBlue/5 transition-all shadow-none"
+                          required
+                      />
+                  </div>
+                  <div className="space-y-2">
+                      <Label htmlFor="phone" className="text-[10px] font-black text-gray-400 uppercase tracking-[0.2em] pl-1">Phone Number</Label>
+                      <Input
+                          id="phone"
+                          type="tel"
+                          placeholder="+251 ..."
+                          value={formData.phone}
+                          onChange={(e) => setFormData({ ...formData, phone: e.target.value })}
+                          className="h-12 bg-gray-50/50 border-gray-200 rounded-xl font-medium px-4 focus:bg-white focus:border-deepSkyBlue focus:ring-4 focus:ring-deepSkyBlue/5 transition-all shadow-none"
+                      />
+                  </div>
                 </div>
 
+                {/* Security Section */}
                 <div className="space-y-2">
-                    <Label htmlFor="password" className="text-xs font-bold text-gray-600 uppercase tracking-widest pl-1">
-                        Password {editingUser ? '(Hold current if empty)' : ''}
+                    <Label htmlFor="password" className="text-[10px] font-black text-gray-400 uppercase tracking-[0.2em] pl-1">
+                        Security Phrase {editingUser && <span className="text-deepSkyBlue lowercase font-medium ml-1 bg-blue-50 px-2 py-0.5 rounded-full">(leave blank to keep current)</span>}
                     </Label>
                     <Input
                         id="password"
                         type="password"
+                        placeholder={editingUser ? "••••••••" : "Require 8+ characters"}
                         value={formData.password}
                         onChange={(e) => setFormData({ ...formData, password: e.target.value })}
-                        className="h-11 bg-gray-50 border-gray-200 rounded-lg font-medium px-4 focus:bg-white focus:border-deepSkyBlue transition-all shadow-none"
+                        className="h-12 bg-gray-50/50 border-gray-200 rounded-xl font-medium px-4 focus:bg-white focus:border-deepSkyBlue focus:ring-4 focus:ring-deepSkyBlue/5 transition-all shadow-none"
                         required={!editingUser}
                     />
                 </div>
 
-                <div className="flex items-center gap-3 p-4 bg-gray-50 rounded-xl border border-gray-100">
-                    <input
-                        type="checkbox"
-                        id="isActive"
-                        checked={formData.isActive}
-                        onChange={(e) => setFormData({ ...formData, isActive: e.target.checked })}
-                        className="w-5 h-5 rounded border-gray-300 text-deepSkyBlue focus:ring-deepSkyBlue accent-deepSkyBlue"
-                    />
-                    <Label htmlFor="isActive" className="text-sm font-bold text-gray-700 cursor-pointer">Account is Active</Label>
+                {/* Status Section */}
+                <div className="flex items-center justify-between p-5 bg-gray-50/50 rounded-2xl border border-gray-100 group transition-all hover:bg-gray-50">
+                    <div className="flex flex-col">
+                        <Label htmlFor="isActive" className="text-sm font-bold text-gray-800 cursor-pointer mb-0.5">Account Status</Label>
+                        <p className="text-[10px] text-gray-500 font-medium">Control if this user can currently sign in.</p>
+                    </div>
+                    <div className="relative inline-flex items-center cursor-pointer">
+                      <input
+                          type="checkbox"
+                          id="isActive"
+                          checked={formData.isActive}
+                          onChange={(e) => setFormData({ ...formData, isActive: e.target.checked })}
+                          className="w-6 h-6 rounded-lg border-gray-300 text-deepSkyBlue focus:ring-deepSkyBlue transition-all cursor-pointer accent-deepSkyBlue translate-y-[-1px]"
+                      />
+                    </div>
                 </div>
             </div>
 
-            <DialogFooter className="gap-3">
-              <Button type="button" variant="ghost" className="h-12 flex-1 rounded-lg text-gray-500 font-bold" onClick={() => setShowDialog(false)}>
+            <DialogFooter className="gap-3 sm:gap-2 sm:flex-row flex-col pt-2">
+              <Button 
+                type="button" 
+                variant="ghost" 
+                className="h-13 min-h-[52px] flex-1 rounded-xl text-gray-500 font-bold hover:bg-gray-100 transition-all sm:order-1" 
+                onClick={() => setShowDialog(false)}
+              >
                 Cancel
               </Button>
               <Button
                 type="submit"
-                className="h-12 flex-1 rounded-lg bg-deepSkyBlue text-white hover:bg-blue-600 font-bold shadow-lg shadow-blue-500/10"
+                className="h-13 min-h-[52px] flex-[1.5] rounded-xl bg-gray-900 text-white hover:bg-black font-bold shadow-xl shadow-gray-200 transition-all hover:scale-[1.02] active:scale-[0.98] sm:order-2"
                 disabled={actionLoading}
               >
-                {actionLoading ? 'Saving...' : editingUser ? 'Update User' : 'Create User'}
+                {actionLoading ? (
+                  <div className="flex items-center gap-2">
+                    <div className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" />
+                    <span>Synchronizing...</span>
+                  </div>
+                ) : editingUser ? 'Apply Changes' : 'Confirm & Create'}
               </Button>
             </DialogFooter>
           </form>

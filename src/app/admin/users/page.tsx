@@ -87,10 +87,22 @@ export default function UsersPage() {
     setLoading(true);
     try {
       const response = await fetch('/api/users');
-      const data = await response.json();
-      setUsers(data);
+      if (response.ok) {
+        const data = await response.json();
+        if (Array.isArray(data)) {
+          setUsers(data);
+        } else {
+          console.error('API response is not an array:', data);
+          setUsers([]);
+        }
+      } else {
+        const errorData = await response.json();
+        console.error('Failed to fetch users:', errorData);
+        setUsers([]);
+      }
     } catch (error) {
       console.error('Failed to fetch users:', error);
+      setUsers([]);
     } finally {
       setLoading(false);
     }
@@ -218,14 +230,25 @@ export default function UsersPage() {
     }
   };
 
-  const filteredUsers = users.filter((user) => {
+  const filteredUsers = Array.isArray(users) ? users.filter((user) => {
     const searchLower = search.toLowerCase();
+    const nameStr = user.name || '';
+    const emailStr = user.email || '';
     const matchesSearch =
-      user.name.toLowerCase().includes(searchLower) ||
-      user.email.toLowerCase().includes(searchLower);
+      nameStr.toLowerCase().includes(searchLower) ||
+      emailStr.toLowerCase().includes(searchLower);
     const matchesRole = roleFilter === 'all' || user.role === roleFilter;
     return matchesSearch && matchesRole;
-  });
+  }) : [];
+
+  if (status === 'loading') {
+    return (
+      <div className="flex flex-col items-center justify-center min-h-[50vh] text-center space-y-4">
+        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-deepSkyBlue" />
+        <p className="text-sm text-gray-600">Verifying access...</p>
+      </div>
+    );
+  }
 
   if (session?.user?.role !== 'ADMIN') {
     return (
@@ -326,7 +349,7 @@ export default function UsersPage() {
                         <div className="flex items-center gap-3">
                           <Avatar className="w-10 h-10 border border-gray-100 border-dashed">
                             <AvatarFallback className="bg-amber-50 text-amber-600 font-bold text-xs">
-                              {user.name[0]}
+                              {user.name ? user.name[0] : '?'}
                             </AvatarFallback>
                           </Avatar>
                           <div className="flex flex-col">

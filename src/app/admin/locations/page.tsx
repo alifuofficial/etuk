@@ -115,10 +115,28 @@ export default function LocationsPage() {
         fetch('/api/admin/regions'),
         fetch('/api/admin/cities')
       ]);
-      const regionsData = await regionsRes.json();
-      const citiesData = await citiesRes.json();
-      setRegions(regionsData);
-      setCities(citiesData);
+      if (regionsRes.ok && citiesRes.ok) {
+        const regionsData = await regionsRes.json();
+        const citiesData = await citiesRes.json();
+        
+        if (Array.isArray(regionsData)) {
+          setRegions(regionsData);
+        } else {
+          console.error('Regions data is not an array:', regionsData);
+          setRegions([]);
+        }
+
+        if (Array.isArray(citiesData)) {
+          setCities(citiesData);
+        } else {
+          console.error('Cities data is not an array:', citiesData);
+          setCities([]);
+        }
+      } else {
+        console.error('Failed to fetch data');
+        setRegions([]);
+        setCities([]);
+      }
     } catch (error) {
       toast({ title: 'Error', description: 'Failed to fetch data', variant: 'destructive' });
     } finally {
@@ -244,10 +262,10 @@ export default function LocationsPage() {
       <Tabs defaultValue="regions" onValueChange={setActiveTab} className="bg-white">
         <TabsList className="bg-slate-100/50 p-1 rounded-xl mb-6">
           <TabsTrigger value="regions" className="rounded-lg px-8 font-bold text-slate-500 data-[state=active]:bg-white data-[state=active]:text-gray-900 data-[state=active]:shadow-sm transition-all">
-            Regions ({regions.length})
+            Regions ({Array.isArray(regions) ? regions.length : 0})
           </TabsTrigger>
           <TabsTrigger value="cities" className="rounded-lg px-8 font-bold text-slate-500 data-[state=active]:bg-white data-[state=active]:text-gray-900 data-[state=active]:shadow-sm transition-all">
-            Cities ({cities.length})
+            Cities ({Array.isArray(cities) ? cities.length : 0})
           </TabsTrigger>
         </TabsList>
 
@@ -267,7 +285,7 @@ export default function LocationsPage() {
               <TableBody>
                 {loading ? (
                    <TableRow><TableCell colSpan={6} className="text-center py-10"><Loader2 className="w-8 h-8 animate-spin mx-auto text-slate-200" /></TableCell></TableRow>
-                ) : regions.map((region) => (
+                ) : Array.isArray(regions) && regions.map((region) => (
                   <TableRow key={region.id}>
                     <TableCell className="font-bold text-gray-900">{region.name}</TableCell>
                     <TableCell className="text-gray-600">{region.nameAm || '-'}</TableCell>
@@ -311,7 +329,7 @@ export default function LocationsPage() {
               <TableBody>
                 {loading ? (
                   <TableRow><TableCell colSpan={5} className="text-center py-10"><Loader2 className="w-8 h-8 animate-spin mx-auto text-slate-200" /></TableCell></TableRow>
-                ) : cities.map((city) => (
+                ) : Array.isArray(cities) && cities.map((city) => (
                   <TableRow key={city.id}>
                     <TableCell className="font-bold text-gray-900">{city.name}</TableCell>
                     <TableCell>
@@ -404,7 +422,7 @@ export default function LocationsPage() {
                     <SelectValue placeholder="Select region" />
                   </SelectTrigger>
                   <SelectContent>
-                    {regions.map((r) => (
+                    {Array.isArray(regions) && regions.map((r) => (
                       <SelectItem key={r.id} value={r.id}>{r.name}</SelectItem>
                     ))}
                   </SelectContent>

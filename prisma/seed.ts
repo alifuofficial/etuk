@@ -1,19 +1,22 @@
 import { PrismaClient } from '@prisma/client';
-import bcrypt from 'bcryptjs';
 
 const prisma = new PrismaClient();
 
 async function main() {
+  // Pre-hashed passwords for 'admin123', 'manager123', 'officer123'
+  // This avoids a dependency on bcryptjs in the production runner.
+  const HASH_ADMIN = '$2b$10$qH4RSGVmspaAR7mmwC16MO6Y79Rqa7keATQJNfCf3wkaeKww946n6';
+  const HASH_MANAGER = '$2b$10$7zdJ2n2GBNtaWonKsgQcEOVqUn0V9oJomrW8Kz7M5sCf3sI55DWxsjorG';
+  const HASH_OFFICER = '$2b$10$43OrBfrU2oBuoJUC9vuADePH9Uoh3qRokbPCwjXyZttnWWtd9psK1.';
+
   // Create admin user
-  const hashedPassword = await bcrypt.hash('admin123', 10);
-  
   const admin = await prisma.user.upsert({
     where: { email: 'admin@etuk.et' },
     update: {},
     create: {
       email: 'admin@etuk.et',
       name: 'Admin User',
-      password: hashedPassword,
+      password: HASH_ADMIN,
       role: 'ADMIN',
       phone: '+251911000001',
       isActive: true,
@@ -21,14 +24,13 @@ async function main() {
   });
 
   // Create marketing manager
-  const managerPassword = await bcrypt.hash('manager123', 10);
   const manager = await prisma.user.upsert({
     where: { email: 'manager@etuk.et' },
     update: {},
     create: {
       email: 'manager@etuk.et',
       name: 'Marketing Manager',
-      password: managerPassword,
+      password: HASH_MANAGER,
       role: 'MARKETING_MANAGER',
       phone: '+251911000002',
       isActive: true,
@@ -36,14 +38,13 @@ async function main() {
   });
 
   // Create marketing officer
-  const officerPassword = await bcrypt.hash('officer123', 10);
   const officer = await prisma.user.upsert({
     where: { email: 'officer@etuk.et' },
     update: {},
     create: {
       email: 'officer@etuk.et',
       name: 'Marketing Officer',
-      password: officerPassword,
+      password: HASH_OFFICER,
       role: 'MARKETING_OFFICER',
       phone: '+251911000003',
       isActive: true,

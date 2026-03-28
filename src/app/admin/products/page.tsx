@@ -50,10 +50,22 @@ export default function ProductsPage() {
     setLoading(true);
     try {
       const response = await fetch('/api/products');
-      const data = await response.json();
-      setProducts(data);
+      if (response.ok) {
+        const data = await response.json();
+        if (Array.isArray(data)) {
+          setProducts(data);
+        } else {
+          console.error('API response is not an array:', data);
+          setProducts([]);
+        }
+      } else {
+        const errorData = await response.json();
+        console.error('Failed to fetch products:', errorData);
+        setProducts([]);
+      }
     } catch (error) {
       console.error('Failed to fetch products:', error);
+      setProducts([]);
     } finally {
       setLoading(false);
     }
@@ -105,7 +117,7 @@ export default function ProductsPage() {
 
       {/* Products Grid */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-        {products.map((product) => {
+        {Array.isArray(products) && products.map((product) => {
           const specs = parseSpecs(product.specifications);
           
           return (

@@ -101,10 +101,22 @@ export default function AgentsPage() {
         params.append('status', statusFilter);
       }
       const response = await fetch(`/api/agents?${params}`);
-      const data = await response.json();
-      setAgents(data);
+      if (response.ok) {
+        const data = await response.json();
+        if (Array.isArray(data)) {
+          setAgents(data);
+        } else {
+          console.error('API response is not an array:', data);
+          setAgents([]);
+        }
+      } else {
+        const errorData = await response.json();
+        console.error('Failed to fetch agents:', errorData);
+        setAgents([]);
+      }
     } catch (error) {
       console.error('Failed to fetch agents:', error);
+      setAgents([]);
     } finally {
       setLoading(false);
     }
@@ -154,16 +166,22 @@ export default function AgentsPage() {
     return new Date(dateString).toLocaleDateString();
   };
 
-  const filteredAgents = agents.filter((agent) => {
+  const filteredAgents = Array.isArray(agents) ? agents.filter((agent) => {
     const searchLower = search.toLowerCase();
+    const firstName = agent.firstName || '';
+    const lastName = agent.lastName || '';
+    const email = agent.email || '';
+    const region = agent.region || '';
+    const city = agent.city || '';
+    
     return (
-      agent.firstName.toLowerCase().includes(searchLower) ||
-      agent.lastName.toLowerCase().includes(searchLower) ||
-      agent.email.toLowerCase().includes(searchLower) ||
-      agent.region.toLowerCase().includes(searchLower) ||
-      agent.city.toLowerCase().includes(searchLower)
+      firstName.toLowerCase().includes(searchLower) ||
+      lastName.toLowerCase().includes(searchLower) ||
+      email.toLowerCase().includes(searchLower) ||
+      region.toLowerCase().includes(searchLower) ||
+      city.toLowerCase().includes(searchLower)
     );
-  });
+  }) : [];
 
   return (
     <div className="space-y-6">

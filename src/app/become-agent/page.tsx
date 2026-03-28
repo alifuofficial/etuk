@@ -26,13 +26,14 @@ import {
   Shield, 
   TrendingUp, 
   Users, 
-  HeadphonesIcon, 
-  ChevronLeft 
+  HeadphonesIcon 
 } from 'lucide-react';
 import { useI18n } from '@/lib/i18n/useI18n';
 import Link from 'next/link';
-import Header from '@/components/public/Header';
-import Footer from '@/components/public/Footer';
+import dynamic from 'next/dynamic';
+
+const Header = dynamic(() => import('@/components/public/Header'), { ssr: false });
+const Footer = dynamic(() => import('@/components/public/Footer'), { ssr: false });
 
 interface Region {
   id: string;
@@ -48,13 +49,6 @@ interface City {
   nameAm: string | null;
   nameOr: string | null;
 }
-
-const benefits = [
-  { icon: Shield, title: 'agent.benefits.territory', desc: 'agent.benefits.territoryDesc' },
-  { icon: TrendingUp, title: 'agent.benefits.margins', desc: 'agent.benefits.marginsDesc' },
-  { icon: Users, title: 'agent.benefits.training', desc: 'agent.benefits.trainingDesc' },
-  { icon: HeadphonesIcon, title: 'agent.benefits.support', desc: 'agent.benefits.supportDesc' },
-];
 
 export default function BecomeAgentPage() {
   const { locale, t } = useI18n();
@@ -97,8 +91,10 @@ export default function BecomeAgentPage() {
   const fetchRegions = async () => {
     try {
       const response = await fetch('/api/regions');
-      const data = await response.json();
-      setRegions(data);
+      if (response.ok) {
+        const data = await response.json();
+        setRegions(data);
+      }
     } catch (error) {
       console.error('Failed to fetch regions:', error);
     }
@@ -151,13 +147,20 @@ export default function BecomeAgentPage() {
     return city.name;
   };
 
+  const benefits = [
+    { icon: Shield, title: t('agent.benefits.territory'), desc: t('agent.benefits.territoryDesc') },
+    { icon: TrendingUp, title: t('agent.benefits.margins'), desc: t('agent.benefits.marginsDesc') },
+    { icon: Users, title: t('agent.benefits.training'), desc: t('agent.benefits.trainingDesc') },
+    { icon: HeadphonesIcon, title: t('agent.benefits.support'), desc: t('agent.benefits.supportDesc') },
+  ];
+
   if (submitted) {
     return (
       <div className="min-h-screen bg-white">
         <Header />
         <div className="flex flex-col items-center justify-center min-h-[70vh] p-6 text-center">
           <div className="w-16 h-16 bg-blue-50 rounded-full flex items-center justify-center mb-6">
-            <CheckCircle className="w-8 h-8 text-deepSkyBlue" />
+            <CheckCircle className="w-8 h-8 text-deep-sky-blue" />
           </div>
           <h2 className="text-3xl font-bold text-gray-900 mb-2">{t('agent.form.successTitle')}</h2>
           <p className="text-gray-500 max-w-sm mb-8">
@@ -183,9 +186,6 @@ export default function BecomeAgentPage() {
       <div className="fixed -bottom-24 -right-24 w-96 h-96 opacity-[0.03] pointer-events-none z-0 rotate-12">
         <img src="/images/soreti-logo.png" alt="" className="w-full h-full object-contain grayscale" />
       </div>
-      <div className="fixed -top-24 -left-24 w-64 h-64 opacity-[0.02] pointer-events-none z-0 -rotate-12">
-        <img src="/images/soreti-logo.png" alt="" className="w-full h-full object-contain grayscale" />
-      </div>
 
       <Header />
       
@@ -209,9 +209,9 @@ export default function BecomeAgentPage() {
         <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-12">
           {benefits.map((benefit, i) => (
             <div key={i} className="bg-white p-4 rounded-xl border border-gray-100 text-center shadow-sm">
-              <benefit.icon className="w-5 h-5 text-deepSkyBlue mx-auto mb-2" />
-              <h4 className="text-xs font-bold text-gray-900">{t(benefit.title)}</h4>
-              <p className="text-[10px] text-gray-400 mt-1">{t(benefit.desc)}</p>
+              <benefit.icon className="w-5 h-5 text-deep-sky-blue mx-auto mb-2" />
+              <h4 className="text-xs font-bold text-gray-900">{benefit.title}</h4>
+              <p className="text-[10px] text-gray-400 mt-1">{benefit.desc}</p>
             </div>
           ))}
         </div>
@@ -423,7 +423,7 @@ export default function BecomeAgentPage() {
             <Button
               type="submit"
               disabled={loading}
-              className="w-full h-14 bg-gray-900 hover:bg-black text-white font-bold text-lg rounded-xl shadow-lg shadow-gray-200 transition-all"
+              className="w-full h-14 bg-deep-sky-blue hover:bg-deep-sky-blue-dark text-white font-bold text-lg rounded-xl shadow-lg transition-all"
             >
               {loading ? (
                 <>

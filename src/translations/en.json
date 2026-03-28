@@ -160,6 +160,7 @@
       "selectCity": "Select city",
       "selectSource": "Select source",
       "tinPlaceholder": "Tax Identification Number",
+      "tinNumber": "TIN Number",
       "licenseLabel": "Business License (Photo/File)",
       "uploadSuccess": "uploaded successfully",
       "warehouseLabel": "I have a warehouse or showroom space",
@@ -183,7 +184,6 @@
       "documents": "Documents",
       "tradeLicense": "Trade License",
       "idDocument": "ID Document",
-      "tinNumber": "TIN Number",
       "message": "Additional Message",
       "howDidYouHear": "How did you hear about us?",
       "submit": "Submit Application",
@@ -215,7 +215,8 @@
     "assembly": "Assembled in Modjo, Ethiopia",
     "assemblyTitle": "Local Assembly",
     "operational": "Operational",
-    "builtIn": "Built in"
+    "builtIn": "Built in",
+    "craftedBy": "Crafted by"
   },
   "howItWorks": {
     "title": "How It Works",

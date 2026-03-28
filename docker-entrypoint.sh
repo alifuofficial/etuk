@@ -8,11 +8,19 @@ echo "Starting ETUK application..."
 if [ -n "$DATABASE_URL" ]; then
   echo "Checking database..."
   cd /app
-  # Create data directory if using SQLite
-  mkdir -p /app/data
+  # Extract file path from DATABASE_URL if it's a file URL
+  DB_PATH=$(echo "$DATABASE_URL" | sed 's/file://')
+  DB_DIR=$(dirname "$DB_PATH")
+  
+  if [ -n "$DB_DIR" ] && [ "$DB_DIR" != "." ]; then
+    echo "Ensuring directory $DB_DIR exists..."
+    mkdir -p "$DB_DIR"
+  fi
+  
   # Push schema to database
-  npx prisma db push --skip-generate 2>/dev/null || true
+  echo "Pushing schema to database..."
+  npx prisma db push --skip-generate --accept-data-loss
 fi
 
-# Start the application
-exec node server.js
+# Start the application - executes CMD from Dockerfile
+exec "$@"

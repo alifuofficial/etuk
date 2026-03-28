@@ -39,12 +39,14 @@ COPY --from=builder --chown=nextjs:nodejs /app/.next/static ./.next/static
 COPY --from=builder --chown=nextjs:nodejs /app/.next/standalone ./
 COPY --from=builder --chown=nextjs:nodejs /app/prisma ./prisma
 COPY --from=builder --chown=nextjs:nodejs /app/src/translations ./src/translations
+COPY --chown=nextjs:nodejs docker-entrypoint.sh /app/docker-entrypoint.sh
 
 # Ensure ALL files in /app are owned by nextjs (extra safety for volumes)
 USER root
-RUN chown -R nextjs:nodejs /app
+RUN chmod +x /app/docker-entrypoint.sh && chown -R nextjs:nodejs /app
 USER nextjs
 
+ENTRYPOINT ["/app/docker-entrypoint.sh"]
 EXPOSE 3000
 
 CMD ["node", "server.js"]

@@ -334,7 +334,7 @@ export default function LocationsPage() {
                     <TableCell className="font-bold text-gray-900">{city.name}</TableCell>
                     <TableCell>
                       <div className="flex items-center gap-2">
-                        <MapPin className="w-3 h-3 text-deepSkyBlue" />
+                        <MapPin className="w-3 h-3 text-deep-sky-blue" />
                         <span className="font-medium">{city.region.name}</span>
                       </div>
                     </TableCell>
@@ -398,7 +398,7 @@ export default function LocationsPage() {
               </div>
             </div>
             <DialogFooter>
-              <Button type="submit" className="bg-deepSkyBlue hover:bg-blue-600 w-full rounded-xl h-12">
+              <Button type="submit" className="bg-deep-sky-blue hover:bg-blue-600 w-full rounded-xl h-12">
                 {editingRegion ? 'Update Region' : 'Create Region'}
               </Button>
             </DialogFooter>
@@ -444,7 +444,7 @@ export default function LocationsPage() {
               </div>
             </div>
             <DialogFooter>
-              <Button type="submit" className="bg-deepSkyBlue hover:bg-blue-600 w-full rounded-xl h-12">
+              <Button type="submit" className="bg-deep-sky-blue hover:bg-blue-600 w-full rounded-xl h-12">
                 {editingCity ? 'Update City' : 'Create City'}
               </Button>
             </DialogFooter>

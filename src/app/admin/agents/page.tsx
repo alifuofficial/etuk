@@ -313,7 +313,7 @@ export default function AgentsPage() {
             </Button>
             <Button 
               onClick={() => setShowAddDialog(true)}
-              className="h-11 px-6 bg-deepSkyBlue text-white hover:bg-blue-600 font-bold shadow-lg shadow-blue-100"
+              className="h-11 px-6 bg-deep-sky-blue text-white hover:bg-blue-600 font-bold shadow-lg shadow-blue-100"
             >
               <Plus className="w-4 h-4 mr-2" />
               Add Agent
@@ -333,7 +333,7 @@ export default function AgentsPage() {
                 placeholder="Search by name, email, or city..."
                 value={search}
                 onChange={(e) => setSearch(e.target.value)}
-                className="w-full pl-10 pr-4 h-11 bg-gray-50 border border-gray-200 rounded-lg text-sm text-gray-900 focus:bg-white focus:border-deepSkyBlue focus:ring-4 focus:ring-deepSkyBlue/5 outline-none transition-all"
+                className="w-full pl-10 pr-4 h-11 bg-gray-50 border border-gray-200 rounded-lg text-sm text-gray-900 focus:bg-white focus:border-deep-sky-blue focus:ring-4 focus:ring-deep-sky-blue/5 outline-none transition-all"
               />
             </div>
             <div className="flex gap-4">
@@ -361,7 +361,7 @@ export default function AgentsPage() {
         <CardContent className="p-0">
           {loading ? (
             <div className="flex flex-col items-center justify-center py-24 gap-4">
-              <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-deepSkyBlue" />
+              <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-deep-sky-blue" />
               <p className="text-sm text-gray-400">Loading records...</p>
             </div>
           ) : filteredAgents.length === 0 ? (
@@ -415,7 +415,7 @@ export default function AgentsPage() {
                         <Button
                           variant="ghost"
                           size="sm"
-                          className="text-deepSkyBlue hover:bg-gray-100 font-bold gap-2"
+                          className="text-deep-sky-blue hover:bg-gray-100 font-bold gap-2"
                           onClick={() => {
                             setSelectedAgent(agent);
                             setReviewNotes(agent.reviewNotes || '');
@@ -444,7 +444,7 @@ export default function AgentsPage() {
               <div className="bg-gray-900 p-8 text-white">
                 <DialogHeader>
                   <div className="flex items-center gap-2 mb-2">
-                    <span className="text-xs font-bold text-deepSkyBlue uppercase tracking-[0.2em]">Application Details</span>
+                    <span className="text-xs font-bold text-deep-sky-blue uppercase tracking-[0.2em]">Application Details</span>
                   </div>
                   <DialogTitle className="text-3xl font-bold leading-none mb-1">
                     {selectedAgent.firstName} {selectedAgent.lastName}
@@ -484,7 +484,7 @@ export default function AgentsPage() {
                     <div className="p-4 bg-blue-50/50 border border-blue-100 rounded-xl flex items-center justify-between">
                       <div className="flex items-center gap-3">
                         <div className="w-10 h-10 bg-white rounded-lg flex items-center justify-center border border-blue-100 shadow-sm">
-                          <FileText className="w-5 h-5 text-deepSkyBlue" />
+                          <FileText className="w-5 h-5 text-deep-sky-blue" />
                         </div>
                         <div>
                           <p className="text-sm font-bold text-gray-900">Business License</p>
@@ -496,7 +496,7 @@ export default function AgentsPage() {
                           variant="outline" 
                           size="sm" 
                           onClick={() => setPreviewOpen(!previewOpen)}
-                          className="bg-white border-blue-200 text-deepSkyBlue hover:bg-blue-50 font-bold h-9"
+                          className="bg-white border-blue-200 text-deep-sky-blue hover:bg-blue-50 font-bold h-9"
                         >
                           <Eye className="w-4 h-4 mr-2" />
                           {previewOpen ? 'Hide Preview' : 'Preview'}
@@ -506,7 +506,7 @@ export default function AgentsPage() {
                           target="_blank" 
                           rel="noopener noreferrer"
                         >
-                          <Button variant="ghost" size="sm" className="h-9 w-9 p-0 text-gray-400 hover:text-deepSkyBlue hover:bg-blue-50">
+                          <Button variant="ghost" size="sm" className="h-9 w-9 p-0 text-gray-400 hover:text-deep-sky-blue hover:bg-blue-50">
                             <ExternalLink className="w-4 h-4" />
                           </Button>
                         </a>
@@ -548,7 +548,7 @@ export default function AgentsPage() {
                     onChange={(e) => setReviewNotes(e.target.value)}
                     placeholder="Add notes about this agent application..."
                     rows={4}
-                    className="bg-gray-50 border-gray-200 rounded-xl p-4 text-sm focus:bg-white focus:border-deepSkyBlue focus:ring-0 transition-all resize-none shadow-none"
+                    className="bg-gray-50 border-gray-200 rounded-xl p-4 text-sm focus:bg-white focus:border-deep-sky-blue focus:ring-0 transition-all resize-none shadow-none"
                   />
                 </div>
 
@@ -581,23 +581,23 @@ export default function AgentsPage() {
 
       {/* Add Agent Dialog */}
       <Dialog open={showAddDialog} onOpenChange={setShowAddDialog}>
-        <DialogContent className="max-w-xl p-0 overflow-hidden rounded-2xl shadow-2xl">
-          <div className="bg-deepSkyBlue p-8 text-white">
+        <DialogContent className="max-w-xl p-0 overflow-hidden rounded-2xl shadow-2xl bg-white">
+          <div className="bg-deep-sky-blue p-8 text-white relative z-10">
             <DialogHeader>
               <div className="flex items-center gap-2 mb-2">
                 <Plus className="w-4 h-4 text-blue-100" />
                 <span className="text-xs font-bold text-blue-100 uppercase tracking-[0.2em]">Administrative Entry</span>
               </div>
-              <DialogTitle className="text-3xl font-bold leading-none mb-1">
+              <DialogTitle className="text-3xl font-bold leading-none mb-1 text-white">
                 Add New Agent
               </DialogTitle>
-              <DialogDescription className="text-blue-50 text-sm font-medium">
+              <DialogDescription className="text-white/90 text-sm font-semibold">
                 Manually register a new agent into the ETUK network.
               </DialogDescription>
             </DialogHeader>
           </div>
 
-          <div className="p-8 space-y-6 bg-white">
+          <div className="max-h-[65vh] overflow-y-auto px-8 py-8 space-y-7 bg-white custom-scrollbar">
             <div className="grid grid-cols-2 gap-4">
               <div className="space-y-2">
                 <Label htmlFor="firstName" className="text-xs font-bold text-gray-700 uppercase tracking-wider">First Name</Label>
@@ -724,7 +724,7 @@ function DataPoint({ icon, label, value }: { icon?: any, label: string, value: s
     <div className="space-y-0.5">
       <p className="text-[10px] font-bold text-gray-600 uppercase tracking-wider">{label}</p>
       <div className="flex items-center gap-2">
-        {icon && <div className="text-deepSkyBlue">{icon}</div>}
+        {icon && <div className="text-deep-sky-blue">{icon}</div>}
         <p className="text-sm font-bold text-gray-900">{value}</p>
       </div>
     </div>

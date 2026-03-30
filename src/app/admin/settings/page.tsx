@@ -136,7 +136,7 @@ export default function SettingsPage() {
   if (fetching) {
     return (
       <div className="flex items-center justify-center min-h-[400px]">
-        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-deepSkyBlue"></div>
+        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-deep-sky-blue"></div>
       </div>
     );
   }
@@ -151,21 +151,21 @@ export default function SettingsPage() {
       <Tabs defaultValue="profile" className="w-full">
         <TabsList className={`grid w-full max-w-2xl ${session?.user?.role === 'ADMIN' ? 'grid-cols-4' : 'grid-cols-1'} h-12 bg-slate-100/50 p-1 rounded-xl mb-8`}>
           <TabsTrigger value="profile" className="rounded-lg data-[state=active]:bg-white data-[state=active]:text-gray-900 data-[state=active]:shadow-sm font-bold text-xs text-slate-500 transition-all">
-            <Lock className="w-3.5 h-3.5 mr-2 text-deepSkyBlue" />
+            <Lock className="w-3.5 h-3.5 mr-2 text-deep-sky-blue" />
             Security
           </TabsTrigger>
           {session?.user?.role === 'ADMIN' && (
             <>
               <TabsTrigger value="site" className="rounded-lg data-[state=active]:bg-white data-[state=active]:text-gray-900 data-[state=active]:shadow-sm font-bold text-xs text-slate-500 transition-all">
-                <Layout className="w-3.5 h-3.5 mr-2 text-deepSkyBlue" />
+                <Layout className="w-3.5 h-3.5 mr-2 text-deep-sky-blue" />
                 Site Content
               </TabsTrigger>
               <TabsTrigger value="languages" className="rounded-lg data-[state=active]:bg-white data-[state=active]:text-gray-900 data-[state=active]:shadow-sm font-bold text-xs text-slate-500 transition-all">
-                <Languages className="w-3.5 h-3.5 mr-2 text-deepSkyBlue" />
+                <Languages className="w-3.5 h-3.5 mr-2 text-deep-sky-blue" />
                 Languages
               </TabsTrigger>
               <TabsTrigger value="translations" className="rounded-lg data-[state=active]:bg-white data-[state=active]:text-gray-900 data-[state=active]:shadow-sm font-bold text-xs text-slate-500 transition-all">
-                <BookOpen className="w-3.5 h-3.5 mr-2 text-deepSkyBlue" />
+                <BookOpen className="w-3.5 h-3.5 mr-2 text-deep-sky-blue" />
                 Dictionary
               </TabsTrigger>
             </>
@@ -181,7 +181,7 @@ export default function SettingsPage() {
                 Update your administrative password regularly to maintain system integrity. Ensure your new password is at least 8 characters long.
               </p>
               <div className="mt-6 p-4 bg-blue-50 rounded-xl border border-blue-100 flex items-start gap-3">
-                 <ShieldCheck className="w-5 h-5 text-deepSkyBlue shrink-0 mt-0.5" />
+                 <ShieldCheck className="w-5 h-5 text-deep-sky-blue shrink-0 mt-0.5" />
                  <p className="text-xs text-blue-700 font-medium leading-relaxed">
                     Your account is currently protected by standard JWT encryption.
                  </p>
@@ -201,7 +201,7 @@ export default function SettingsPage() {
                       type="password" 
                       value={profileData.currentPassword}
                       onChange={(e) => setProfileData({...profileData, currentPassword: e.target.value})}
-                      className="h-11 bg-gray-50 border-gray-200 rounded-lg px-4 focus:bg-white focus:border-deepSkyBlue transition-all"
+                      className="h-11 bg-gray-50 border-gray-200 rounded-lg px-4 focus:bg-white focus:border-deep-sky-blue transition-all"
                       required
                     />
                   </div>
@@ -212,7 +212,7 @@ export default function SettingsPage() {
                         type="password" 
                         value={profileData.newPassword}
                         onChange={(e) => setProfileData({...profileData, newPassword: e.target.value})}
-                        className="h-11 bg-gray-50 border-gray-200 rounded-lg px-4 focus:bg-white focus:border-deepSkyBlue transition-all"
+                        className="h-11 bg-gray-50 border-gray-200 rounded-lg px-4 focus:bg-white focus:border-deep-sky-blue transition-all"
                         required
                       />
                     </div>
@@ -222,7 +222,7 @@ export default function SettingsPage() {
                         type="password" 
                         value={profileData.confirmPassword}
                         onChange={(e) => setProfileData({...profileData, confirmPassword: e.target.value})}
-                        className="h-11 bg-gray-50 border-gray-200 rounded-lg px-4 focus:bg-white focus:border-deepSkyBlue transition-all"
+                        className="h-11 bg-gray-50 border-gray-200 rounded-lg px-4 focus:bg-white focus:border-deep-sky-blue transition-all"
                         required
                       />
                     </div>
@@ -256,8 +256,8 @@ export default function SettingsPage() {
                 <div className="mt-8 space-y-4">
                   <div className="p-4 bg-white border border-gray-100 rounded-xl shadow-sm">
                       <p className="text-[10px] font-bold text-gray-400 uppercase tracking-widest mb-3">Site Logo</p>
-                      <div className="w-20 h-20 bg-gray-50 border-2 border-dashed border-gray-200 rounded-2xl flex items-center justify-center group cursor-pointer hover:border-deepSkyBlue transition-colors">
-                        <ImageIcon className="w-8 h-8 text-gray-300 group-hover:text-deepSkyBlue transition-colors" />
+                      <div className="w-20 h-20 bg-gray-50 border-2 border-dashed border-gray-200 rounded-2xl flex items-center justify-center group cursor-pointer hover:border-deep-sky-blue transition-colors">
+                        <ImageIcon className="w-8 h-8 text-gray-300 group-hover:text-deep-sky-blue transition-colors" />
                       </div>
                       <p className="text-[10px] text-gray-400 mt-3 italic">Managed in public/images/soreti-logo.png</p>
                   </div>
@@ -274,7 +274,7 @@ export default function SettingsPage() {
                       <Input 
                         value={siteData.siteName}
                         onChange={(e) => setSiteData({...siteData, siteName: e.target.value})}
-                        className="h-11 bg-gray-50 border-gray-200 rounded-lg px-4 focus:bg-white focus:border-deepSkyBlue transition-all font-medium"
+                        className="h-11 bg-gray-50 border-gray-200 rounded-lg px-4 focus:bg-white focus:border-deep-sky-blue transition-all font-medium"
                       />
                     </div>
                     
@@ -286,7 +286,7 @@ export default function SettingsPage() {
                           <Input 
                             value={siteData.supportEmail}
                             onChange={(e) => setSiteData({...siteData, supportEmail: e.target.value})}
-                            className="h-11 bg-gray-50 border-gray-200 rounded-lg pl-10 px-4 focus:bg-white focus:border-deepSkyBlue transition-all font-medium"
+                            className="h-11 bg-gray-50 border-gray-200 rounded-lg pl-10 px-4 focus:bg-white focus:border-deep-sky-blue transition-all font-medium"
                           />
                         </div>
                       </div>
@@ -297,7 +297,7 @@ export default function SettingsPage() {
                           <Input 
                             value={siteData.phone}
                             onChange={(e) => setSiteData({...siteData, phone: e.target.value})}
-                            className="h-11 bg-gray-50 border-gray-200 rounded-lg pl-10 px-4 focus:bg-white focus:border-deepSkyBlue transition-all font-medium"
+                            className="h-11 bg-gray-50 border-gray-200 rounded-lg pl-10 px-4 focus:bg-white focus:border-deep-sky-blue transition-all font-medium"
                           />
                         </div>
                       </div>
@@ -310,7 +310,7 @@ export default function SettingsPage() {
                         <Input 
                           value={siteData.address}
                           onChange={(e) => setSiteData({...siteData, address: e.target.value})}
-                          className="h-11 bg-gray-50 border-gray-200 rounded-lg pl-10 px-4 focus:bg-white focus:border-deepSkyBlue transition-all font-medium"
+                          className="h-11 bg-gray-50 border-gray-200 rounded-lg pl-10 px-4 focus:bg-white focus:border-deep-sky-blue transition-all font-medium"
                         />
                       </div>
                     </div>
@@ -337,7 +337,7 @@ export default function SettingsPage() {
                     <Textarea 
                       value={siteData.footerAbout}
                       onChange={(e) => setSiteData({...siteData, footerAbout: e.target.value})}
-                      className="bg-gray-50 border-gray-200 rounded-lg px-4 focus:bg-white focus:border-deepSkyBlue transition-all font-medium min-h-[100px]"
+                      className="bg-gray-50 border-gray-200 rounded-lg px-4 focus:bg-white focus:border-deep-sky-blue transition-all font-medium min-h-[100px]"
                     />
                   </div>
 
@@ -349,7 +349,7 @@ export default function SettingsPage() {
                         <Input 
                           value={siteData.facebook}
                           onChange={(e) => setSiteData({...siteData, facebook: e.target.value})}
-                          className="h-11 bg-gray-50 border-gray-200 rounded-lg pl-10 px-4 focus:bg-white focus:border-deepSkyBlue transition-all font-medium"
+                          className="h-11 bg-gray-50 border-gray-200 rounded-lg pl-10 px-4 focus:bg-white focus:border-deep-sky-blue transition-all font-medium"
                           placeholder="https://facebook.com/..."
                         />
                       </div>
@@ -361,7 +361,7 @@ export default function SettingsPage() {
                         <Input 
                           value={siteData.twitter}
                           onChange={(e) => setSiteData({...siteData, twitter: e.target.value})}
-                          className="h-11 bg-gray-50 border-gray-200 rounded-lg pl-10 px-4 focus:bg-white focus:border-deepSkyBlue transition-all font-medium"
+                          className="h-11 bg-gray-50 border-gray-200 rounded-lg pl-10 px-4 focus:bg-white focus:border-deep-sky-blue transition-all font-medium"
                           placeholder="https://twitter.com/..."
                         />
                       </div>
@@ -373,7 +373,7 @@ export default function SettingsPage() {
                         <Input 
                           value={siteData.instagram}
                           onChange={(e) => setSiteData({...siteData, instagram: e.target.value})}
-                          className="h-11 bg-gray-50 border-gray-200 rounded-lg pl-10 px-4 focus:bg-white focus:border-deepSkyBlue transition-all font-medium"
+                          className="h-11 bg-gray-50 border-gray-200 rounded-lg pl-10 px-4 focus:bg-white focus:border-deep-sky-blue transition-all font-medium"
                           placeholder="https://instagram.com/..."
                         />
                       </div>
@@ -385,7 +385,7 @@ export default function SettingsPage() {
                         <Input 
                           value={siteData.youtube}
                           onChange={(e) => setSiteData({...siteData, youtube: e.target.value})}
-                          className="h-11 bg-gray-50 border-gray-200 rounded-lg pl-10 px-4 focus:bg-white focus:border-deepSkyBlue transition-all font-medium"
+                          className="h-11 bg-gray-50 border-gray-200 rounded-lg pl-10 px-4 focus:bg-white focus:border-deep-sky-blue transition-all font-medium"
                           placeholder="https://youtube.com/..."
                         />
                       </div>
@@ -416,7 +416,7 @@ export default function SettingsPage() {
                       <Input 
                         value={siteData.factoryName}
                         onChange={(e) => setSiteData({...siteData, factoryName: e.target.value})}
-                        className="h-11 bg-gray-50 border-gray-200 rounded-lg pl-10 px-4 focus:bg-white focus:border-deepSkyBlue transition-all font-medium"
+                        className="h-11 bg-gray-50 border-gray-200 rounded-lg pl-10 px-4 focus:bg-white focus:border-deep-sky-blue transition-all font-medium"
                       />
                     </div>
                   </div>
@@ -425,7 +425,7 @@ export default function SettingsPage() {
                     <Textarea 
                       value={siteData.factoryDesc}
                       onChange={(e) => setSiteData({...siteData, factoryDesc: e.target.value})}
-                      className="bg-gray-50 border-gray-200 rounded-lg px-4 focus:bg-white focus:border-deepSkyBlue transition-all font-medium min-h-[80px]"
+                      className="bg-gray-50 border-gray-200 rounded-lg px-4 focus:bg-white focus:border-deep-sky-blue transition-all font-medium min-h-[80px]"
                     />
                   </div>
                 </CardContent>

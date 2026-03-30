@@ -244,7 +244,7 @@ export default function UsersPage() {
   if (status === 'loading') {
     return (
       <div className="flex flex-col items-center justify-center min-h-[50vh] text-center space-y-4">
-        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-deepSkyBlue" />
+        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-deep-sky-blue" />
         <p className="text-sm text-gray-600">Verifying access...</p>
       </div>
     );
@@ -270,7 +270,7 @@ export default function UsersPage() {
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-6 pb-2">
         <div>
           <div className="flex items-center gap-2 mb-1">
-            <Users className="w-5 h-5 text-deepSkyBlue" />
+            <Users className="w-5 h-5 text-deep-sky-blue" />
             <h1 className="text-2xl font-bold text-gray-900">User Accounts</h1>
           </div>
           <p className="text-sm text-gray-500">Manage administrative access and system staff roles.</p>
@@ -298,7 +298,7 @@ export default function UsersPage() {
                 placeholder="Search by name or email..."
                 value={search}
                 onChange={(e) => setSearch(e.target.value)}
-                className="w-full pl-10 pr-4 h-11 bg-gray-50 border border-gray-200 rounded-lg text-sm text-gray-900 focus:bg-white focus:border-deepSkyBlue focus:ring-4 focus:ring-deepSkyBlue/5 outline-none transition-all"
+                className="w-full pl-10 pr-4 h-11 bg-gray-50 border border-gray-200 rounded-lg text-sm text-gray-900 focus:bg-white focus:border-deep-sky-blue focus:ring-4 focus:ring-deep-sky-blue/5 outline-none transition-all"
               />
             </div>
             <Select value={roleFilter} onValueChange={setRoleFilter}>
@@ -321,7 +321,7 @@ export default function UsersPage() {
         <CardContent className="p-0">
           {loading ? (
              <div className="flex flex-col items-center justify-center py-24 gap-4">
-                <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-deepSkyBlue" />
+                <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-deep-sky-blue" />
                 <p className="text-sm text-gray-600">Syncing directory...</p>
              </div>
           ) : filteredUsers.length === 0 ? (
@@ -382,7 +382,7 @@ export default function UsersPage() {
                           <Button
                             variant="ghost"
                             size="sm"
-                            className="text-gray-400 hover:text-deepSkyBlue hover:bg-blue-50 h-9 w-9 p-0 rounded-lg"
+                            className="text-gray-400 hover:text-deep-sky-blue hover:bg-blue-50 h-9 w-9 p-0 rounded-lg"
                             onClick={() => openEditDialog(user)}
                           >
                             <Edit className="w-4 h-4" />
@@ -411,10 +411,10 @@ export default function UsersPage() {
       <Dialog open={showDialog} onOpenChange={setShowDialog}>
         <DialogContent className="max-w-xl p-0 overflow-hidden rounded-2xl border-none shadow-2xl">
           <div className="bg-gradient-to-br from-gray-900 via-gray-800 to-gray-900 px-8 py-8 text-white relative overflow-hidden">
-            <div className="absolute top-0 right-0 w-32 h-32 bg-deepSkyBlue/10 rounded-full -translate-y-16 translate-x-16 blur-2xl" />
+            <div className="absolute top-0 right-0 w-32 h-32 bg-deep-sky-blue/10 rounded-full -translate-y-16 translate-x-16 blur-2xl" />
             <DialogHeader className="relative z-10 flex flex-row items-center gap-5">
                 <div className="w-14 h-14 bg-white/10 backdrop-blur-md rounded-2xl flex items-center justify-center border border-white/10 shrink-0">
-                    <UserPlus className="w-7 h-7 text-deepSkyBlue" />
+                    <UserPlus className="w-7 h-7 text-deep-sky-blue" />
                 </div>
                 <div>
                   <DialogTitle className="text-xl font-bold tracking-tight">
@@ -440,7 +440,7 @@ export default function UsersPage() {
                           placeholder="e.g. John Doe"
                           value={formData.name}
                           onChange={(e) => setFormData({ ...formData, name: e.target.value })}
-                          className="h-12 bg-gray-50/50 border-gray-200 rounded-xl font-medium px-4 focus:bg-white focus:border-deepSkyBlue focus:ring-4 focus:ring-deepSkyBlue/5 transition-all shadow-none"
+                          className="h-12 bg-gray-50/50 border-gray-200 rounded-xl font-medium px-4 focus:bg-white focus:border-deep-sky-blue focus:ring-4 focus:ring-deep-sky-blue/5 transition-all shadow-none"
                           required
                       />
                   </div>
@@ -450,7 +450,7 @@ export default function UsersPage() {
                           value={formData.role}
                           onValueChange={(value) => setFormData({ ...formData, role: value })}
                       >
-                          <SelectTrigger className="h-12 bg-gray-50/50 border-gray-200 rounded-xl font-medium px-4 focus:ring-4 focus:ring-deepSkyBlue/5 transition-all">
+                          <SelectTrigger className="h-12 bg-gray-50/50 border-gray-200 rounded-xl font-medium px-4 focus:ring-4 focus:ring-deep-sky-blue/5 transition-all">
                               <SelectValue placeholder="Assign Role" />
                           </SelectTrigger>
                           <SelectContent className="rounded-xl border-gray-200 shadow-xl mt-2">
@@ -472,7 +472,7 @@ export default function UsersPage() {
                           placeholder="name@company.com"
                           value={formData.email}
                           onChange={(e) => setFormData({ ...formData, email: e.target.value })}
-                          className="h-12 bg-gray-50/50 border-gray-200 rounded-xl font-medium px-4 focus:bg-white focus:border-deepSkyBlue focus:ring-4 focus:ring-deepSkyBlue/5 transition-all shadow-none"
+                          className="h-12 bg-gray-50/50 border-gray-200 rounded-xl font-medium px-4 focus:bg-white focus:border-deep-sky-blue focus:ring-4 focus:ring-deep-sky-blue/5 transition-all shadow-none"
                           required
                       />
                   </div>
@@ -484,7 +484,7 @@ export default function UsersPage() {
                           placeholder="+251 ..."
                           value={formData.phone}
                           onChange={(e) => setFormData({ ...formData, phone: e.target.value })}
-                          className="h-12 bg-gray-50/50 border-gray-200 rounded-xl font-medium px-4 focus:bg-white focus:border-deepSkyBlue focus:ring-4 focus:ring-deepSkyBlue/5 transition-all shadow-none"
+                          className="h-12 bg-gray-50/50 border-gray-200 rounded-xl font-medium px-4 focus:bg-white focus:border-deep-sky-blue focus:ring-4 focus:ring-deep-sky-blue/5 transition-all shadow-none"
                       />
                   </div>
                 </div>
@@ -492,7 +492,7 @@ export default function UsersPage() {
                 {/* Security Section */}
                 <div className="space-y-2">
                     <Label htmlFor="password" className="text-[10px] font-black text-gray-400 uppercase tracking-[0.2em] pl-1">
-                        Security Phrase {editingUser && <span className="text-deepSkyBlue lowercase font-medium ml-1 bg-blue-50 px-2 py-0.5 rounded-full">(leave blank to keep current)</span>}
+                        Security Phrase {editingUser && <span className="text-deep-sky-blue lowercase font-medium ml-1 bg-blue-50 px-2 py-0.5 rounded-full">(leave blank to keep current)</span>}
                     </Label>
                     <Input
                         id="password"
@@ -500,7 +500,7 @@ export default function UsersPage() {
                         placeholder={editingUser ? "••••••••" : "Require 8+ characters"}
                         value={formData.password}
                         onChange={(e) => setFormData({ ...formData, password: e.target.value })}
-                        className="h-12 bg-gray-50/50 border-gray-200 rounded-xl font-medium px-4 focus:bg-white focus:border-deepSkyBlue focus:ring-4 focus:ring-deepSkyBlue/5 transition-all shadow-none"
+                        className="h-12 bg-gray-50/50 border-gray-200 rounded-xl font-medium px-4 focus:bg-white focus:border-deep-sky-blue focus:ring-4 focus:ring-deep-sky-blue/5 transition-all shadow-none"
                         required={!editingUser}
                     />
                 </div>
@@ -517,7 +517,7 @@ export default function UsersPage() {
                           id="isActive"
                           checked={formData.isActive}
                           onChange={(e) => setFormData({ ...formData, isActive: e.target.checked })}
-                          className="w-6 h-6 rounded-lg border-gray-300 text-deepSkyBlue focus:ring-deepSkyBlue transition-all cursor-pointer accent-deepSkyBlue translate-y-[-1px]"
+                          className="w-6 h-6 rounded-lg border-gray-300 text-deep-sky-blue focus:ring-deep-sky-blue transition-all cursor-pointer accent-deep-sky-blue translate-y-[-1px]"
                       />
                     </div>
                 </div>

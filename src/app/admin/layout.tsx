@@ -58,7 +58,7 @@ export default function AdminLayout({
   if (status === 'loading') {
     return (
       <div className="min-h-screen flex items-center justify-center bg-gray-50">
-        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-deepSkyBlue" />
+        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-deep-sky-blue" />
       </div>
     );
   }
@@ -109,7 +109,7 @@ export default function AdminLayout({
                   href={item.href}
                   className={`flex items-center gap-3 px-4 py-3 rounded-lg transition-colors ${
                     isActive
-                      ? 'bg-deepSkyBlue/10 text-deepSkyBlue'
+                      ? 'bg-deep-sky-blue/10 text-deep-sky-blue'
                       : 'text-gray-600 hover:bg-gray-50 hover:text-gray-900'
                   }`}
                   onClick={() => setSidebarOpen(false)}
@@ -161,7 +161,7 @@ export default function AdminLayout({
                     {session.user?.name}
                   </span>
                   <Avatar className="w-8 h-8">
-                    <AvatarFallback className="bg-deepSkyBlue text-white text-xs font-bold uppercase">
+                    <AvatarFallback className="bg-deep-sky-blue text-white text-xs font-bold uppercase">
                       {session.user?.name?.[0] || 'U'}
                     </AvatarFallback>
                   </Avatar>

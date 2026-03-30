@@ -95,7 +95,7 @@ function HeroImage() {
       className="relative w-full max-w-2xl"
     >
       {/* Decorative Glows */}
-      <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[140%] h-[140%] bg-deepSkyBlue/10 blur-[120px] rounded-full pointer-events-none" />
+      <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[140%] h-[140%] bg-deep-sky-blue/10 blur-[120px] rounded-full pointer-events-none" />
       
       <div className="relative aspect-square sm:aspect-[4/3] w-full">
         {/* Secondary Image for Depth */}
@@ -153,11 +153,11 @@ function HeroImage() {
         className="absolute top-[15%] -left-4 bg-slate-900/95 backdrop-blur-md text-white p-4 rounded-2xl shadow-2xl z-20 hidden sm:block border border-slate-800"
       >
         <div className="flex items-center gap-3">
-          <div className="w-8 h-8 bg-deepSkyBlue/20 rounded-lg flex items-center justify-center">
-            <Zap className="w-4 h-4 text-deepSkyBlue" />
+          <div className="w-8 h-8 bg-deep-sky-blue/20 rounded-lg flex items-center justify-center">
+            <Zap className="w-4 h-4 text-deep-sky-blue" />
           </div>
           <div>
-            <p className="text-[10px] font-bold text-deepSkyBlue uppercase tracking-[0.2em] leading-none mb-1">Performance</p>
+            <p className="text-[10px] font-bold text-deep-sky-blue uppercase tracking-[0.2em] leading-none mb-1">Performance</p>
             <p className="text-sm font-black tracking-tight italic">4000W POWER</p>
           </div>
         </div>
@@ -176,7 +176,7 @@ function ParticlesBackground() {
       {PARTICLES.map((particle, i) => (
         <motion.div
           key={i}
-          className="absolute w-1 h-1 bg-deepSkyBlue/40 rounded-full"
+          className="absolute w-1 h-1 bg-deep-sky-blue/40 rounded-full"
           style={{
             left: `${particle.x}%`,
             top: `${particle.y}%`,

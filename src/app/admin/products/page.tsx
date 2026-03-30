@@ -95,7 +95,7 @@ export default function ProductsPage() {
   if (loading) {
     return (
       <div className="flex flex-col items-center justify-center h-[60vh] gap-4">
-        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-deepSkyBlue" />
+        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-deep-sky-blue" />
         <p className="text-sm text-gray-500">Loading catalog...</p>
       </div>
     );
@@ -171,7 +171,7 @@ export default function ProductsPage() {
 
                 <div className="flex gap-2 mt-auto">
                   <Button variant="outline" className="flex-1 h-10 rounded-lg border-gray-200 text-sm font-bold hover:bg-gray-50">
-                    <Edit className="w-4 h-4 mr-2 text-deepSkyBlue" />
+                    <Edit className="w-4 h-4 mr-2 text-deep-sky-blue" />
                     Edit
                   </Button>
                   <Button variant="outline" className={`w-10 h-10 rounded-lg border-gray-200 ${product.featured ? 'text-amber-500 bg-amber-50' : 'text-gray-400'}`}>

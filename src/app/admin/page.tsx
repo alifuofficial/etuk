@@ -71,7 +71,7 @@ export default function AdminDashboard() {
   if (loading) {
     return (
       <div className="flex flex-col items-center justify-center h-[60vh] gap-4">
-        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-deepSkyBlue" />
+        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-deep-sky-blue" />
         <p className="text-sm text-gray-500">Loading dashboard...</p>
       </div>
     );
@@ -183,7 +183,7 @@ export default function AdminDashboard() {
                 <span className="text-lg font-black text-gray-900">68%</span>
               </div>
               <div className="w-full h-1.5 bg-gray-200 rounded-full overflow-hidden">
-                <div className="h-full bg-deepSkyBlue rounded-full" style={{ width: '68%' }} />
+                <div className="h-full bg-deep-sky-blue rounded-full" style={{ width: '68%' }} />
               </div>
             </div>
 
@@ -204,7 +204,7 @@ export default function AdminDashboard() {
             </div>
 
             <Link href="/admin/agents?status=PENDING" className="block pt-4">
-              <Button className="w-full bg-deepSkyBlue text-white hover:bg-blue-600 font-bold h-12 rounded-lg">
+              <Button className="w-full bg-deep-sky-blue text-white hover:bg-blue-600 font-bold h-12 rounded-lg">
                 Manage Applications
               </Button>
             </Link>
@@ -219,7 +219,7 @@ export default function AdminDashboard() {
               <p className="text-xs text-gray-500 mt-0.5">The most recent submissions requiring your attention</p>
             </div>
             <Link href="/admin/agents">
-              <Button variant="ghost" size="sm" className="text-deepSkyBlue font-bold hover:bg-gray-50">
+              <Button variant="ghost" size="sm" className="text-deep-sky-blue font-bold hover:bg-gray-50">
                 View List <ArrowRight className="w-4 h-4 ml-2" />
               </Button>
             </Link>

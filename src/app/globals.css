@@ -26,6 +26,10 @@
   --border: #e2e8f0;
   --input: #e2e8f0;
   --ring: #00BFFF;
+  --popover: #ffffff;
+  --popover-foreground: #020617;
+  --card: #ffffff;
+  --card-foreground: #020617;
 }
 
 @layer base {

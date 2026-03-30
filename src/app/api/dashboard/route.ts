@@ -37,6 +37,31 @@ export async function GET() {
       }),
     ]);
     
+    // Get monthly registration trends (last 6 months)
+    const now = new Date();
+    const last6MonthsDates = Array.from({ length: 6 }, (_, i) => {
+      const d = new Date(now.getFullYear(), now.getMonth() - (5 - i), 1);
+      return d;
+    });
+
+    const monthlyTrend = await Promise.all(
+      last6MonthsDates.map(async (monthDate) => {
+        const nextMonth = new Date(monthDate.getFullYear(), monthDate.getMonth() + 1, 1);
+        const count = await db.agent.count({
+          where: {
+            createdAt: {
+              gte: monthDate,
+              lt: nextMonth,
+            },
+          },
+        });
+        return {
+          month: monthDate.toLocaleString('default', { month: 'short' }),
+          applications: count,
+        };
+      })
+    );
+    
     // Get agents by region
     const agentsByRegion = await db.agent.groupBy({
       by: ['region'],
@@ -62,6 +87,7 @@ export async function GET() {
         totalUsers,
       },
       recentApplications,
+      monthlyTrend,
       agentsByRegion,
       agentsByStatus,
     });

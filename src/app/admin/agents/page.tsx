@@ -43,7 +43,13 @@ import {
   XCircle,
   Clock,
   ExternalLink,
+  Plus,
+  Download,
+  FileSpreadsheet,
 } from 'lucide-react';
+import * as XLSX from 'xlsx';
+import { jsPDF } from 'jspdf';
+import autoTable from 'jspdf-autotable';
 
 interface Agent {
   id: string;
@@ -88,6 +94,17 @@ export default function AgentsPage() {
   const [reviewNotes, setReviewNotes] = useState('');
   const [actionLoading, setActionLoading] = useState(false);
   const [previewOpen, setPreviewOpen] = useState(false);
+  const [showAddDialog, setShowAddDialog] = useState(false);
+  const [newAgent, setNewAgent] = useState({
+    firstName: '',
+    lastName: '',
+    email: '',
+    phone: '',
+    businessName: '',
+    region: '',
+    city: '',
+    status: 'APPROVED'
+  });
 
   useEffect(() => {
     fetchAgents();
@@ -166,6 +183,84 @@ export default function AgentsPage() {
     return new Date(dateString).toLocaleDateString();
   };
 
+  const handleAddAgent = async () => {
+    setActionLoading(true);
+    try {
+      const response = await fetch('/api/agents', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ ...newAgent, howDidYouHear: 'ADMIN_ENTRY' }),
+      });
+
+      if (response.ok) {
+        toast({
+          title: 'Agent added',
+          description: 'The agent has been manually added to the database.',
+        });
+        fetchAgents();
+        setShowAddDialog(false);
+        setNewAgent({
+          firstName: '',
+          lastName: '',
+          email: '',
+          phone: '',
+          businessName: '',
+          region: '',
+          city: '',
+          status: 'APPROVED'
+        });
+      }
+    } catch {
+      toast({
+        title: 'Error',
+        description: 'Failed to add agent.',
+        variant: 'destructive',
+      });
+    } finally {
+      setActionLoading(false);
+    }
+  };
+
+  const exportToExcel = () => {
+    const dataToExport = filteredAgents.map(a => ({
+      Name: `${a.firstName} ${a.lastName}`,
+      Email: a.email,
+      Phone: a.phone,
+      Region: a.region,
+      City: a.city,
+      Business: a.businessName || 'N/A',
+      Status: a.status,
+      AppliedAt: formatDate(a.createdAt)
+    }));
+
+    const worksheet = XLSX.utils.json_to_sheet(dataToExport);
+    const workbook = XLSX.utils.book_new();
+    XLSX.utils.book_append_sheet(workbook, worksheet, "Agents");
+    XLSX.writeFile(workbook, `ETUK_Agents_${new Date().toISOString().split('T')[0]}.xlsx`);
+  };
+
+  const exportToPDF = () => {
+    const doc = new jsPDF();
+    doc.text("ETUK Agent List", 14, 15);
+    
+    const tableData = filteredAgents.map(a => [
+      `${a.firstName} ${a.lastName}`,
+      a.email,
+      a.phone,
+      `${a.city}, ${a.region}`,
+      a.status,
+      formatDate(a.createdAt)
+    ]);
+
+    autoTable(doc, {
+      head: [['Name', 'Email', 'Phone', 'Location', 'Status', 'Date']],
+      body: tableData,
+      startY: 20,
+    });
+
+    doc.save(`ETUK_Agents_${new Date().toISOString().split('T')[0]}.pdf`);
+  };
+
   const filteredAgents = Array.isArray(agents) ? agents.filter((agent) => {
     const searchLower = search.toLowerCase();
     const firstName = agent.firstName || '';
@@ -186,14 +281,44 @@ export default function AgentsPage() {
   return (
     <div className="space-y-6">
       {/* Header */}
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+      <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-6">
         <div>
-          <h1 className="text-2xl font-bold text-gray-900">Agent Applications</h1>
-          <p className="text-sm text-gray-500 mt-1">Review and manage the distribution network.</p>
+          <h1 className="text-3xl font-bold text-gray-900 tracking-tight">Agent Network</h1>
+          <p className="text-sm text-gray-500 mt-1.5">Oversee and expand the ETUK distribution ecosystem.</p>
         </div>
-        <div className="text-right">
-          <p className="text-xs font-bold text-gray-600 uppercase tracking-wider">Total Pool</p>
-          <p className="text-xl font-bold text-gray-900">{filteredAgents.length}</p>
+        <div className="flex flex-wrap items-center gap-3">
+          <div className="flex items-center gap-2 mr-4 px-4 py-2 bg-gray-50 rounded-lg border border-gray-100">
+            <div className="flex flex-col">
+              <span className="text-[10px] font-bold text-gray-500 uppercase tracking-wider leading-none">Registered Pool</span>
+              <span className="text-lg font-black text-gray-900 mt-0.5">{filteredAgents.length}</span>
+            </div>
+          </div>
+          
+          <div className="flex items-center gap-2">
+            <Button 
+              variant="outline" 
+              onClick={exportToExcel}
+              className="h-11 px-4 border-gray-200 text-gray-600 hover:text-green-600 hover:bg-green-50 hover:border-green-100 font-bold"
+            >
+              <FileSpreadsheet className="w-4 h-4 mr-2" />
+              Excel
+            </Button>
+            <Button 
+              variant="outline" 
+              onClick={exportToPDF}
+              className="h-11 px-4 border-gray-200 text-gray-600 hover:text-red-600 hover:bg-red-50 hover:border-red-100 font-bold"
+            >
+              <Download className="w-4 h-4 mr-2" />
+              PDF
+            </Button>
+            <Button 
+              onClick={() => setShowAddDialog(true)}
+              className="h-11 px-6 bg-deepSkyBlue text-white hover:bg-blue-600 font-bold shadow-lg shadow-blue-100"
+            >
+              <Plus className="w-4 h-4 mr-2" />
+              Add Agent
+            </Button>
+          </div>
         </div>
       </div>
 
@@ -451,6 +576,143 @@ export default function AgentsPage() {
               </div>
             </div>
           )}
+        </DialogContent>
+      </Dialog>
+
+      {/* Add Agent Dialog */}
+      <Dialog open={showAddDialog} onOpenChange={setShowAddDialog}>
+        <DialogContent className="max-w-xl p-0 overflow-hidden rounded-2xl shadow-2xl">
+          <div className="bg-deepSkyBlue p-8 text-white">
+            <DialogHeader>
+              <div className="flex items-center gap-2 mb-2">
+                <Plus className="w-4 h-4 text-blue-100" />
+                <span className="text-xs font-bold text-blue-100 uppercase tracking-[0.2em]">Administrative Entry</span>
+              </div>
+              <DialogTitle className="text-3xl font-bold leading-none mb-1">
+                Add New Agent
+              </DialogTitle>
+              <DialogDescription className="text-blue-50 text-sm font-medium">
+                Manually register a new agent into the ETUK network.
+              </DialogDescription>
+            </DialogHeader>
+          </div>
+
+          <div className="p-8 space-y-6 bg-white">
+            <div className="grid grid-cols-2 gap-4">
+              <div className="space-y-2">
+                <Label htmlFor="firstName" className="text-xs font-bold text-gray-700 uppercase tracking-wider">First Name</Label>
+                <Input
+                  id="firstName"
+                  value={newAgent.firstName}
+                  onChange={(e) => setNewAgent({ ...newAgent, firstName: e.target.value })}
+                  placeholder="e.g. Abebe"
+                  className="h-11 bg-gray-50 border-gray-200 rounded-lg"
+                />
+              </div>
+              <div className="space-y-2">
+                <Label htmlFor="lastName" className="text-xs font-bold text-gray-700 uppercase tracking-wider">Last Name</Label>
+                <Input
+                  id="lastName"
+                  value={newAgent.lastName}
+                  onChange={(e) => setNewAgent({ ...newAgent, lastName: e.target.value })}
+                  placeholder="e.g. Bikila"
+                  className="h-11 bg-gray-50 border-gray-200 rounded-lg"
+                />
+              </div>
+            </div>
+
+            <div className="grid grid-cols-2 gap-4">
+              <div className="space-y-2">
+                <Label htmlFor="email" className="text-xs font-bold text-gray-700 uppercase tracking-wider">Email Address</Label>
+                <Input
+                  id="email"
+                  type="email"
+                  value={newAgent.email}
+                  onChange={(e) => setNewAgent({ ...newAgent, email: e.target.value })}
+                  placeholder="abebe@example.com"
+                  className="h-11 bg-gray-50 border-gray-200 rounded-lg"
+                />
+              </div>
+              <div className="space-y-2">
+                <Label htmlFor="phone" className="text-xs font-bold text-gray-700 uppercase tracking-wider">Phone Number</Label>
+                <Input
+                  id="phone"
+                  value={newAgent.phone}
+                  onChange={(e) => setNewAgent({ ...newAgent, phone: e.target.value })}
+                  placeholder="+251..."
+                  className="h-11 bg-gray-50 border-gray-200 rounded-lg"
+                />
+              </div>
+            </div>
+
+            <div className="space-y-2">
+              <Label htmlFor="business" className="text-xs font-bold text-gray-700 uppercase tracking-wider">Business / Organization Name</Label>
+              <Input
+                id="business"
+                value={newAgent.businessName}
+                onChange={(e) => setNewAgent({ ...newAgent, businessName: e.target.value })}
+                placeholder="Optional"
+                className="h-11 bg-gray-50 border-gray-200 rounded-lg"
+              />
+            </div>
+
+            <div className="grid grid-cols-2 gap-4">
+              <div className="space-y-2">
+                <Label htmlFor="region" className="text-xs font-bold text-gray-700 uppercase tracking-wider">Region</Label>
+                <Input
+                  id="region"
+                  value={newAgent.region}
+                  onChange={(e) => setNewAgent({ ...newAgent, region: e.target.value })}
+                  placeholder="e.g. Oromia"
+                  className="h-11 bg-gray-50 border-gray-200 rounded-lg"
+                />
+              </div>
+              <div className="space-y-2">
+                <Label htmlFor="city" className="text-xs font-bold text-gray-700 uppercase tracking-wider">City</Label>
+                <Input
+                  id="city"
+                  value={newAgent.city}
+                  onChange={(e) => setNewAgent({ ...newAgent, city: e.target.value })}
+                  placeholder="e.g. Adama"
+                  className="h-11 bg-gray-50 border-gray-200 rounded-lg"
+                />
+              </div>
+            </div>
+
+            <div className="space-y-2">
+              <Label htmlFor="status" className="text-xs font-bold text-gray-700 uppercase tracking-wider">Initial Account Status</Label>
+              <Select 
+                value={newAgent.status} 
+                onValueChange={(v) => setNewAgent({ ...newAgent, status: v })}
+              >
+                <SelectTrigger className="h-11 bg-gray-50 border-gray-200 rounded-lg">
+                  <SelectValue placeholder="Status" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="PENDING">Pending Review</SelectItem>
+                  <SelectItem value="APPROVED">Approved (Active)</SelectItem>
+                  <SelectItem value="REJECTED">Rejected</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+
+            <DialogFooter className="pt-4">
+              <Button
+                variant="ghost"
+                onClick={() => setShowAddDialog(false)}
+                className="h-12 font-bold text-gray-500 hover:bg-gray-50"
+              >
+                Cancel
+              </Button>
+              <Button
+                onClick={handleAddAgent}
+                disabled={actionLoading || !newAgent.firstName || !newAgent.email}
+                className="h-12 px-8 bg-gray-900 text-white hover:bg-black font-bold rounded-xl shadow-lg shadow-gray-200 transition-all"
+              >
+                {actionLoading ? 'Saving...' : 'Register Agent'}
+              </Button>
+            </DialogFooter>
+          </div>
         </DialogContent>
       </Dialog>
     </div>

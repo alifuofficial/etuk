@@ -35,20 +35,12 @@ import {
 
 interface DashboardStats {
   totalAgents: number;
-  pendingAgents: number;
+  pendingApplications: number;
   approvedAgents: number;
   totalProducts: number;
-  recentAgents: any[];
+  recentApplications: any[];
+  monthlyTrend: { month: string; applications: number }[];
 }
-
-const mockChartData = [
-  { month: 'Oct', applications: 12 },
-  { month: 'Nov', applications: 18 },
-  { month: 'Dec', applications: 15 },
-  { month: 'Jan', applications: 25 },
-  { month: 'Feb', applications: 32 },
-  { month: 'Mar', applications: 28 },
-];
 
 export default function AdminDashboard() {
   const { data: session } = useSession();
@@ -63,7 +55,12 @@ export default function AdminDashboard() {
     try {
       const response = await fetch('/api/dashboard');
       const data = await response.json();
-      setStats(data);
+      setStats({
+        ...data.stats,
+        recentApplications: data.recentApplications,
+        monthlyTrend: data.monthlyTrend,
+        totalProducts: data.stats.totalProducts || 0, // Ensure it exists
+      });
     } catch (error) {
       console.error('Failed to fetch dashboard data:', error);
     } finally {
@@ -105,7 +102,7 @@ export default function AdminDashboard() {
         />
         <StatCard 
           title="Pending Review" 
-          value={stats?.pendingAgents || 0} 
+          value={stats?.pendingApplications || 0} 
           icon={<Clock className="w-5 h-5 text-amber-600" />}
           description="Awaiting check"
           className="bg-white"
@@ -140,7 +137,7 @@ export default function AdminDashboard() {
           <CardContent className="p-6">
             <div className="h-[300px] w-full">
               <ResponsiveContainer width="100%" height="100%">
-                <BarChart data={mockChartData} margin={{ top: 10, right: 10, left: -20, bottom: 0 }}>
+                <BarChart data={stats?.monthlyTrend || []} margin={{ top: 10, right: 10, left: -20, bottom: 0 }}>
                   <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#f1f5f9" />
                   <XAxis 
                     dataKey="month" 
@@ -158,16 +155,16 @@ export default function AdminDashboard() {
                     cursor={{ fill: '#f8fafc' }}
                     contentStyle={{ borderRadius: '12px', border: '1px solid #e2e8f0', boxShadow: '0 4px 12px rgba(0,0,0,0.05)' }}
                   />
-                  <Bar 
-                    dataKey="applications" 
-                    fill="#0ea5e9" 
-                    radius={[6, 6, 0, 0]} 
-                    barSize={40}
-                  >
-                    {mockChartData.map((entry, index) => (
-                      <Cell key={`cell-${index}`} fill={index === mockChartData.length - 1 ? '#0369a1' : '#0ea5e9'} />
-                    ))}
-                  </Bar>
+                    <Bar 
+                      dataKey="applications" 
+                      fill="#0ea5e9" 
+                      radius={[6, 6, 0, 0]} 
+                      barSize={40}
+                    >
+                      {(stats?.monthlyTrend || []).map((entry, index) => (
+                        <Cell key={`cell-${index}`} fill={index === (stats?.monthlyTrend?.length || 0) - 1 ? '#0369a1' : '#0ea5e9'} />
+                      ))}
+                    </Bar>
                 </BarChart>
               </ResponsiveContainer>
             </div>
@@ -238,8 +235,8 @@ export default function AdminDashboard() {
                 </TableRow>
               </TableHeader>
               <TableBody>
-                {stats?.recentAgents?.length ? (
-                  stats.recentAgents.map((agent) => (
+                {stats?.recentApplications?.length ? (
+                  stats.recentApplications.map((agent) => (
                     <TableRow key={agent.id} className="hover:bg-gray-50/50">
                       <TableCell className="px-6 py-4">
                         <div className="flex flex-col">

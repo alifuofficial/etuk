@@ -89,45 +89,77 @@ function HeroImage() {
   
   return (
     <motion.div
-      initial={{ opacity: 0, scale: 0.95 }}
+      initial={{ opacity: 0, scale: 0.9 }}
       animate={{ opacity: 1, scale: 1 }}
-      transition={{ duration: 0.8, delay: 0.2 }}
-      className="relative"
+      transition={{ duration: 1, ease: [0.16, 1, 0.3, 1] }}
+      className="relative w-full max-w-2xl"
     >
-      <div className="relative aspect-[4/3] w-full max-w-lg mx-auto">
-        <Image
-          src="/images/tuk-side.png"
-          alt="ETUK Electric 3-Wheeler"
-          fill
-          sizes="(max-width: 768px) 100vw, 50vw"
-          priority
-          className="object-contain drop-shadow-2xl"
-          quality={85}
-        />
+      {/* Decorative Glows */}
+      <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[140%] h-[140%] bg-deepSkyBlue/10 blur-[120px] rounded-full pointer-events-none" />
+      
+      <div className="relative aspect-square sm:aspect-[4/3] w-full">
+        {/* Secondary Image for Depth */}
+        <motion.div
+          initial={{ opacity: 0, x: 40 }}
+          animate={{ opacity: 0.4, x: 0 }}
+          transition={{ duration: 1, delay: 0.4 }}
+          className="absolute -right-8 top-12 w-3/4 h-3/4 opacity-40 z-0 grayscale"
+        >
+          <Image
+            src="/images/tuk-side.png"
+            alt="Side View"
+            fill
+            className="object-contain"
+          />
+        </motion.div>
+
+        {/* Main Hero Image */}
+        <motion.div
+          initial={{ opacity: 0, y: 40 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.8, delay: 0.2 }}
+          className="relative w-full h-full z-10"
+        >
+          <Image
+            src="/images/tuk-front.png"
+            alt="ETUK Electric 3-Wheeler"
+            fill
+            priority
+            className="object-contain drop-shadow-[0_20px_50px_rgba(3,105,161,0.3)]"
+          />
+        </motion.div>
       </div>
       
-      {/* Floating badges */}
+      {/* Floating Feature Tags */}
       <motion.div 
-        initial={{ opacity: 0, x: 20 }}
+        initial={{ opacity: 0, x: 30 }}
         animate={{ opacity: 1, x: 0 }}
-        transition={{ delay: 0.6 }}
-        className="absolute -top-2 right-0 bg-white/95 backdrop-blur-sm border border-slate-100 p-3 rounded-xl shadow-lg z-10"
+        transition={{ delay: 1 }}
+        className="absolute bottom-[20%] -right-4 bg-white/80 backdrop-blur-md border border-slate-200 p-4 rounded-2xl shadow-xl z-20 hidden sm:block"
       >
-        <div className="flex items-center gap-2">
-          <div className="w-2 h-2 rounded-full bg-green-500 animate-pulse" />
-          <span className="text-xs font-bold text-slate-900">{t('hero.motorTag')}</span>
+        <div className="flex flex-col gap-1">
+          <div className="flex items-center gap-2">
+            <div className="w-2 h-2 rounded-full bg-green-500 shadow-[0_0_8px_rgba(34,197,94,0.6)]" />
+            <span className="text-xs font-black text-slate-900 uppercase tracking-wider">Ready to Drive</span>
+          </div>
+          <span className="text-[10px] text-slate-500 font-bold uppercase tracking-widest pl-4">100% Electric</span>
         </div>
       </motion.div>
       
       <motion.div 
-        initial={{ opacity: 0, x: -20 }}
+        initial={{ opacity: 0, x: -30 }}
         animate={{ opacity: 1, x: 0 }}
-        transition={{ delay: 0.8 }}
-        className="absolute -bottom-2 left-0 bg-slate-900 text-white p-3 rounded-xl shadow-lg z-10"
+        transition={{ delay: 1.2 }}
+        className="absolute top-[15%] -left-4 bg-slate-900/95 backdrop-blur-md text-white p-4 rounded-2xl shadow-2xl z-20 hidden sm:block border border-slate-800"
       >
-        <div className="flex items-center gap-2">
-          <Zap className="w-4 h-4 text-deep-sky-blue" />
-          <span className="text-xs font-bold uppercase tracking-wider">{t('hero.chargeTag')}</span>
+        <div className="flex items-center gap-3">
+          <div className="w-8 h-8 bg-deepSkyBlue/20 rounded-lg flex items-center justify-center">
+            <Zap className="w-4 h-4 text-deepSkyBlue" />
+          </div>
+          <div>
+            <p className="text-[10px] font-bold text-deepSkyBlue uppercase tracking-[0.2em] leading-none mb-1">Performance</p>
+            <p className="text-sm font-black tracking-tight italic">4000W POWER</p>
+          </div>
         </div>
       </motion.div>
     </motion.div>
@@ -144,7 +176,7 @@ function ParticlesBackground() {
       {PARTICLES.map((particle, i) => (
         <motion.div
           key={i}
-          className="absolute w-1 h-1 bg-deep-sky-blue/30 rounded-full"
+          className="absolute w-1 h-1 bg-deepSkyBlue/40 rounded-full"
           style={{
             left: `${particle.x}%`,
             top: `${particle.y}%`,
@@ -152,8 +184,9 @@ function ParticlesBackground() {
             height: particle.size,
           }}
           animate={{
-            y: [0, -20, 0],
-            opacity: [0.3, 0.6, 0.3],
+            y: [0, -30, 0],
+            opacity: [0.2, 0.5, 0.2],
+            scale: [1, 1.2, 1],
           }}
           transition={{
             duration: particle.duration,
@@ -169,35 +202,41 @@ function ParticlesBackground() {
 
 function Hero() {
   return (
-    <section id="home" className="relative min-h-[85vh] bg-white overflow-hidden flex items-center pt-20">
-      {/* Background */}
-      <div className="absolute inset-0 bg-gradient-to-br from-slate-50 via-white to-slate-50" />
+    <section id="home" className="relative min-h-screen lg:min-h-[90vh] bg-white overflow-hidden flex items-center pt-24 pb-12 sm:pb-20">
+      {/* Dynamic Background */}
+      <div className="absolute inset-0 bg-gradient-to-tr from-slate-50 via-white to-sky-50/30" />
       
-      {/* Grid pattern */}
+      {/* Refined Grid Pattern */}
       <div 
-        className="absolute inset-0 opacity-[0.015]"
+        className="absolute inset-0 opacity-[0.03]"
         style={{
-          backgroundImage: `radial-gradient(circle at 1px 1px, rgba(0,191,255,0.5) 1px, transparent 0)`,
-          backgroundSize: '32px 32px',
+          backgroundImage: `linear-gradient(rgba(3,105,161,0.2) 1.5px, transparent 1.5px), linear-gradient(90deg, rgba(3,105,161,0.2) 1.5px, transparent 1.5px)`,
+          backgroundSize: '40px 40px',
         }}
       />
       
-      {/* Animated particles */}
+      {/* Radial Mask for Grid */}
+      <div className="absolute inset-0 bg-[radial-gradient(circle_at_center,transparent_0%,white_100%)] opacity-80" />
+      
+      {/* Floating Particles */}
       <ParticlesBackground />
 
-      <div className="relative z-10 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 w-full py-12 lg:py-20">
-        <div className="grid lg:grid-cols-2 gap-12 lg:gap-16 items-center">
+      <div className="relative z-10 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 w-full">
+        <div className="grid lg:grid-cols-2 gap-16 lg:gap-8 items-center">
           {/* Content */}
-          <div className="text-center lg:text-left">
+          <div className="text-center lg:text-left order-2 lg:order-1">
             <HeroContent />
           </div>
 
-          {/* Image */}
-          <div className="flex justify-center lg:justify-end">
+          {/* Image Presentation */}
+          <div className="flex justify-center lg:justify-end order-1 lg:order-2">
             <HeroImage />
           </div>
         </div>
       </div>
+      
+      {/* Bottom Visual Divider */}
+      <div className="absolute bottom-0 left-0 w-full h-24 bg-gradient-to-t from-white to-transparent" />
     </section>
   );
 }

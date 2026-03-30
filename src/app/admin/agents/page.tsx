@@ -84,6 +84,17 @@ interface Agent {
   reviewer?: { name: string } | null;
 }
 
+interface Region {
+  id: string;
+  name: string;
+  cities: City[];
+}
+
+interface City {
+  id: string;
+  name: string;
+}
+
 export default function AgentsPage() {
   const [agents, setAgents] = useState<Agent[]>([]);
   const [loading, setLoading] = useState(true);
@@ -105,10 +116,28 @@ export default function AgentsPage() {
     city: '',
     status: 'APPROVED'
   });
+  const [regions, setRegions] = useState<Region[]>([]);
+  const [loadingRegions, setLoadingRegions] = useState(false);
 
   useEffect(() => {
     fetchAgents();
+    fetchRegions();
   }, [statusFilter]);
+
+  const fetchRegions = async () => {
+    setLoadingRegions(true);
+    try {
+      const response = await fetch('/api/regions');
+      if (response.ok) {
+        const data = await response.json();
+        setRegions(data);
+      }
+    } catch (error) {
+      console.error('Failed to fetch regions:', error);
+    } finally {
+      setLoadingRegions(false);
+    }
+  };
 
   const fetchAgents = async () => {
     setLoading(true);
@@ -659,23 +688,38 @@ export default function AgentsPage() {
             <div className="grid grid-cols-2 gap-4">
               <div className="space-y-2">
                 <Label htmlFor="region" className="text-xs font-bold text-gray-700 uppercase tracking-wider">Region</Label>
-                <Input
-                  id="region"
-                  value={newAgent.region}
-                  onChange={(e) => setNewAgent({ ...newAgent, region: e.target.value })}
-                  placeholder="e.g. Oromia"
-                  className="h-11 bg-gray-50 border-gray-200 rounded-lg"
-                />
+                <Select 
+                  value={newAgent.region} 
+                  onValueChange={(v) => setNewAgent({ ...newAgent, region: v, city: '' })}
+                >
+                  <SelectTrigger className="h-11 bg-gray-50 border-gray-200 rounded-lg">
+                    <SelectValue placeholder="Select Region" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {regions.map((reg) => (
+                      <SelectItem key={reg.id} value={reg.name}>{reg.name}</SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
               </div>
               <div className="space-y-2">
                 <Label htmlFor="city" className="text-xs font-bold text-gray-700 uppercase tracking-wider">City</Label>
-                <Input
-                  id="city"
-                  value={newAgent.city}
-                  onChange={(e) => setNewAgent({ ...newAgent, city: e.target.value })}
-                  placeholder="e.g. Adama"
-                  className="h-11 bg-gray-50 border-gray-200 rounded-lg"
-                />
+                <Select 
+                  value={newAgent.city} 
+                  onValueChange={(v) => setNewAgent({ ...newAgent, city: v })}
+                  disabled={!newAgent.region}
+                >
+                  <SelectTrigger className="h-11 bg-gray-50 border-gray-200 rounded-lg">
+                    <SelectValue placeholder={newAgent.region ? "Select City" : "Choose Region First"} />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {regions
+                      .find((r) => r.name === newAgent.region)
+                      ?.cities.map((city) => (
+                        <SelectItem key={city.id} value={city.name}>{city.name}</SelectItem>
+                      ))}
+                  </SelectContent>
+                </Select>
               </div>
             </div>
 

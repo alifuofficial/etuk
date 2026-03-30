@@ -33,7 +33,7 @@ import { signOut } from 'next-auth/react';
 const navItems = [
   { href: '/admin', label: 'Dashboard', icon: LayoutDashboard },
   { href: '/admin/agents', label: 'Agents', icon: Users, roles: ['ADMIN', 'MARKETING_MANAGER'] },
-  { href: '/admin/locations', label: 'Locations', icon: MapPin, roles: ['ADMIN', 'MARKETING_MANAGER'] },
+  { href: '/admin/locations', label: 'Locations', icon: MapPin, roles: ['ADMIN'] },
   { href: '/admin/users', label: 'Users', icon: UserCircle, roles: ['ADMIN'] },
   { href: '/admin/products', label: 'Products', icon: Package, roles: ['ADMIN'] },
   { href: '/admin/settings', label: 'Settings', icon: Settings, roles: ['ADMIN', 'MARKETING_MANAGER'] },

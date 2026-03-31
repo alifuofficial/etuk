@@ -61,6 +61,8 @@ import {
   Warehouse,
   CreditCard,
   Loader2,
+  ArrowRight,
+  ArrowLeft,
 } from 'lucide-react';
 import * as XLSX from 'xlsx';
 import { jsPDF } from 'jspdf';
@@ -153,6 +155,7 @@ export default function AgentsPage() {
       setActionLoading(false);
     }
   };
+  const [currentTab, setCurrentTab] = useState('personal');
   const [newAgent, setNewAgent] = useState({
     firstName: '',
     lastName: '',
@@ -329,6 +332,7 @@ export default function AgentsPage() {
           status: 'APPROVED',
           tradeLicense: null,
         });
+        setCurrentTab('personal');
       }
     } catch {
       toast({
@@ -746,7 +750,7 @@ export default function AgentsPage() {
             </div>
           </div>
 
-          <Tabs defaultValue="personal" className="w-full">
+          <Tabs value={currentTab} onValueChange={setCurrentTab} className="w-full">
             <div className="px-8 bg-gray-50 border-b border-gray-100">
               <TabsList className="bg-transparent gap-8 h-14 p-0">
                 <TabsTrigger value="personal" className="data-[state=active]:bg-transparent data-[state=active]:text-deep-sky-blue data-[state=active]:shadow-none data-[state=active]:border-b-2 data-[state=active]:border-deep-sky-blue rounded-none h-full px-0 text-xs font-bold uppercase tracking-widest text-gray-400">
@@ -1030,30 +1034,54 @@ export default function AgentsPage() {
 
             <DialogFooter className="p-8 bg-gray-50 border-t border-gray-100 flex items-center justify-between">
               <div className="text-[10px] font-bold text-gray-400 uppercase tracking-[0.2em]">
-                {newAgent.firstName && newAgent.lastName ? `${newAgent.firstName} ${newAgent.lastName}` : "Pending Field Completion"}
+                {currentTab === 'personal' ? 'Step 1 of 3: Identity' : currentTab === 'business' ? 'Step 2 of 3: Profile' : 'Step 3 of 3: Fulfillment'}
               </div>
               <div className="flex gap-3">
                 <Button
                   variant="ghost"
-                  onClick={() => setShowAddDialog(false)}
+                  onClick={() => {
+                    if (currentTab === 'personal') setShowAddDialog(false);
+                    else if (currentTab === 'business') setCurrentTab('personal');
+                    else setCurrentTab('business');
+                  }}
                   className="h-12 font-bold text-gray-500 hover:bg-white"
                 >
-                  Cancel
-                </Button>
-                <Button
-                  onClick={handleAddAgent}
-                  disabled={actionLoading || !newAgent.firstName || !newAgent.email || !newAgent.region || !newAgent.city}
-                  className="h-12 px-10 bg-gray-900 text-white hover:bg-black font-bold rounded-xl shadow-lg shadow-gray-200 transition-all flex items-center gap-2"
-                >
-                  {actionLoading ? (
+                  {currentTab === 'personal' ? 'Cancel' : (
                     <>
-                      <Loader2 className="w-4 h-4 animate-spin" />
-                      Registering...
+                      <ArrowLeft className="w-4 h-4 mr-2" />
+                      Back
                     </>
-                  ) : (
-                    'Complete Onboarding'
                   )}
                 </Button>
+                
+                {currentTab !== 'logistics' ? (
+                  <Button
+                    onClick={() => {
+                      if (currentTab === 'personal') setCurrentTab('business');
+                      else setCurrentTab('logistics');
+                    }}
+                    disabled={currentTab === 'personal' && (!newAgent.firstName || !newAgent.lastName || !newAgent.email || !newAgent.phone)}
+                    className="h-12 px-10 bg-deep-sky-blue text-white hover:bg-deep-sky-blue/90 font-bold rounded-xl shadow-lg shadow-blue-100 transition-all flex items-center gap-2"
+                  >
+                    Next Step
+                    <ArrowRight className="w-4 h-4" />
+                  </Button>
+                ) : (
+                  <Button
+                    onClick={handleAddAgent}
+                    disabled={actionLoading || !newAgent.region || !newAgent.city}
+                    className="h-12 px-10 bg-gray-900 text-white hover:bg-black font-bold rounded-xl shadow-lg shadow-gray-200 transition-all flex items-center gap-2"
+                  >
+                    {actionLoading ? (
+                      <>
+                        <Loader2 className="w-4 h-4 animate-spin" />
+                        Registering...
+                      </>
+                    ) : (
+                      'Complete Onboarding'
+                    )}
+                  </Button>
+                )}
               </div>
             </DialogFooter>
           </Tabs>

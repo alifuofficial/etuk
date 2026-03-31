@@ -26,6 +26,7 @@ import {
   FileText,
   CheckCircle,
   Loader2,
+  Upload,
 } from 'lucide-react';
 
 interface Region {
@@ -74,6 +75,7 @@ export default function AgentForm() {
     tinNumber: '',
     message: '',
     howDidYouHear: '',
+    tradeLicense: null as File | null,
   });
 
   useEffect(() => {
@@ -107,10 +109,20 @@ export default function AgentForm() {
     setLoading(true);
 
     try {
+      const form = new FormData();
+      Object.entries(formData).forEach(([key, value]) => {
+        if (value !== null) {
+          if (key === 'tradeLicense') {
+            form.append(key, value as File);
+          } else {
+            form.append(key, value.toString());
+          }
+        }
+      });
+
       const response = await fetch('/api/agents', {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(formData),
+        body: form,
       });
 
       if (response.ok) {
@@ -181,6 +193,7 @@ export default function AgentForm() {
                   tinNumber: '',
                   message: '',
                   howDidYouHear: '',
+                  tradeLicense: null,
                 });
               }}
               style={{ backgroundColor: '#00BFFF' }}
@@ -532,6 +545,28 @@ export default function AgentForm() {
                         <SelectItem value="other">Other</SelectItem>
                       </SelectContent>
                     </Select>
+                  </div>
+                  <div className="md:col-span-2 space-y-2">
+                    <Label htmlFor="tradeLicense">{t('agent.form.documents')} - Trade License / ID *</Label>
+                    <div className="flex items-center gap-4">
+                      <Input
+                        id="tradeLicense"
+                        type="file"
+                        onChange={(e) => {
+                          const file = e.target.files?.[0] || null;
+                          setFormData({ ...formData, tradeLicense: file });
+                        }}
+                        className="cursor-pointer"
+                        accept=".pdf,.jpg,.jpeg,.png,.webp"
+                      />
+                      {formData.tradeLicense && (
+                        <Badge variant="secondary" className="h-10 px-4">
+                          <Upload className="w-4 h-4 mr-2" />
+                          Ready
+                        </Badge>
+                      )}
+                    </div>
+                    <p className="text-[10px] text-gray-500 italic">Allowed: PDF, JPEG, PNG, WebP (Max 5MB)</p>
                   </div>
                   <div className="md:col-span-2">
                     <Label htmlFor="message">{t('agent.form.message')}</Label>

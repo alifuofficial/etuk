@@ -74,9 +74,9 @@ interface Agent {
   bankName: string | null;
   accountNumber: string | null;
   tinNumber: string | null;
+  tradeLicense: string | null;
   message: string | null;
   howDidYouHear: string | null;
-  tradeLicense: string | null;
   status: string;
   reviewNotes: string | null;
   createdAt: string;

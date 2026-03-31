@@ -575,7 +575,7 @@ export default function AgentsPage() {
       <Dialog open={showDialog} onOpenChange={setShowDialog}>
         <DialogContent className="max-w-2xl p-0 overflow-hidden rounded-2xl shadow-2xl max-h-[95vh] flex flex-col">
           {selectedAgent && (
-            <div className="flex flex-col">
+            <div className="flex flex-col flex-1 min-h-0">
               <div className="bg-gray-900 p-8 text-white">
                 <DialogHeader>
                   <div className="flex items-center gap-2 mb-2">
@@ -750,7 +750,7 @@ export default function AgentsPage() {
             </div>
           </div>
 
-          <Tabs value={currentTab} onValueChange={setCurrentTab} className="w-full">
+          <Tabs value={currentTab} onValueChange={setCurrentTab} className="w-full flex-1 flex flex-col min-h-0">
             <div className="px-8 bg-gray-50 border-b border-gray-100">
               <TabsList className="bg-transparent gap-8 h-14 p-0">
                 <TabsTrigger value="personal" className="data-[state=active]:bg-transparent data-[state=active]:text-deep-sky-blue data-[state=active]:shadow-none data-[state=active]:border-b-2 data-[state=active]:border-deep-sky-blue rounded-none h-full px-0 text-xs font-bold uppercase tracking-widest text-gray-400">

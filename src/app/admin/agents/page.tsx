@@ -573,7 +573,7 @@ export default function AgentsPage() {
 
       {/* Review Dialog */}
       <Dialog open={showDialog} onOpenChange={setShowDialog}>
-        <DialogContent className="max-w-2xl p-0 overflow-hidden rounded-2xl shadow-2xl">
+        <DialogContent className="max-w-2xl p-0 overflow-hidden rounded-2xl shadow-2xl max-h-[95vh] flex flex-col">
           {selectedAgent && (
             <div className="flex flex-col">
               <div className="bg-gray-900 p-8 text-white">
@@ -590,7 +590,7 @@ export default function AgentsPage() {
                 </DialogHeader>
               </div>
 
-              <div className="p-8 space-y-8 max-h-[70vh] overflow-y-auto bg-white custom-scrollbar">
+              <div className="p-8 space-y-8 overflow-y-auto bg-white custom-scrollbar flex-1">
                 <div className="grid grid-cols-2 gap-8">
                   <div className="space-y-4">
                     <h4 className="text-xs font-bold text-gray-600 uppercase tracking-widest border-b border-gray-100 pb-1">Contact</h4>
@@ -718,7 +718,7 @@ export default function AgentsPage() {
 
       {/* Add Agent Dialog */}
       <Dialog open={showAddDialog} onOpenChange={setShowAddDialog}>
-        <DialogContent className="max-w-4xl p-0 overflow-hidden rounded-2xl shadow-2xl bg-white border-none">
+        <DialogContent className="max-w-4xl p-0 overflow-hidden rounded-2xl shadow-2xl bg-white border-none max-h-[95vh] flex flex-col">
           <div className="bg-gray-900 p-8 text-white relative z-10 flex justify-between items-end">
             <div>
               <div className="flex items-center gap-2 mb-2">
@@ -768,7 +768,7 @@ export default function AgentsPage() {
               </TabsList>
             </div>
 
-            <div className="max-h-[60vh] overflow-y-auto custom-scrollbar">
+            <div className="overflow-y-auto custom-scrollbar flex-1">
               <TabsContent value="personal" className="p-8 m-0 space-y-6">
                 <div className="grid grid-cols-2 gap-6">
                   <div className="space-y-2">

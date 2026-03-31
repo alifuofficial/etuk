@@ -3,6 +3,7 @@
 import { useEffect, useState } from 'react';
 import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
+import { useSession } from 'next-auth/react';
 import { Input } from '@/components/ui/input';
 import {
   Select,
@@ -46,6 +47,7 @@ import {
   Plus,
   Download,
   FileSpreadsheet,
+  Trash2,
 } from 'lucide-react';
 import * as XLSX from 'xlsx';
 import { jsPDF } from 'jspdf';
@@ -96,6 +98,7 @@ interface City {
 }
 
 export default function AgentsPage() {
+  const { data: session } = useSession();
   const [agents, setAgents] = useState<Agent[]>([]);
   const [loading, setLoading] = useState(true);
   const [search, setSearch] = useState('');
@@ -106,6 +109,37 @@ export default function AgentsPage() {
   const [actionLoading, setActionLoading] = useState(false);
   const [previewOpen, setPreviewOpen] = useState(false);
   const [showAddDialog, setShowAddDialog] = useState(false);
+
+  const handleDeleteAgent = async (agentId: string) => {
+    if (!window.confirm('Are you sure you want to delete this agent? This action cannot be undone.')) {
+      return;
+    }
+
+    setActionLoading(true);
+    try {
+      const response = await fetch(`/api/agents/${agentId}`, {
+        method: 'DELETE',
+      });
+
+      if (response.ok) {
+        toast({
+          title: 'Agent deleted',
+          description: 'The agent record has been permanently removed.',
+        });
+        fetchAgents();
+      } else {
+        throw new Error('Failed to delete agent');
+      }
+    } catch {
+      toast({
+        title: 'Error',
+        description: 'Failed to delete agent. Ensure you have administrative privileges.',
+        variant: 'destructive',
+      });
+    } finally {
+      setActionLoading(false);
+    }
+  };
   const [newAgent, setNewAgent] = useState({
     firstName: '',
     lastName: '',
@@ -455,6 +489,17 @@ export default function AgentsPage() {
                           <Eye className="w-4 h-4" />
                           Review
                         </Button>
+                        {session?.user?.role === 'ADMIN' && (
+                          <Button
+                            variant="ghost"
+                            size="sm"
+                            className="text-red-500 hover:bg-red-50 hover:text-red-600 font-bold"
+                            onClick={() => handleDeleteAgent(agent.id)}
+                            disabled={actionLoading}
+                          >
+                            <Trash2 className="w-4 h-4" />
+                          </Button>
+                        )}
                       </TableCell>
                     </TableRow>
                   ))}
@@ -549,19 +594,21 @@ export default function AgentsPage() {
                           <span className="text-gray-400">{selectedAgent.tradeLicense.split('/').pop()}</span>
                         </div>
                         <div className="min-h-[300px] flex items-center justify-center p-2 bg-slate-50/50">
-                          {selectedAgent.tradeLicense.toLowerCase().endsWith('.pdf') ? (
+                          {selectedAgent.tradeLicense?.toLowerCase().endsWith('.pdf') ? (
                             <iframe 
-                              src={selectedAgent.tradeLicense} 
+                              src={selectedAgent.tradeLicense.startsWith('/api') ? selectedAgent.tradeLicense : `/api${selectedAgent.tradeLicense}`} 
                               className="w-full h-[500px] rounded-lg border-none shadow-sm"
                               title="License PDF"
                             />
-                          ) : (
+                          ) : selectedAgent.tradeLicense ? (
                             <img 
-                              src={selectedAgent.tradeLicense} 
+                              src={selectedAgent.tradeLicense.startsWith('/api') ? selectedAgent.tradeLicense : `/api${selectedAgent.tradeLicense}`} 
                               alt="Business License" 
                               className="max-w-full h-auto rounded-lg shadow-sm cursor-zoom-in"
-                              onClick={() => window.open(selectedAgent.tradeLicense!, '_blank')}
+                              onClick={() => window.open(selectedAgent.tradeLicense!.startsWith('/api') ? selectedAgent.tradeLicense! : `/api${selectedAgent.tradeLicense!}`, '_blank')}
                             />
+                          ) : (
+                            <p className="text-sm text-gray-400 font-bold">No document available</p>
                           )}
                         </div>
                       </div>

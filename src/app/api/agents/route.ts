@@ -168,7 +168,7 @@ export async function POST(request: NextRequest) {
       const path = join(uploadDir, filename);
       await writeFile(path, buffer);
       
-      tradeLicensePath = `/uploads/agents/${filename}`;
+      tradeLicensePath = `/api/uploads/agents/${filename}`;
     }
     
     const agent = await db.agent.create({

@@ -20,8 +20,8 @@
   --secondary-foreground: #0f172a;
   --muted: #f8fafc;
   --muted-foreground: #64748b;
-  --accent: #f8fafc;
-  --accent-foreground: #0f172a;
+  --accent: #f0f9ff;
+  --accent-foreground: #0c4a6e;
   --destructive: #ef4444;
   --border: #e2e8f0;
   --input: #e2e8f0;
@@ -85,6 +85,7 @@ html {
   display: -webkit-box;
   -webkit-line-clamp: 2;
   -webkit-box-orient: vertical;
+  line-clamp: 2;
   overflow: hidden;
 }
 
@@ -92,6 +93,7 @@ html {
   display: -webkit-box;
   -webkit-line-clamp: 3;
   -webkit-box-orient: vertical;
+  line-clamp: 3;
   overflow: hidden;
 }
 

@@ -13,6 +13,14 @@ import {
   SelectValue,
 } from '@/components/ui/select';
 import {
+  Tabs,
+  TabsContent,
+  TabsList,
+  TabsTrigger,
+} from '@/components/ui/tabs';
+import { Checkbox } from '@/components/ui/checkbox';
+import { Badge } from '@/components/ui/badge';
+import {
   Table,
   TableBody,
   TableCell,
@@ -48,6 +56,11 @@ import {
   Download,
   FileSpreadsheet,
   Trash2,
+  Upload,
+  User as UserIcon,
+  Warehouse,
+  CreditCard,
+  Loader2,
 } from 'lucide-react';
 import * as XLSX from 'xlsx';
 import { jsPDF } from 'jspdf';
@@ -145,10 +158,27 @@ export default function AgentsPage() {
     lastName: '',
     email: '',
     phone: '',
+    alternativePhone: '',
     businessName: '',
+    businessType: '',
+    experience: '',
     region: '',
     city: '',
-    status: 'APPROVED'
+    woreda: '',
+    kebele: '',
+    address: '',
+    hasWarehouse: false,
+    warehouseSize: '',
+    existingBrands: '',
+    staffCount: '',
+    estimatedCapital: '',
+    bankName: '',
+    accountNumber: '',
+    tinNumber: '',
+    message: '',
+    howDidYouHear: 'ADMIN_ENTRY',
+    status: 'APPROVED',
+    tradeLicense: null as File | null,
   });
   const [regions, setRegions] = useState<Region[]>([]);
   const [loadingRegions, setLoadingRegions] = useState(false);
@@ -249,10 +279,20 @@ export default function AgentsPage() {
   const handleAddAgent = async () => {
     setActionLoading(true);
     try {
+      const form = new FormData();
+      Object.entries(newAgent).forEach(([key, value]) => {
+        if (value !== null) {
+          if (key === 'tradeLicense') {
+            form.append(key, value as File);
+          } else {
+            form.append(key, value.toString());
+          }
+        }
+      });
+
       const response = await fetch('/api/agents', {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ ...newAgent, howDidYouHear: 'ADMIN_ENTRY' }),
+        body: form,
       });
 
       if (response.ok) {
@@ -267,10 +307,27 @@ export default function AgentsPage() {
           lastName: '',
           email: '',
           phone: '',
+          alternativePhone: '',
           businessName: '',
+          businessType: '',
+          experience: '',
           region: '',
           city: '',
-          status: 'APPROVED'
+          woreda: '',
+          kebele: '',
+          address: '',
+          hasWarehouse: false,
+          warehouseSize: '',
+          existingBrands: '',
+          staffCount: '',
+          estimatedCapital: '',
+          bankName: '',
+          accountNumber: '',
+          tinNumber: '',
+          message: '',
+          howDidYouHear: 'ADMIN_ENTRY',
+          status: 'APPROVED',
+          tradeLicense: null,
         });
       }
     } catch {
@@ -657,153 +714,349 @@ export default function AgentsPage() {
 
       {/* Add Agent Dialog */}
       <Dialog open={showAddDialog} onOpenChange={setShowAddDialog}>
-        <DialogContent className="max-w-xl p-0 overflow-hidden rounded-2xl shadow-2xl bg-white">
-          <div className="bg-deep-sky-blue p-8 text-white relative z-10">
-            <DialogHeader>
+        <DialogContent className="max-w-4xl p-0 overflow-hidden rounded-2xl shadow-2xl bg-white border-none">
+          <div className="bg-gray-900 p-8 text-white relative z-10 flex justify-between items-end">
+            <div>
               <div className="flex items-center gap-2 mb-2">
-                <Plus className="w-4 h-4 text-blue-100" />
-                <span className="text-xs font-bold text-blue-100 uppercase tracking-[0.2em]">Administrative Entry</span>
+                <Plus className="w-4 h-4 text-blue-400" />
+                <span className="text-xs font-bold text-gray-400 uppercase tracking-[0.2em]">Full Registration</span>
               </div>
-              <DialogTitle className="text-3xl font-bold leading-none mb-1 text-white">
-                Add New Agent
+              <DialogTitle className="text-3xl font-black leading-none mb-1 text-white">
+                Register New Agent
               </DialogTitle>
-              <DialogDescription className="text-white/90 text-sm font-semibold">
-                Manually register a new agent into the ETUK network.
+              <DialogDescription className="text-gray-400 text-sm font-medium">
+                Enter comprehensive details to onboard a new partner to the network.
               </DialogDescription>
-            </DialogHeader>
-          </div>
-
-          <div className="max-h-[65vh] overflow-y-auto px-8 py-8 space-y-7 bg-white custom-scrollbar">
-            <div className="grid grid-cols-2 gap-4">
-              <div className="space-y-2">
-                <Label htmlFor="firstName" className="text-xs font-bold text-gray-700 uppercase tracking-wider">First Name</Label>
-                <Input
-                  id="firstName"
-                  value={newAgent.firstName}
-                  onChange={(e) => setNewAgent({ ...newAgent, firstName: e.target.value })}
-                  placeholder="e.g. Abebe"
-                  className="h-11 bg-gray-50 border-gray-200 rounded-lg"
-                />
-              </div>
-              <div className="space-y-2">
-                <Label htmlFor="lastName" className="text-xs font-bold text-gray-700 uppercase tracking-wider">Last Name</Label>
-                <Input
-                  id="lastName"
-                  value={newAgent.lastName}
-                  onChange={(e) => setNewAgent({ ...newAgent, lastName: e.target.value })}
-                  placeholder="e.g. Bikila"
-                  className="h-11 bg-gray-50 border-gray-200 rounded-lg"
-                />
-              </div>
             </div>
-
-            <div className="grid grid-cols-2 gap-4">
-              <div className="space-y-2">
-                <Label htmlFor="email" className="text-xs font-bold text-gray-700 uppercase tracking-wider">Email Address</Label>
-                <Input
-                  id="email"
-                  type="email"
-                  value={newAgent.email}
-                  onChange={(e) => setNewAgent({ ...newAgent, email: e.target.value })}
-                  placeholder="abebe@example.com"
-                  className="h-11 bg-gray-50 border-gray-200 rounded-lg"
-                />
-              </div>
-              <div className="space-y-2">
-                <Label htmlFor="phone" className="text-xs font-bold text-gray-700 uppercase tracking-wider">Phone Number</Label>
-                <Input
-                  id="phone"
-                  value={newAgent.phone}
-                  onChange={(e) => setNewAgent({ ...newAgent, phone: e.target.value })}
-                  placeholder="+251..."
-                  className="h-11 bg-gray-50 border-gray-200 rounded-lg"
-                />
-              </div>
-            </div>
-
-            <div className="space-y-2">
-              <Label htmlFor="business" className="text-xs font-bold text-gray-700 uppercase tracking-wider">Business / Organization Name</Label>
-              <Input
-                id="business"
-                value={newAgent.businessName}
-                onChange={(e) => setNewAgent({ ...newAgent, businessName: e.target.value })}
-                placeholder="Optional"
-                className="h-11 bg-gray-50 border-gray-200 rounded-lg"
-              />
-            </div>
-
-            <div className="grid grid-cols-2 gap-4">
-              <div className="space-y-2">
-                <Label htmlFor="region" className="text-xs font-bold text-gray-700 uppercase tracking-wider">Region</Label>
-                <Select 
-                  value={newAgent.region} 
-                  onValueChange={(v) => setNewAgent({ ...newAgent, region: v, city: '' })}
-                >
-                  <SelectTrigger className="h-11 bg-gray-50 border-gray-200 rounded-lg">
-                    <SelectValue placeholder="Select Region" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    {regions.map((reg) => (
-                      <SelectItem key={reg.id} value={reg.name}>{reg.name}</SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-              </div>
-              <div className="space-y-2">
-                <Label htmlFor="city" className="text-xs font-bold text-gray-700 uppercase tracking-wider">City</Label>
-                <Select 
-                  value={newAgent.city} 
-                  onValueChange={(v) => setNewAgent({ ...newAgent, city: v })}
-                  disabled={!newAgent.region}
-                >
-                  <SelectTrigger className="h-11 bg-gray-50 border-gray-200 rounded-lg">
-                    <SelectValue placeholder={newAgent.region ? "Select City" : "Choose Region First"} />
-                  </SelectTrigger>
-                  <SelectContent>
-                    {regions
-                      .find((r) => r.name === newAgent.region)
-                      ?.cities.map((city) => (
-                        <SelectItem key={city.id} value={city.name}>{city.name}</SelectItem>
-                      ))}
-                  </SelectContent>
-                </Select>
-              </div>
-            </div>
-
-            <div className="space-y-2">
-              <Label htmlFor="status" className="text-xs font-bold text-gray-700 uppercase tracking-wider">Initial Account Status</Label>
+            <div className="flex flex-col items-end gap-2">
+              <Label className="text-[10px] font-bold text-gray-500 uppercase tracking-widest">Initial Status</Label>
               <Select 
                 value={newAgent.status} 
                 onValueChange={(v) => setNewAgent({ ...newAgent, status: v })}
               >
-                <SelectTrigger className="h-11 bg-gray-50 border-gray-200 rounded-lg">
+                <SelectTrigger className="h-9 w-32 bg-gray-800 border-gray-700 text-xs font-bold text-white rounded-lg">
                   <SelectValue placeholder="Status" />
                 </SelectTrigger>
-                <SelectContent>
+                <SelectContent className="bg-white border-gray-100">
                   <SelectItem value="PENDING">Pending Review</SelectItem>
                   <SelectItem value="APPROVED">Approved (Active)</SelectItem>
                   <SelectItem value="REJECTED">Rejected</SelectItem>
                 </SelectContent>
               </Select>
             </div>
-
-            <DialogFooter className="pt-4">
-              <Button
-                variant="ghost"
-                onClick={() => setShowAddDialog(false)}
-                className="h-12 font-bold text-gray-500 hover:bg-gray-50"
-              >
-                Cancel
-              </Button>
-              <Button
-                onClick={handleAddAgent}
-                disabled={actionLoading || !newAgent.firstName || !newAgent.email}
-                className="h-12 px-8 bg-gray-900 text-white hover:bg-black font-bold rounded-xl shadow-lg shadow-gray-200 transition-all"
-              >
-                {actionLoading ? 'Saving...' : 'Register Agent'}
-              </Button>
-            </DialogFooter>
           </div>
+
+          <Tabs defaultValue="personal" className="w-full">
+            <div className="px-8 bg-gray-50 border-b border-gray-100">
+              <TabsList className="bg-transparent gap-8 h-14 p-0">
+                <TabsTrigger value="personal" className="data-[state=active]:bg-transparent data-[state=active]:text-deep-sky-blue data-[state=active]:shadow-none data-[state=active]:border-b-2 data-[state=active]:border-deep-sky-blue rounded-none h-full px-0 text-xs font-bold uppercase tracking-widest text-gray-400">
+                  <UserIcon className="w-3.5 h-3.5 mr-2" />
+                  Personal & Contact
+                </TabsTrigger>
+                <TabsTrigger value="business" className="data-[state=active]:bg-transparent data-[state=active]:text-deep-sky-blue data-[state=active]:shadow-none data-[state=active]:border-b-2 data-[state=active]:border-deep-sky-blue rounded-none h-full px-0 text-xs font-bold uppercase tracking-widest text-gray-400">
+                  <Building2 className="w-3.5 h-3.5 mr-2" />
+                  Business & Finance
+                </TabsTrigger>
+                <TabsTrigger value="logistics" className="data-[state=active]:bg-transparent data-[state=active]:text-deep-sky-blue data-[state=active]:shadow-none data-[state=active]:border-b-2 data-[state=active]:border-deep-sky-blue rounded-none h-full px-0 text-xs font-bold uppercase tracking-widest text-gray-400">
+                  <Warehouse className="w-3.5 h-3.5 mr-2" />
+                  Logistics & Location
+                </TabsTrigger>
+              </TabsList>
+            </div>
+
+            <div className="max-h-[60vh] overflow-y-auto custom-scrollbar">
+              <TabsContent value="personal" className="p-8 m-0 space-y-6">
+                <div className="grid grid-cols-2 gap-6">
+                  <div className="space-y-2">
+                    <Label className="text-xs font-bold text-gray-700 uppercase tracking-wider">First Name *</Label>
+                    <Input
+                      value={newAgent.firstName}
+                      onChange={(e) => setNewAgent({ ...newAgent, firstName: e.target.value })}
+                      placeholder="e.g. Abebe"
+                      className="h-11 bg-white border-gray-200 rounded-lg focus:ring-0 focus:border-deep-sky-blue"
+                    />
+                  </div>
+                  <div className="space-y-2">
+                    <Label className="text-xs font-bold text-gray-700 uppercase tracking-wider">Last Name *</Label>
+                    <Input
+                      value={newAgent.lastName}
+                      onChange={(e) => setNewAgent({ ...newAgent, lastName: e.target.value })}
+                      placeholder="e.g. Bikila"
+                      className="h-11 bg-white border-gray-200 rounded-lg focus:ring-0 focus:border-deep-sky-blue"
+                    />
+                  </div>
+                </div>
+
+                <div className="space-y-2">
+                  <Label className="text-xs font-bold text-gray-700 uppercase tracking-wider">Email Address *</Label>
+                  <Input
+                    type="email"
+                    value={newAgent.email}
+                    onChange={(e) => setNewAgent({ ...newAgent, email: e.target.value })}
+                    placeholder="abebe@example.com"
+                    className="h-11 bg-white border-gray-200 rounded-lg focus:ring-0 focus:border-deep-sky-blue"
+                  />
+                </div>
+
+                <div className="grid grid-cols-2 gap-6">
+                  <div className="space-y-2">
+                    <Label className="text-xs font-bold text-gray-700 uppercase tracking-wider">Primary Phone *</Label>
+                    <Input
+                      value={newAgent.phone}
+                      onChange={(e) => setNewAgent({ ...newAgent, phone: e.target.value })}
+                      placeholder="+251..."
+                      className="h-11 bg-white border-gray-200 rounded-lg focus:ring-0 focus:border-deep-sky-blue"
+                    />
+                  </div>
+                  <div className="space-y-2">
+                    <Label className="text-xs font-bold text-gray-700 uppercase tracking-wider">Alt Phone</Label>
+                    <Input
+                      value={newAgent.alternativePhone}
+                      onChange={(e) => setNewAgent({ ...newAgent, alternativePhone: e.target.value })}
+                      placeholder="Optional"
+                      className="h-11 bg-white border-gray-200 rounded-lg focus:ring-0 focus:border-deep-sky-blue"
+                    />
+                  </div>
+                </div>
+
+                <div className="space-y-2">
+                  <Label className="text-xs font-bold text-gray-700 uppercase tracking-wider">Professional Experience</Label>
+                  <Textarea
+                    value={newAgent.experience}
+                    onChange={(e) => setNewAgent({ ...newAgent, experience: e.target.value })}
+                    placeholder="Briefly describe background..."
+                    className="bg-white border-gray-200 rounded-lg focus:ring-0 focus:border-deep-sky-blue resize-none h-24"
+                  />
+                </div>
+              </TabsContent>
+
+              <TabsContent value="business" className="p-8 m-0 space-y-6">
+                <div className="space-y-6">
+                  <div className="grid grid-cols-2 gap-6">
+                    <div className="space-y-2">
+                      <Label className="text-xs font-bold text-gray-700 uppercase tracking-wider">Business Name</Label>
+                      <Input
+                        value={newAgent.businessName}
+                        onChange={(e) => setNewAgent({ ...newAgent, businessName: e.target.value })}
+                        placeholder="Organization Name"
+                        className="h-11 bg-white border-gray-200 rounded-lg"
+                      />
+                    </div>
+                    <div className="space-y-2">
+                      <Label className="text-xs font-bold text-gray-700 uppercase tracking-wider">Business Type</Label>
+                      <Input
+                        value={newAgent.businessType}
+                        onChange={(e) => setNewAgent({ ...newAgent, businessType: e.target.value })}
+                        placeholder="e.g. Retailer"
+                        className="h-11 bg-white border-gray-200 rounded-lg"
+                      />
+                    </div>
+                  </div>
+
+                  <div className="grid grid-cols-2 gap-6">
+                    <div className="space-y-2">
+                      <Label className="text-xs font-bold text-gray-700 uppercase tracking-wider">TIN Number</Label>
+                      <Input
+                        value={newAgent.tinNumber}
+                        onChange={(e) => setNewAgent({ ...newAgent, tinNumber: e.target.value })}
+                        placeholder="Tax ID"
+                        className="h-11 bg-white border-gray-200 rounded-lg"
+                      />
+                    </div>
+                    <div className="space-y-2">
+                      <Label className="text-xs font-bold text-gray-700 uppercase tracking-wider">Estimated Capital</Label>
+                      <Input
+                        value={newAgent.estimatedCapital}
+                        onChange={(e) => setNewAgent({ ...newAgent, estimatedCapital: e.target.value })}
+                        placeholder="e.g. 500,000 ETB"
+                        className="h-11 bg-white border-gray-200 rounded-lg"
+                      />
+                    </div>
+                  </div>
+
+                  <div className="grid grid-cols-2 gap-6">
+                    <div className="space-y-2">
+                      <Label className="text-xs font-bold text-gray-700 uppercase tracking-wider">Bank Name</Label>
+                      <Input
+                        value={newAgent.bankName}
+                        onChange={(e) => setNewAgent({ ...newAgent, bankName: e.target.value })}
+                        className="h-11 bg-white border-gray-200 rounded-lg"
+                      />
+                    </div>
+                    <div className="space-y-2">
+                      <Label className="text-xs font-bold text-gray-700 uppercase tracking-wider">Account Number</Label>
+                      <Input
+                        value={newAgent.accountNumber}
+                        onChange={(e) => setNewAgent({ ...newAgent, accountNumber: e.target.value })}
+                        className="h-11 bg-white border-gray-200 rounded-lg"
+                      />
+                    </div>
+                  </div>
+
+                  <div className="space-y-3 p-5 bg-blue-50/50 rounded-xl border border-blue-100">
+                    <Label className="text-xs font-bold text-blue-700 uppercase tracking-wider flex items-center gap-2">
+                      <FileText className="w-3.5 h-3.5" />
+                      Trade License / Business ID
+                    </Label>
+                    <div className="flex items-center gap-4">
+                      <Input
+                        type="file"
+                        onChange={(e) => {
+                          const file = e.target.files?.[0] || null;
+                          setNewAgent({ ...newAgent, tradeLicense: file });
+                        }}
+                        className="cursor-pointer bg-white h-11 border-blue-200"
+                        accept=".pdf,.jpg,.jpeg,.png,.webp"
+                      />
+                      {newAgent.tradeLicense && (
+                        <Badge variant="secondary" className="h-11 px-4 bg-blue-600 text-white hover:bg-blue-700 border-none">
+                          <Upload className="w-4 h-4 mr-2" />
+                          Selected
+                        </Badge>
+                      )}
+                    </div>
+                    <p className="text-[10px] text-blue-500 font-medium">Supporting PDF and Images (Max 5MB)</p>
+                  </div>
+                </div>
+              </TabsContent>
+
+              <TabsContent value="logistics" className="p-8 m-0 space-y-8">
+                <div className="space-y-6">
+                  <div className="bg-gray-50 p-5 rounded-2xl border border-gray-100 flex items-center justify-between">
+                    <div className="space-y-0.5">
+                      <Label className="text-xs font-bold text-gray-900 uppercase">Warehouse Facility</Label>
+                      <p className="text-[10px] text-gray-500 font-medium">Does the agent have a storage warehouse?</p>
+                    </div>
+                    <div 
+                      onClick={() => setNewAgent({ ...newAgent, hasWarehouse: !newAgent.hasWarehouse })}
+                      className={`w-14 h-7 rounded-full p-1 cursor-pointer transition-all duration-300 ${newAgent.hasWarehouse ? 'bg-deep-sky-blue' : 'bg-gray-300'}`}
+                    >
+                      <div className={`w-5 h-5 bg-white rounded-full transition-all duration-300 transform ${newAgent.hasWarehouse ? 'translate-x-7' : 'translate-x-0'}`} />
+                    </div>
+                  </div>
+
+                  {newAgent.hasWarehouse && (
+                    <div className="grid grid-cols-2 gap-6 animate-in fade-in slide-in-from-top-2 duration-300">
+                      <div className="space-y-2">
+                        <Label className="text-xs font-bold text-gray-700 uppercase tracking-wider">Warehouse Size (m²)</Label>
+                        <Input
+                          value={newAgent.warehouseSize}
+                          onChange={(e) => setNewAgent({ ...newAgent, warehouseSize: e.target.value })}
+                          placeholder="e.g. 100"
+                          className="h-11 bg-white"
+                        />
+                      </div>
+                      <div className="space-y-2">
+                        <Label className="text-xs font-bold text-gray-700 uppercase tracking-wider">Staff Count</Label>
+                        <Input
+                          type="number"
+                          value={newAgent.staffCount}
+                          onChange={(e) => setNewAgent({ ...newAgent, staffCount: e.target.value })}
+                          placeholder="0"
+                          className="h-11 bg-white"
+                        />
+                      </div>
+                    </div>
+                  )}
+
+                  <div className="grid grid-cols-2 gap-6">
+                    <div className="space-y-2">
+                      <Label className="text-xs font-bold text-gray-700 uppercase tracking-wider">Region *</Label>
+                      <Select 
+                        value={newAgent.region} 
+                        onValueChange={(v) => setNewAgent({ ...newAgent, region: v, city: '' })}
+                      >
+                        <SelectTrigger className="h-11 bg-white border-gray-200">
+                          <SelectValue placeholder="Select" />
+                        </SelectTrigger>
+                        <SelectContent className="bg-white">
+                          {regions.map((reg) => (
+                            <SelectItem key={reg.id} value={reg.name}>{reg.name}</SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
+                    </div>
+                    <div className="space-y-2">
+                      <Label className="text-xs font-bold text-gray-700 uppercase tracking-wider">City *</Label>
+                      <Select 
+                        value={newAgent.city} 
+                        onValueChange={(v) => setNewAgent({ ...newAgent, city: v })}
+                        disabled={!newAgent.region}
+                      >
+                        <SelectTrigger className="h-11 bg-white border-gray-200">
+                          <SelectValue placeholder={newAgent.region ? "Select City" : "Choose Region"} />
+                        </SelectTrigger>
+                        <SelectContent className="bg-white">
+                          {regions
+                            .find((r) => r.name === newAgent.region)
+                            ?.cities.map((city) => (
+                              <SelectItem key={city.id} value={city.name}>{city.name}</SelectItem>
+                            ))}
+                        </SelectContent>
+                      </Select>
+                    </div>
+                  </div>
+
+                  <div className="grid grid-cols-2 gap-6">
+                    <div className="space-y-2">
+                      <Label className="text-xs font-bold text-gray-700 uppercase tracking-wider">Woreda</Label>
+                      <Input
+                        value={newAgent.woreda}
+                        onChange={(e) => setNewAgent({ ...newAgent, woreda: e.target.value })}
+                        className="h-11 bg-white"
+                      />
+                    </div>
+                    <div className="space-y-2">
+                      <Label className="text-xs font-bold text-gray-700 uppercase tracking-wider">Kebele</Label>
+                      <Input
+                        value={newAgent.kebele}
+                        onChange={(e) => setNewAgent({ ...newAgent, kebele: e.target.value })}
+                        className="h-11 bg-white"
+                      />
+                    </div>
+                  </div>
+                  
+                  <div className="space-y-2">
+                    <Label className="text-xs font-bold text-gray-700 uppercase tracking-wider">Exact Address / Office</Label>
+                    <Input
+                      value={newAgent.address}
+                      onChange={(e) => setNewAgent({ ...newAgent, address: e.target.value })}
+                      className="h-11 bg-white"
+                    />
+                  </div>
+                </div>
+              </TabsContent>
+            </div>
+
+            <DialogFooter className="p-8 bg-gray-50 border-t border-gray-100 flex items-center justify-between">
+              <div className="text-[10px] font-bold text-gray-400 uppercase tracking-[0.2em]">
+                {newAgent.firstName && newAgent.lastName ? `${newAgent.firstName} ${newAgent.lastName}` : "Pending Field Completion"}
+              </div>
+              <div className="flex gap-3">
+                <Button
+                  variant="ghost"
+                  onClick={() => setShowAddDialog(false)}
+                  className="h-12 font-bold text-gray-500 hover:bg-white"
+                >
+                  Cancel
+                </Button>
+                <Button
+                  onClick={handleAddAgent}
+                  disabled={actionLoading || !newAgent.firstName || !newAgent.email || !newAgent.region || !newAgent.city}
+                  className="h-12 px-10 bg-gray-900 text-white hover:bg-black font-bold rounded-xl shadow-lg shadow-gray-200 transition-all flex items-center gap-2"
+                >
+                  {actionLoading ? (
+                    <>
+                      <Loader2 className="w-4 h-4 animate-spin" />
+                      Registering...
+                    </>
+                  ) : (
+                    'Complete Onboarding'
+                  )}
+                </Button>
+              </div>
+            </DialogFooter>
+          </Tabs>
         </DialogContent>
       </Dialog>
     </div>

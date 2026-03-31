@@ -86,79 +86,130 @@ function HeroContent() {
 
 function HeroImage() {
   const { t } = useI18n();
+  const prefersReducedMotion = useReducedMotion();
   
   return (
     <motion.div
-      initial={{ opacity: 0, scale: 0.9 }}
+      initial={{ opacity: 0, scale: 0.95 }}
       animate={{ opacity: 1, scale: 1 }}
-      transition={{ duration: 1, ease: [0.16, 1, 0.3, 1] }}
-      className="relative w-full max-w-2xl"
+      transition={{ duration: 1.2, ease: [0.22, 1, 0.36, 1] }}
+      className="relative w-full max-w-3xl"
     >
-      {/* Decorative Glows */}
-      <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[140%] h-[140%] bg-deep-sky-blue/10 blur-[120px] rounded-full pointer-events-none" />
+      {/* Dynamic Glow System */}
+      <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[150%] h-[150%] bg-gradient-to-tr from-deep-sky-blue/20 via-blue-400/5 to-transparent blur-[140px] rounded-full pointer-events-none opacity-60" />
       
-      <div className="relative aspect-square sm:aspect-[4/3] w-full">
-        {/* Secondary Image for Depth */}
+      {/* Decorative Tech Rings */}
+      {!prefersReducedMotion && (
+        <div className="absolute inset-0 flex items-center justify-center pointer-events-none overflow-hidden">
+          <motion.div 
+            animate={{ rotate: 360 }}
+            transition={{ duration: 30, repeat: Infinity, ease: "linear" }}
+            className="absolute w-[120%] h-[120%] border-[0.5px] border-deep-sky-blue/10 rounded-full border-dashed" 
+          />
+          <motion.div 
+            animate={{ rotate: -360 }}
+            transition={{ duration: 40, repeat: Infinity, ease: "linear" }}
+            className="absolute w-[90%] h-[90%] border-[0.5px] border-deep-sky-blue/5 rounded-full" 
+          />
+        </div>
+      )}
+
+      <div className="relative aspect-square sm:aspect-[16/10] w-full flex items-center justify-center pt-8">
+        {/* Layered Vehicle Stack */}
+        
+        {/* 1. Back View (Floating Left) */}
         <motion.div
-          initial={{ opacity: 0, x: 40 }}
-          animate={{ opacity: 0.4, x: 0 }}
-          transition={{ duration: 1, delay: 0.4 }}
-          className="absolute -right-8 top-12 w-3/4 h-3/4 opacity-40 z-0 grayscale"
+          initial={{ opacity: 0, x: -40, y: 40, rotate: -5, scale: 0.8 }}
+          animate={{ opacity: 0.3, x: -100, y: 60, rotate: -12, scale: 0.85 }}
+          whileHover={{ opacity: 0.6, x: -120, scale: 0.9, rotate: -15, transition: { duration: 0.4 } }}
+          transition={{ duration: 1.2, delay: 0.6, ease: "easeOut" }}
+          className="absolute left-0 top-1/4 w-3/5 h-3/5 z-0 grayscale brightness-110 blur-[1px]"
+        >
+          <Image
+            src="/images/tuk-back.png"
+            alt="Rear Architecture"
+            fill
+            className="object-contain"
+          />
+          <motion.div 
+            animate={{ opacity: [0, 1, 0] }}
+            transition={{ duration: 3, repeat: Infinity }}
+            className="absolute inset-0 bg-deep-sky-blue/10 blur-xl rounded-full"
+          />
+        </motion.div>
+
+        {/* 2. Side View (Floating Right) */}
+        <motion.div
+          initial={{ opacity: 0, x: 40, y: -40, rotate: 5, scale: 0.8 }}
+          animate={{ opacity: 0.5, x: 100, y: -40, rotate: 12, scale: 0.9 }}
+          whileHover={{ opacity: 0.8, x: 120, scale: 0.95, rotate: 15, transition: { duration: 0.4 } }}
+          transition={{ duration: 1.2, delay: 0.4, ease: "easeOut" }}
+          className="absolute right-0 bottom-1/4 w-3/5 h-3/5 z-0 grayscale brightness-110 blur-[0.5px]"
         >
           <Image
             src="/images/tuk-side.png"
-            alt="Side View"
+            alt="Side Profile"
             fill
             className="object-contain"
           />
         </motion.div>
 
-        {/* Main Hero Image */}
+        {/* 3. Main Front View (Center Stage) */}
         <motion.div
-          initial={{ opacity: 0, y: 40 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.8, delay: 0.2 }}
-          className="relative w-full h-full z-10"
+          initial={{ opacity: 0, y: 60, filter: "blur(10px)" }}
+          animate={{ opacity: 1, y: 0, filter: "blur(0px)" }}
+          whileHover={{ y: -10, scale: 1.02 }}
+          transition={{ 
+            duration: 1, 
+            delay: 0.2, 
+            ease: [0.16, 1, 0.3, 1],
+            y: { duration: 0.4, ease: "easeOut" }
+          }}
+          className="relative w-full h-full z-20"
         >
           <Image
             src="/images/tuk-front.png"
             alt="ETUK Electric 3-Wheeler"
             fill
             priority
-            className="object-contain drop-shadow-[0_20px_50px_rgba(3,105,161,0.3)]"
+            className="object-contain drop-shadow-[0_35px_60px_rgba(3,105,161,0.45)]"
           />
+          
+          {/* Ground Shadow Overlay */}
+          <div className="absolute -bottom-8 left-1/2 -translate-x-1/2 w-4/5 h-12 bg-slate-900/10 blur-[40px] rounded-full -z-10" />
         </motion.div>
       </div>
       
-      {/* Floating Feature Tags */}
+      {/* Dynamic Data Badges */}
       <motion.div 
-        initial={{ opacity: 0, x: 30 }}
+        initial={{ opacity: 0, x: 50 }}
         animate={{ opacity: 1, x: 0 }}
-        transition={{ delay: 1 }}
-        className="absolute bottom-[20%] -right-4 bg-white/80 backdrop-blur-md border border-slate-200 p-4 rounded-2xl shadow-xl z-20 hidden sm:block"
+        transition={{ delay: 1.4 }}
+        className="absolute bottom-12 -right-8 bg-white/90 backdrop-blur-xl border border-blue-100 p-5 rounded-[2rem] shadow-[0_20px_40px_rgba(0,0,0,0.06)] z-30 hidden sm:block overflow-hidden"
       >
-        <div className="flex flex-col gap-1">
-          <div className="flex items-center gap-2">
-            <div className="w-2 h-2 rounded-full bg-green-500 shadow-[0_0_8px_rgba(34,197,94,0.6)]" />
-            <span className="text-xs font-black text-slate-900 uppercase tracking-wider">Ready to Drive</span>
+        <div className="flex flex-col gap-1.5 relative">
+          <div className="flex items-center gap-3">
+            <div className="w-2.5 h-2.5 rounded-full bg-green-500 animate-pulse shadow-[0_0_12px_rgba(34,197,94,0.8)]" />
+            <span className="text-[11px] font-black text-slate-900 uppercase tracking-widest">Global Status: Ready</span>
           </div>
-          <span className="text-[10px] text-slate-500 font-bold uppercase tracking-widest pl-4">100% Electric</span>
+          <span className="text-[10px] text-deep-sky-blue font-bold uppercase tracking-[0.2em] pl-5">Zero Emission Tech</span>
         </div>
+        <div className="absolute top-0 right-0 w-16 h-16 bg-deep-sky-blue/5 rounded-full -mr-8 -mt-8" />
       </motion.div>
       
       <motion.div 
-        initial={{ opacity: 0, x: -30 }}
+        initial={{ opacity: 0, x: -50 }}
         animate={{ opacity: 1, x: 0 }}
-        transition={{ delay: 1.2 }}
-        className="absolute top-[15%] -left-4 bg-slate-900/95 backdrop-blur-md text-white p-4 rounded-2xl shadow-2xl z-20 hidden sm:block border border-slate-800"
+        transition={{ delay: 1.6 }}
+        className="absolute top-24 -left-12 bg-slate-900/95 backdrop-blur-xl text-white p-5 rounded-[2rem] shadow-2xl z-30 hidden sm:block border border-white/10"
       >
-        <div className="flex items-center gap-3">
-          <div className="w-8 h-8 bg-deep-sky-blue/20 rounded-lg flex items-center justify-center">
-            <Zap className="w-4 h-4 text-deep-sky-blue" />
+        <div className="flex items-center gap-4">
+          <div className="w-10 h-10 bg-deep-sky-blue rounded-2xl flex items-center justify-center shadow-lg shadow-deep-sky-blue/30">
+            <Zap className="w-5 h-5 text-white fill-current" />
           </div>
           <div>
-            <p className="text-[10px] font-bold text-deep-sky-blue uppercase tracking-[0.2em] leading-none mb-1">Performance</p>
-            <p className="text-sm font-black tracking-tight italic">4000W POWER</p>
+            <p className="text-[10px] font-black text-deep-sky-blue uppercase tracking-[0.25em] leading-none mb-1.5">Max Performance</p>
+            <p className="text-base font-black tracking-tighter italic">4000W ELECTRIC</p>
           </div>
         </div>
       </motion.div>

@@ -54,6 +54,14 @@
       "title": "Big & Spacious",
       "description": "Comfortable seating with high load capacity (up to 750kg)"
     },
+    "load": {
+      "title": "High Payload",
+      "description": "Heavy cargo support up to 750kg"
+    },
+    "sds": {
+      "title": "Smart SDS",
+      "description": "Safe Driving System with anti-skid tech"
+    },
     "tech": {
       "battery": "Lithium Iron Phosphate (7.6 kWh)",
       "power": "4000W / 960 N.M Max Torque",

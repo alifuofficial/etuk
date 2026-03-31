@@ -93,15 +93,60 @@ export async function GET(request: NextRequest) {
 // POST - Create new agent application (Public)
 export async function POST(request: NextRequest) {
   try {
-    const formData = await request.formData();
-    
-    // Extract text fields
-    const data: Record<string, string | null> = {};
-    formData.forEach((value, key) => {
-      if (typeof value === 'string') {
-        data[key] = value || null;
+    const contentType = request.headers.get('content-type') || '';
+    let data: Record<string, any> = {};
+    let tradeLicensePath: string | null = null;
+
+    if (contentType.includes('multipart/form-data')) {
+      const formData = await request.formData();
+      
+      // Extract text fields
+      formData.forEach((value, key) => {
+        if (typeof value === 'string') {
+          data[key] = value || null;
+        }
+      });
+
+      // Handle file upload
+      const file = formData.get('tradeLicense') as File | null;
+      if (file && file.size > 0) {
+        // Validate file size (max 5MB)
+        if (file.size > 5 * 1024 * 1024) {
+          return NextResponse.json(
+            { error: 'File too large. Maximum size is 5MB' },
+            { status: 400 }
+          );
+        }
+
+        // Validate file type
+        const allowedTypes = ['image/jpeg', 'image/png', 'image/webp', 'application/pdf'];
+        if (!allowedTypes.includes(file.type)) {
+          return NextResponse.json(
+            { error: 'Invalid file type. Allowed: JPEG, PNG, WebP, PDF' },
+            { status: 400 }
+          );
+        }
+
+        const bytes = await file.arrayBuffer();
+        const buffer = Buffer.from(bytes);
+
+        // Create unique filename
+        const extension = file.name.split('.').pop()?.toLowerCase() || 'pdf';
+        const filename = `${uuidv4()}.${extension}`;
+        const uploadDir = join(process.cwd(), 'public/uploads/agents');
+        
+        // Ensure directory exists
+        await mkdir(uploadDir, { recursive: true });
+        
+        const path = join(uploadDir, filename);
+        await writeFile(path, buffer);
+        
+        tradeLicensePath = `/api/uploads/agents/${filename}`;
       }
-    });
+    } else {
+      // Assume JSON
+      data = await request.json();
+    }
 
     // Validate required fields
     const requiredFields = ['firstName', 'lastName', 'email', 'phone', 'region', 'city'];
@@ -124,53 +169,14 @@ export async function POST(request: NextRequest) {
     }
 
     // Validate phone format (basic)
-    const phone = data.phone || '';
-    if (phone.length < 10 || phone.length > 20) {
+    const phone = (data.phone || '').toString();
+    if (phone.length < 9 || phone.length > 20) {
       return NextResponse.json(
         { error: 'Invalid phone number' },
         { status: 400 }
       );
     }
 
-    // Handle file upload
-    let tradeLicensePath: string | null = null;
-    const file = formData.get('tradeLicense') as File | null;
-    
-    if (file && file.size > 0) {
-      // Validate file size (max 5MB)
-      if (file.size > 5 * 1024 * 1024) {
-        return NextResponse.json(
-          { error: 'File too large. Maximum size is 5MB' },
-          { status: 400 }
-        );
-      }
-
-      // Validate file type
-      const allowedTypes = ['image/jpeg', 'image/png', 'image/webp', 'application/pdf'];
-      if (!allowedTypes.includes(file.type)) {
-        return NextResponse.json(
-          { error: 'Invalid file type. Allowed: JPEG, PNG, WebP, PDF' },
-          { status: 400 }
-        );
-      }
-
-      const bytes = await file.arrayBuffer();
-      const buffer = Buffer.from(bytes);
-
-      // Create unique filename
-      const extension = file.name.split('.').pop()?.toLowerCase() || 'pdf';
-      const filename = `${uuidv4()}.${extension}`;
-      const uploadDir = join(process.cwd(), 'public/uploads/agents');
-      
-      // Ensure directory exists
-      await mkdir(uploadDir, { recursive: true });
-      
-      const path = join(uploadDir, filename);
-      await writeFile(path, buffer);
-      
-      tradeLicensePath = `/api/uploads/agents/${filename}`;
-    }
-    
     const agent = await db.agent.create({
       data: {
         firstName: data.firstName!,
@@ -186,10 +192,10 @@ export async function POST(request: NextRequest) {
         woreda: data.woreda || null,
         kebele: data.kebele || null,
         address: data.address || null,
-        hasWarehouse: data.hasWarehouse === 'true',
+        hasWarehouse: data.hasWarehouse === true || data.hasWarehouse === 'true',
         warehouseSize: data.warehouseSize || null,
         existingBrands: data.existingBrands || null,
-        staffCount: data.staffCount ? parseInt(data.staffCount) : null,
+        staffCount: data.staffCount ? parseInt(data.staffCount.toString()) : null,
         estimatedCapital: data.estimatedCapital || null,
         bankName: data.bankName || null,
         accountNumber: data.accountNumber || null,
@@ -197,8 +203,8 @@ export async function POST(request: NextRequest) {
         idDocument: data.idDocument || null,
         tinNumber: data.tinNumber || null,
         message: data.message || null,
-        howDidYouHear: data.howDidYouHear || null,
-        status: 'PENDING',
+        howDidYouHear: data.howDidYouHear || 'WEB',
+        status: data.status || 'PENDING',
       },
       select: {
         id: true,

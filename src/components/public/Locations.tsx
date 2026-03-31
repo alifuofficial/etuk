@@ -66,7 +66,7 @@ export default function Locations() {
           <div className="relative h-[600px] rounded-[48px] overflow-hidden border border-slate-100 shadow-2xl group">
             {/* Real Map Integration */}
             <iframe
-              src="https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d1009185.0601445778!2d38.567824!3d8.750000!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x164b85cef5ab402d%3A0x8467b6b037a24c49!2sAddis%20Ababa!5e0!3m2!1sen!2set!4v1711516000000!5m2!1sen!2set"
+              src="https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d500000!2d38.940000!3d8.810000!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x164b85cef5ab402d%3A0x8467b6b037a24c49!2sAddis%20Ababa!5e0!3m2!1sen!2set!4v1711516000000!5m2!1sen!2set"
               className="absolute inset-0 w-full h-full grayscale opacity-70 group-hover:grayscale-0 group-hover:opacity-100 transition-all duration-700"
               style={{ border: 0 }}
               allowFullScreen={true}
@@ -83,7 +83,7 @@ export default function Locations() {
                 <motion.div 
                   initial={{ scale: 0, opacity: 0 }}
                   whileInView={{ scale: 1, opacity: 1 }}
-                  className="absolute top-[35%] left-[45%]"
+                  className="absolute top-[23%] left-[32.5%]"
                 >
                   <div className="relative">
                     <div className="absolute -inset-4 bg-deep-sky-blue/20 rounded-full animate-ping" />
@@ -93,13 +93,13 @@ export default function Locations() {
                     </div>
                   </div>
                 </motion.div>
-
+                
                 {/* Modjo Marker - Positioned on the map view */}
                 <motion.div 
                   initial={{ scale: 0, opacity: 0 }}
                   whileInView={{ scale: 1, opacity: 1 }}
                   transition={{ delay: 0.3 }}
-                  className="absolute top-[55%] left-[55%]"
+                  className="absolute top-[74.7%] left-[66.5%]"
                 >
                   <div className="relative">
                     <div className="absolute -inset-4 bg-slate-900/10 rounded-full animate-ping [animation-delay:1s]" />

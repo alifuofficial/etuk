@@ -18,8 +18,8 @@ if [ -n "$DATABASE_URL" ]; then
   fi
   
   # Push schema to database
-  echo "Pushing schema to database using local Prisma..."
-  if bunx prisma db push --accept-data-loss; then
+  echo "Pushing schema to database using npx prisma@6.11.1..."
+  if npx prisma@6.11.1 db push --accept-data-loss; then
     echo "Prisma db push successful."
   else
     echo "ERROR: Prisma db push failed! This may cause issues with new features."
@@ -28,7 +28,7 @@ if [ -n "$DATABASE_URL" ]; then
 
   # Run seeding to ensure admin account exists
   echo "Running database seed..."
-  bunx prisma db seed
+  npx prisma@6.11.1 db seed
 fi
 
 # Start the application - executes CMD from Dockerfile

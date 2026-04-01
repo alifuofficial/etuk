@@ -70,7 +70,7 @@ function ProductSpecs() {
           >
             <div className="relative aspect-square w-full max-w-sm mx-auto">
               <Image
-                src="/images/tuk-front.png"
+                src="/images/etuk-front-right.png"
                 alt="ETUK Specs"
                 fill
                 sizes="(max-width: 768px) 100vw, 33vw"

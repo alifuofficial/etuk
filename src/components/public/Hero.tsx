@@ -126,7 +126,7 @@ function HeroImage() {
           className="absolute left-0 top-1/4 w-3/5 h-3/5 z-0 grayscale brightness-110 blur-[1px]"
         >
           <Image
-            src="/images/tuk-back.png"
+            src="/images/etuk-back.png"
             alt="Rear Architecture"
             fill
             className="object-contain"
@@ -147,7 +147,7 @@ function HeroImage() {
           className="absolute right-0 bottom-1/4 w-3/5 h-3/5 z-0 grayscale brightness-110 blur-[0.5px]"
         >
           <Image
-            src="/images/tuk-side.png"
+            src="/images/etuk-side-right.png"
             alt="Side Profile"
             fill
             className="object-contain"
@@ -168,7 +168,7 @@ function HeroImage() {
           className="relative w-full h-full z-20"
         >
           <Image
-            src="/images/tuk-front.png"
+            src="/images/etuk-front.png"
             alt="ETUK Electric 3-Wheeler"
             fill
             priority

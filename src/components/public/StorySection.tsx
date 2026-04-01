@@ -28,7 +28,7 @@ function StorySection() {
           >
             <div className="relative aspect-video rounded-2xl overflow-hidden border border-slate-200 bg-slate-50">
               <Image
-                src="/images/tuk-side.png"
+                src="/images/etuk-side-left.png"
                 alt="ETUK Heritage"
                 fill
                 sizes="(max-width: 768px) 100vw, 50vw"

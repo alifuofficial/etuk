@@ -49,7 +49,7 @@ function Features() {
             <div className="absolute inset-0 bg-deep-sky-blue/5 rounded-full blur-[100px]" />
             <div className="relative aspect-[4/3] w-full max-w-md mx-auto">
               <Image
-                src="/images/tuk-side.png"
+                src="/images/etuk-side-right.png"
                 alt="ETUK Features"
                 fill
                 sizes="(max-width: 768px) 100vw, 50vw"

@@ -56,6 +56,7 @@ model Agent {
   contactPerson    String?
   contactPhone     String?
   reviewer         User?     @relation(fields: [reviewedBy], references: [id])
+  inventory        Inventory[]
 }
 
 model Product {
@@ -74,6 +75,35 @@ model Product {
   featured       Boolean  @default(false)
   createdAt      DateTime @default(now())
   updatedAt      DateTime @updatedAt
+  inventory      Inventory[]
+  transactions   InventoryTransaction[]
+}
+
+model Inventory {
+  id        String   @id @default(cuid())
+  productId String
+  agentId   String?  // null represents the central Warehouse
+  quantity  Int      @default(0)
+  updatedAt DateTime @updatedAt
+  
+  product Product @relation(fields: [productId], references: [id], onDelete: Cascade)
+  agent   Agent?  @relation(fields: [agentId], references: [id], onDelete: Cascade)
+
+  @@unique([productId, agentId])
+}
+
+model InventoryTransaction {
+  id              String   @id @default(cuid())
+  productId       String
+  fromAgentId     String?  // source (null = Warehouse)
+  toAgentId       String?  // destination (null = Warehouse)
+  quantity        Int
+  type            String   // e.g., "INITIAL_STOCK", "TRANSFER", "SALE", "RETURN"
+  notes           String?
+  createdAt       DateTime @default(now())
+  performedBy     String?  // User id who did the transaction
+  
+  product Product @relation(fields: [productId], references: [id], onDelete: Cascade)
 }
 
 model Region {

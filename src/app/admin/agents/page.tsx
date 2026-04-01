@@ -63,6 +63,11 @@ import {
   Loader2,
   ArrowRight,
   ArrowLeft,
+  Boxes,
+  ArrowRightLeft,
+  History,
+  TrendingDown,
+  TrendingUp,
 } from 'lucide-react';
 import * as XLSX from 'xlsx';
 import { jsPDF } from 'jspdf';
@@ -124,6 +129,97 @@ export default function AgentsPage() {
   const [actionLoading, setActionLoading] = useState(false);
   const [previewOpen, setPreviewOpen] = useState(false);
   const [showAddDialog, setShowAddDialog] = useState(false);
+  
+  // Inventory State
+  const [showInventoryDialog, setShowInventoryDialog] = useState(false);
+  const [agentInventory, setAgentInventory] = useState<any[]>([]);
+  const [inventoryHistory, setInventoryHistory] = useState<any[]>([]);
+  const [inventoryLoading, setInventoryLoading] = useState(false);
+  const [transferAmount, setTransferAmount] = useState<number>(0);
+  const [transferProductId, setTransferProductId] = useState<string>('');
+  const [transferLoading, setTransferLoading] = useState(false);
+  const [products, setProducts] = useState<any[]>([]);
+  const [warehouseInventory, setWarehouseInventory] = useState<any[]>([]);
+
+  useEffect(() => {
+    if (showInventoryDialog && selectedAgent) {
+      fetchAgentInventory(selectedAgent.id);
+      fetchGlobalInventory();
+    }
+  }, [showInventoryDialog, selectedAgent]);
+
+  const fetchAgentInventory = async (id: string) => {
+    setInventoryLoading(true);
+    try {
+      const res = await fetch(`/api/agents/${id}/inventory`);
+      if (res.ok) {
+        const data = await res.json();
+        setAgentInventory(data.inventory);
+        setInventoryHistory(data.transactions);
+      }
+    } catch (error) {
+      console.error('Failed to fetch agent inventory:', error);
+    } finally {
+      setInventoryLoading(false);
+    }
+  };
+
+  const fetchGlobalInventory = async () => {
+    try {
+      const [prodRes, invRes] = await Promise.all([
+        fetch('/api/products'),
+        fetch('/api/inventory')
+      ]);
+      if (prodRes.ok) setProducts(await prodRes.json());
+      if (invRes.ok) setWarehouseInventory(await invRes.json());
+    } catch (error) {
+      console.error('Failed to fetch global inventory:', error);
+    }
+  };
+
+  const handleTransfer = async () => {
+    if (!selectedAgent || !transferProductId || transferAmount <= 0) return;
+    
+    setTransferLoading(true);
+    try {
+      const res = await fetch('/api/inventory/transfer', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          productId: transferProductId,
+          toAgentId: selectedAgent.id,
+          quantity: transferAmount,
+          type: 'TRANSFER',
+          notes: `Assigned units to agent ${selectedAgent.firstName}`
+        })
+      });
+
+      if (res.ok) {
+        toast({
+          title: 'Units Assigned',
+          description: `Successfully assigned ${transferAmount} units.`,
+        });
+        fetchAgentInventory(selectedAgent.id);
+        setTransferAmount(0);
+        setTransferProductId('');
+      } else {
+        const error = await res.json();
+        toast({
+          title: 'Transfer Failed',
+          description: error.error || 'Failed to assign units.',
+          variant: 'destructive'
+        });
+      }
+    } catch (error) {
+      toast({
+        title: 'Error',
+        description: 'An unexpected error occurred.',
+        variant: 'destructive'
+      });
+    } finally {
+      setTransferLoading(false);
+    }
+  };
 
   const handleDeleteAgent = async (agentId: string) => {
     if (!window.confirm('Are you sure you want to delete this agent? This action cannot be undone.')) {
@@ -536,31 +632,45 @@ export default function AgentsPage() {
                         {formatDate(agent.createdAt)}
                       </TableCell>
                       <TableCell className="px-6 py-5 text-right">
-                        <Button
-                          variant="ghost"
-                          size="sm"
-                          className="text-deep-sky-blue hover:bg-gray-100 font-bold gap-2"
-                          onClick={() => {
-                            setSelectedAgent(agent);
-                            setReviewNotes(agent.reviewNotes || '');
-                            setPreviewOpen(false);
-                            setShowDialog(true);
-                          }}
-                        >
-                          <Eye className="w-4 h-4" />
-                          Review
-                        </Button>
-                        {session?.user?.role === 'ADMIN' && (
+                        <div className="flex justify-end gap-2">
                           <Button
                             variant="ghost"
                             size="sm"
-                            className="text-red-500 hover:bg-red-50 hover:text-red-600 font-bold"
-                            onClick={() => handleDeleteAgent(agent.id)}
-                            disabled={actionLoading}
+                            className="text-amber-600 hover:bg-amber-50 font-bold gap-2"
+                            onClick={() => {
+                              setSelectedAgent(agent);
+                              setShowInventoryDialog(true);
+                            }}
                           >
-                            <Trash2 className="w-4 h-4" />
+                            <Boxes className="w-4 h-4" />
+                            Units
                           </Button>
-                        )}
+                          <Button
+                            variant="ghost"
+                            size="sm"
+                            className="text-deep-sky-blue hover:bg-gray-100 font-bold gap-2"
+                            onClick={() => {
+                              setSelectedAgent(agent);
+                              setReviewNotes(agent.reviewNotes || '');
+                              setPreviewOpen(false);
+                              setShowDialog(true);
+                            }}
+                          >
+                            <Eye className="w-4 h-4" />
+                            Review
+                          </Button>
+                          {session?.user?.role === 'ADMIN' && (
+                            <Button
+                              variant="ghost"
+                              size="sm"
+                              className="text-red-500 hover:bg-red-50 hover:text-red-600 font-bold"
+                              onClick={() => handleDeleteAgent(agent.id)}
+                              disabled={actionLoading}
+                            >
+                              <Trash2 className="w-4 h-4" />
+                            </Button>
+                          )}
+                        </div>
                       </TableCell>
                     </TableRow>
                   ))}
@@ -1085,6 +1195,149 @@ export default function AgentsPage() {
               </div>
             </DialogFooter>
           </Tabs>
+        </DialogContent>
+      </Dialog>
+
+      {/* Agent Inventory Dialog */}
+      <Dialog open={showInventoryDialog} onOpenChange={setShowInventoryDialog}>
+        <DialogContent className="max-w-3xl p-0 overflow-hidden rounded-2xl shadow-2xl bg-white border-none max-h-[90vh] flex flex-col">
+          {selectedAgent && (
+            <div className="flex flex-col h-full overflow-hidden">
+              <div className="bg-gray-900 p-8 text-white">
+                <div className="flex items-center justify-between">
+                  <div>
+                    <div className="flex items-center gap-2 mb-2">
+                      <Boxes className="w-4 h-4 text-blue-400" />
+                      <span className="text-xs font-bold text-gray-400 uppercase tracking-[0.2em]">Unit Management</span>
+                    </div>
+                    <DialogTitle className="text-3xl font-black leading-none mb-1 text-white">
+                      {selectedAgent.firstName}'s Inventory
+                    </DialogTitle>
+                    <DialogDescription className="text-gray-400 text-sm font-medium">
+                      Track and assign units for this agent.
+                    </DialogDescription>
+                  </div>
+                  <div className="text-right">
+                    <p className="text-[10px] font-bold text-gray-500 uppercase tracking-widest mb-1">Total Held</p>
+                    <p className="text-3xl font-black text-white">
+                      {agentInventory.reduce((acc, item) => acc + item.quantity, 0)}
+                    </p>
+                  </div>
+                </div>
+              </div>
+
+              <div className="flex-1 overflow-y-auto p-8 space-y-8 custom-scrollbar">
+                {/* Current Holding Table */}
+                <div className="space-y-4">
+                  <h4 className="text-sm font-bold text-gray-900 flex items-center gap-2">
+                    <Boxes className="w-4 h-4 text-gray-400" />
+                    Current Units
+                  </h4>
+                  {agentInventory.length === 0 ? (
+                    <div className="p-8 border-2 border-dashed border-gray-100 rounded-xl text-center">
+                      <p className="text-sm text-gray-400">No units currently assigned.</p>
+                    </div>
+                  ) : (
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                      {agentInventory.map((item) => (
+                        <div key={item.id} className="p-4 bg-gray-50 border border-gray-100 rounded-xl flex items-center justify-between">
+                          <div>
+                            <p className="text-sm font-bold text-gray-900">{item.product.name}</p>
+                            <p className="text-[10px] text-gray-500 font-bold uppercase">{item.product.category}</p>
+                          </div>
+                          <div className="text-right">
+                            <p className="text-lg font-black text-deep-sky-blue">{item.quantity}</p>
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  )}
+                </div>
+
+                <hr className="border-gray-100" />
+
+                {/* Transfer Section */}
+                <div className="space-y-4">
+                  <h4 className="text-sm font-bold text-gray-900 flex items-center gap-2">
+                    <ArrowRightLeft className="w-4 h-4 text-gray-400" />
+                    Assign New Units
+                  </h4>
+                  <div className="grid grid-cols-1 md:grid-cols-3 gap-4 bg-blue-50/50 p-6 rounded-2xl border border-blue-100">
+                    <div className="space-y-2">
+                      <Label className="text-[10px] font-bold text-gray-500 uppercase">Product</Label>
+                      <Select value={transferProductId} onValueChange={setTransferProductId}>
+                        <SelectTrigger className="bg-white border-blue-200">
+                          <SelectValue placeholder="Select Product" />
+                        </SelectTrigger>
+                        <SelectContent>
+                          {products.map((p) => {
+                            const whItem = warehouseInventory.find(i => i.productId === p.id && i.agentId === null);
+                            const whStock = whItem ? whItem.quantity : 0;
+                            return (
+                              <SelectItem key={p.id} value={p.id} disabled={whStock <= 0}>
+                                {p.name} ({whStock} in WH)
+                              </SelectItem>
+                            );
+                          })}
+                        </SelectContent>
+                      </Select>
+                    </div>
+                    <div className="space-y-2">
+                      <Label className="text-[10px] font-bold text-gray-500 uppercase">Quantity</Label>
+                      <Input 
+                        type="number" 
+                        value={transferAmount || ''} 
+                        onChange={(e) => setTransferAmount(parseInt(e.target.value) || 0)}
+                        className="bg-white border-blue-200"
+                        placeholder="0"
+                      />
+                    </div>
+                    <div className="flex items-end">
+                      <Button 
+                        onClick={handleTransfer} 
+                        disabled={transferLoading || !transferProductId || transferAmount <= 0}
+                        className="w-full bg-gray-900 text-white font-bold h-10 hover:bg-black"
+                      >
+                        {transferLoading ? <Loader2 className="w-4 h-4 animate-spin" /> : 'Assign Units'}
+                      </Button>
+                    </div>
+                  </div>
+                </div>
+
+                <hr className="border-gray-100" />
+
+                {/* Transaction History */}
+                <div className="space-y-4">
+                  <h4 className="text-sm font-bold text-gray-900 flex items-center gap-2">
+                    <History className="w-4 h-4 text-gray-400" />
+                    Recent Activity
+                  </h4>
+                  <div className="space-y-3">
+                    {inventoryHistory.length === 0 ? (
+                      <p className="text-xs text-center py-8 text-gray-400">No recent transactions.</p>
+                    ) : (
+                      inventoryHistory.map((tx) => (
+                        <div key={tx.id} className="flex items-center justify-between p-4 bg-white border border-gray-100 rounded-xl hover:shadow-sm transition-shadow">
+                          <div className="flex items-center gap-3">
+                            <div className={`p-2 rounded-lg ${tx.toAgentId === selectedAgent.id ? 'bg-green-50 text-green-600' : 'bg-red-50 text-red-600'}`}>
+                              {tx.toAgentId === selectedAgent.id ? <TrendingUp className="w-4 h-4" /> : <TrendingDown className="w-4 h-4" />}
+                            </div>
+                            <div>
+                              <p className="text-sm font-bold text-gray-900">{tx.product.name}</p>
+                              <p className="text-[10px] text-gray-400 font-medium uppercase">{tx.type} • {new Date(tx.createdAt).toLocaleDateString()}</p>
+                            </div>
+                          </div>
+                          <p className={`font-black ${tx.toAgentId === selectedAgent.id ? 'text-green-600' : 'text-red-600'}`}>
+                            {tx.toAgentId === selectedAgent.id ? '+' : '-'}{tx.quantity}
+                          </p>
+                        </div>
+                      ))
+                    )}
+                  </div>
+                </div>
+              </div>
+            </div>
+          )}
         </DialogContent>
       </Dialog>
     </div>

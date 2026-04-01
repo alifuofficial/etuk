@@ -3,17 +3,28 @@
 import { useEffect, useState } from 'react';
 import { useSession } from 'next-auth/react';
 import { useRouter } from 'next/navigation';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { 
   Package, 
   Edit, 
   Star, 
-  Zap, 
-  BatteryCharging,
-  Gauge,
-  Plus
+  Plus,
+  Boxes,
+  Loader2,
+  AlertCircle
 } from 'lucide-react';
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogDescription,
+  DialogFooter,
+} from '@/components/ui/dialog';
+import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
+import { toast } from '@/hooks/use-toast';
 
 interface Product {
   id: string;
@@ -29,6 +40,12 @@ interface Product {
   createdAt: string;
 }
 
+interface InventoryItem {
+  productId: string;
+  agentId: string | null;
+  quantity: number;
+}
+
 export default function ProductsPage() {
   const { data: session, status } = useSession();
   const router = useRouter();
@@ -40,35 +57,83 @@ export default function ProductsPage() {
   }, [session, status, router]);
 
   const [products, setProducts] = useState<Product[]>([]);
+  const [inventory, setInventory] = useState<InventoryItem[]>([]);
   const [loading, setLoading] = useState(true);
+  
+  // Stock Management State
+  const [showStockDialog, setShowStockDialog] = useState(false);
+  const [selectedProduct, setSelectedProduct] = useState<Product | null>(null);
+  const [stockAdjustment, setStockAdjustment] = useState<number>(0);
+  const [actionLoading, setActionLoading] = useState(false);
 
   useEffect(() => {
-    fetchProducts();
+    fetchData();
   }, []);
 
-  const fetchProducts = async () => {
+  const fetchData = async () => {
     setLoading(true);
     try {
-      const response = await fetch('/api/products');
-      if (response.ok) {
-        const data = await response.json();
-        if (Array.isArray(data)) {
-          setProducts(data);
-        } else {
-          console.error('API response is not an array:', data);
-          setProducts([]);
-        }
-      } else {
-        const errorData = await response.json();
-        console.error('Failed to fetch products:', errorData);
-        setProducts([]);
+      const [productsRes, inventoryRes] = await Promise.all([
+        fetch('/api/products'),
+        fetch('/api/inventory')
+      ]);
+
+      if (productsRes.ok) {
+        const prodData = await productsRes.json();
+        setProducts(Array.isArray(prodData) ? prodData : []);
+      }
+      
+      if (inventoryRes.ok) {
+        const invData = await inventoryRes.json();
+        setInventory(Array.isArray(invData) ? invData : []);
       }
     } catch (error) {
-      console.error('Failed to fetch products:', error);
-      setProducts([]);
+      console.error('Failed to fetch data:', error);
     } finally {
       setLoading(false);
     }
+  };
+
+  const handleUpdateStock = async () => {
+    if (!selectedProduct || stockAdjustment === 0) return;
+    
+    setActionLoading(true);
+    try {
+      const response = await fetch('/api/inventory', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          productId: selectedProduct.id,
+          quantity: stockAdjustment,
+          notes: 'Manual stock adjustment from admin panel'
+        }),
+      });
+
+      if (response.ok) {
+        toast({
+          title: 'Stock Updated',
+          description: `Successfully added ${stockAdjustment} units to ${selectedProduct.name}.`,
+        });
+        fetchData();
+        setShowStockDialog(false);
+        setStockAdjustment(0);
+      } else {
+        throw new Error('Failed to update stock');
+      }
+    } catch (error) {
+      toast({
+        title: 'Error',
+        description: 'Failed to update stock. Please try again.',
+        variant: 'destructive',
+      });
+    } finally {
+      setActionLoading(false);
+    }
+  };
+
+  const getWarehouseStock = (productId: string) => {
+    const item = inventory.find(i => i.productId === productId && i.agentId === null);
+    return item ? item.quantity : 0;
   };
 
   const getStatusBadge = (active: boolean) => {
@@ -107,9 +172,9 @@ export default function ProductsPage() {
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <div>
           <h1 className="text-2xl font-bold text-gray-900">Product Management</h1>
-          <p className="text-sm text-gray-500 mt-1">Manage the Soreti product catalog and specifications.</p>
+          <p className="text-sm text-gray-500 mt-1">Manage the ETUK product catalog and track unit distribution.</p>
         </div>
-        <Button className="bg-gray-900 hover:bg-black text-white font-bold h-11 px-6 rounded-lg shadow-lg shadow-gray-200 transition-all font-bold">
+        <Button className="bg-gray-900 hover:bg-black text-white font-bold h-11 px-6 rounded-lg shadow-lg shadow-gray-200 transition-all">
           <Plus className="w-4 h-4 mr-2" />
           Add Product
         </Button>
@@ -117,8 +182,9 @@ export default function ProductsPage() {
 
       {/* Products Grid */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-        {Array.isArray(products) && products.map((product) => {
+        {products.map((product) => {
           const specs = parseSpecs(product.specifications);
+          const stock = getWarehouseStock(product.id);
           
           return (
             <Card key={product.id} className="group overflow-hidden bg-white border-gray-200 rounded-xl hover:shadow-md transition-shadow outline-none flex flex-col">
@@ -135,6 +201,14 @@ export default function ProductsPage() {
                     <Star className="w-5 h-5 text-amber-400 fill-amber-400" />
                   </div>
                 )}
+                
+                {/* Stock Tag */}
+                <div className="absolute bottom-4 right-4">
+                  <div className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg border shadow-sm ${stock > 0 ? 'bg-white border-gray-200' : 'bg-red-50 border-red-100 text-red-600'}`}>
+                    <Boxes className={`w-3.5 h-3.5 ${stock > 0 ? 'text-deep-sky-blue' : 'text-red-500'}`} />
+                    <span className="text-xs font-black">{stock} <span className="font-bold opacity-60">Units</span></span>
+                  </div>
+                </div>
               </div>
 
               <CardContent className="p-6 flex-1 flex flex-col">
@@ -149,33 +223,34 @@ export default function ProductsPage() {
                   </p>
                 )}
 
-                {product.description && (
-                  <p className="text-gray-600 text-sm line-clamp-2 mb-6 leading-relaxed">
-                    {product.description}
-                  </p>
-                )}
-
                 {/* Specs Summary */}
                 {specs && (
                   <div className="grid grid-cols-2 gap-3 mb-6">
                     <div className="bg-gray-50 rounded-lg p-3">
-                      <p className="text-[9px] font-bold text-gray-600 uppercase tracking-widest mb-1">Motor</p>
-                      <p className="text-xs font-bold text-gray-900">{specs.engine?.motorPower || '4000W'}</p>
+                      <p className="text-[9px] font-bold text-gray-600 uppercase tracking-widest mb-1 text-xs">Motor Power</p>
+                      <p className="text-xs font-bold text-gray-900">{specs.engine?.motorPower || 'N/A'}</p>
                     </div>
                     <div className="bg-gray-50 rounded-lg p-3">
-                      <p className="text-[9px] font-bold text-gray-600 uppercase tracking-widest mb-1">Range</p>
-                      <p className="text-xs font-bold text-gray-900">{specs.performance?.maxRange || '180KM'}</p>
+                      <p className="text-[9px] font-bold text-gray-600 uppercase tracking-widest mb-1 text-xs">Max Range</p>
+                      <p className="text-xs font-bold text-gray-900">{specs.performance?.maxRange || 'N/A'}</p>
                     </div>
                   </div>
                 )}
 
-                <div className="flex gap-2 mt-auto">
-                  <Button variant="outline" className="flex-1 h-10 rounded-lg border-gray-200 text-sm font-bold hover:bg-gray-50">
-                    <Edit className="w-4 h-4 mr-2 text-deep-sky-blue" />
-                    Edit
+                <div className="flex gap-2 mt-auto pt-4 border-t border-gray-50">
+                  <Button 
+                    variant="outline" 
+                    className="flex-1 h-10 rounded-lg border-gray-200 text-xs font-bold hover:bg-gray-50"
+                    onClick={() => {
+                      setSelectedProduct(product);
+                      setShowStockDialog(true);
+                    }}
+                  >
+                    <Boxes className="w-3.5 h-3.5 mr-2 text-deep-sky-blue" />
+                    Manage Stock
                   </Button>
-                  <Button variant="outline" className={`w-10 h-10 rounded-lg border-gray-200 ${product.featured ? 'text-amber-500 bg-amber-50' : 'text-gray-400'}`}>
-                    <Star className={`w-4 h-4 ${product.featured ? 'fill-amber-500' : ''}`} />
+                  <Button variant="outline" className="w-10 h-10 rounded-lg border-gray-200 text-gray-400">
+                    <Edit className="w-4 h-4" />
                   </Button>
                 </div>
               </CardContent>
@@ -191,6 +266,60 @@ export default function ProductsPage() {
           </div>
         )}
       </div>
+
+      {/* Manual Stock Adjustment Dialog */}
+      <Dialog open={showStockDialog} onOpenChange={setShowStockDialog}>
+        <DialogContent className="max-w-md rounded-2xl p-8 border-none shadow-2xl">
+          <DialogHeader>
+            <div className="w-12 h-12 bg-blue-50 rounded-xl flex items-center justify-center mb-4">
+              <Boxes className="w-6 h-6 text-deep-sky-blue" />
+            </div>
+            <DialogTitle className="text-2xl font-bold">Adjust Warehouse Stock</DialogTitle>
+            <DialogDescription className="text-gray-500 font-medium">
+              Update the available units for <strong>{selectedProduct?.name}</strong> in the central warehouse.
+            </DialogDescription>
+          </DialogHeader>
+
+          <div className="py-6 space-y-4">
+            <div className="p-4 bg-gray-50 rounded-xl flex items-center justify-between border border-gray-100">
+              <span className="text-sm font-bold text-gray-600">Current Warehouse Stock</span>
+              <span className="text-xl font-black text-gray-900">{selectedProduct ? getWarehouseStock(selectedProduct.id) : 0}</span>
+            </div>
+
+            <div className="space-y-2 pt-2">
+              <Label className="text-xs font-bold text-gray-500 uppercase tracking-widest pl-1">Units to Add (or Subtract)</Label>
+              <Input
+                type="number"
+                placeholder="e.g. 150"
+                value={stockAdjustment || ''}
+                onChange={(e) => setStockAdjustment(parseInt(e.target.value) || 0)}
+                className="h-12 bg-white border-gray-200 rounded-xl font-bold text-lg"
+              />
+              <p className="text-[10px] text-gray-400 font-medium pl-1 flex items-center gap-1">
+                <AlertCircle className="w-3 h-3" />
+                This will record an INITIAL_STOCK transaction.
+              </p>
+            </div>
+          </div>
+
+          <DialogFooter className="gap-3 sm:gap-0">
+            <Button
+              variant="outline"
+              className="h-12 flex-1 rounded-xl font-bold border-gray-200"
+              onClick={() => setShowStockDialog(false)}
+            >
+              Cancel
+            </Button>
+            <Button
+              className="h-12 flex-1 rounded-xl bg-gray-900 text-white font-bold hover:bg-black"
+              onClick={handleUpdateStock}
+              disabled={actionLoading || stockAdjustment === 0}
+            >
+              {actionLoading ? <Loader2 className="w-4 h-4 animate-spin" /> : 'Confirm Adjustment'}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }

@@ -1,3 +1,4 @@
+import { NextResponse } from 'next/server';
 import { db as prisma } from '@/lib/db';
 import { getServerSession } from 'next-auth';
 import { authOptions } from '@/lib/auth';
@@ -12,41 +13,30 @@ export async function POST(req: Request) {
     const { productId, fromAgentId, toAgentId, quantity, type, notes } = await req.json();
 
     if (!productId || typeof quantity !== 'number' || quantity <= 0) {
-      return NextResponse.json({ error: 'Product ID and valid quantity are required' }, { status: 400 });
+      return NextResponse.json({ error: 'Invalid productId or quantity' }, { status: 400 });
     }
 
-    // Check from storage availability
-    const sourceInventory = await prisma.inventory.findUnique({
-      where: {
-        productId_agentId: {
-          productId,
-          agentId: fromAgentId || null,
-        }
-      }
-    });
-
-    if (!sourceInventory || sourceInventory.quantity < quantity) {
-      return NextResponse.json({ 
-        error: `Insufficient stock in ${fromAgentId ? 'agent' : 'warehouse'}. Current: ${sourceInventory?.quantity || 0}` 
-      }, { status: 400 });
-    }
-
-    // Perform transaction using a transaction
+    // Atomic transaction for transfer
     await prisma.$transaction(async (tx) => {
-      // 1. Decrement source
-      await tx.inventory.update({
+      // 1. Decrement from source (null = Warehouse)
+      await tx.inventory.upsert({
         where: {
           productId_agentId: {
             productId,
             agentId: fromAgentId || null,
           }
         },
-        data: {
+        update: {
           quantity: { decrement: quantity }
+        },
+        create: {
+          productId,
+          agentId: fromAgentId || null,
+          quantity: -quantity,
         }
       });
 
-      // 2. Increment destination
+      // 2. Increment to destination (null = Warehouse)
       await tx.inventory.upsert({
         where: {
           productId_agentId: {
@@ -60,11 +50,11 @@ export async function POST(req: Request) {
         create: {
           productId,
           agentId: toAgentId || null,
-          quantity,
+          quantity: quantity,
         }
       });
 
-      // 3. Record transaction log
+      // 3. Log transaction
       await tx.inventoryTransaction.create({
         data: {
           productId,
@@ -72,15 +62,18 @@ export async function POST(req: Request) {
           toAgentId: toAgentId || null,
           quantity,
           type: type || 'TRANSFER',
-          notes: notes || `Transfer from ${fromAgentId ? 'agent' : 'warehouse'} to ${toAgentId ? 'agent' : 'warehouse'}`,
+          notes: notes || 'Stock movement',
           performedBy: session.user.id,
         }
       });
     });
 
     return NextResponse.json({ success: true });
-  } catch (error) {
-    console.error('Failed to perform transfer:', error);
-    return NextResponse.json({ error: 'Internal Server Error' }, { status: 500 });
+  } catch (error: any) {
+    console.error('CRITICAL: Stock transfer failed:', error);
+    return NextResponse.json({ 
+      error: 'Transfer failed',
+      details: error.message 
+    }, { status: 500 });
   }
 }

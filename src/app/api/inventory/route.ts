@@ -25,9 +25,12 @@ export async function GET() {
     });
 
     return NextResponse.json(inventory);
-  } catch (error) {
-    console.error('Failed to fetch inventory:', error);
-    return NextResponse.json({ error: 'Internal Server Error' }, { status: 500 });
+  } catch (error: any) {
+    console.error('CRITICAL: Failed to fetch inventory:', error);
+    return NextResponse.json({ 
+      error: 'Internal Server Error',
+      details: error.message 
+    }, { status: 500 });
   }
 }
 

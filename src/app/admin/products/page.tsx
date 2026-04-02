@@ -118,12 +118,13 @@ export default function ProductsPage() {
         setShowStockDialog(false);
         setStockAdjustment(0);
       } else {
-        throw new Error('Failed to update stock');
+        const errorData = await response.json();
+        throw new Error(errorData.details || errorData.error || 'Failed to update stock');
       }
-    } catch (error) {
+    } catch (error: any) {
       toast({
         title: 'Error',
-        description: 'Failed to update stock. Please try again.',
+        description: error.message || 'Failed to update stock. Please try again.',
         variant: 'destructive',
       });
     } finally {

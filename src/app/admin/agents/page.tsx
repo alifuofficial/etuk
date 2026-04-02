@@ -206,14 +206,14 @@ export default function AgentsPage() {
         const error = await res.json();
         toast({
           title: 'Transfer Failed',
-          description: error.error || 'Failed to assign units.',
+          description: error.details || error.error || 'Failed to assign units.',
           variant: 'destructive'
         });
       }
-    } catch (error) {
+    } catch (error: any) {
       toast({
         title: 'Error',
-        description: 'An unexpected error occurred.',
+        description: error.message || 'An unexpected error occurred.',
         variant: 'destructive'
       });
     } finally {

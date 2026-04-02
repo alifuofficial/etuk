@@ -48,22 +48,31 @@ export async function POST(req: Request) {
     }
 
     // Update or create warehouse inventory (agentId: null)
-    const inventory = await prisma.inventory.upsert({
+    // Note: Prisma 5/6 doesn't support null in compound unique constraints for upsert/findUnique
+    const existing = await prisma.inventory.findFirst({
       where: {
-        productId_agentId: {
-          productId,
-          agentId: null,
-        }
-      },
-      update: {
-        quantity: { increment: quantity }
-      },
-      create: {
         productId,
-        agentId: null,
-        quantity,
+        agentId: null
       }
     });
+
+    let inventory;
+    if (existing) {
+      inventory = await prisma.inventory.update({
+        where: { id: existing.id },
+        data: {
+          quantity: { increment: quantity }
+        }
+      });
+    } else {
+      inventory = await prisma.inventory.create({
+        data: {
+          productId,
+          agentId: null,
+          quantity,
+        }
+      });
+    }
 
     // Record transaction
     await prisma.inventoryTransaction.create({

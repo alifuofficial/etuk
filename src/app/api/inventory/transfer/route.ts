@@ -19,40 +19,38 @@ export async function POST(req: Request) {
     // Atomic transaction for transfer
     await prisma.$transaction(async (tx) => {
       // 1. Decrement from source (null = Warehouse)
-      await tx.inventory.upsert({
-        where: {
-          productId_agentId: {
-            productId,
-            agentId: fromAgentId || null,
-          }
-        },
-        update: {
-          quantity: { decrement: quantity }
-        },
-        create: {
-          productId,
-          agentId: fromAgentId || null,
-          quantity: -quantity,
-        }
+      const fromAgentIdVal = fromAgentId || null;
+      const existingFrom = await tx.inventory.findFirst({
+        where: { productId, agentId: fromAgentIdVal }
       });
 
+      if (existingFrom) {
+        await tx.inventory.update({
+          where: { id: existingFrom.id },
+          data: { quantity: { decrement: quantity } }
+        });
+      } else {
+        await tx.inventory.create({
+          data: { productId, agentId: fromAgentIdVal, quantity: -quantity }
+        });
+      }
+
       // 2. Increment to destination (null = Warehouse)
-      await tx.inventory.upsert({
-        where: {
-          productId_agentId: {
-            productId,
-            agentId: toAgentId || null,
-          }
-        },
-        update: {
-          quantity: { increment: quantity }
-        },
-        create: {
-          productId,
-          agentId: toAgentId || null,
-          quantity: quantity,
-        }
+      const toAgentIdVal = toAgentId || null;
+      const existingTo = await tx.inventory.findFirst({
+        where: { productId, agentId: toAgentIdVal }
       });
+
+      if (existingTo) {
+        await tx.inventory.update({
+          where: { id: existingTo.id },
+          data: { quantity: { increment: quantity } }
+        });
+      } else {
+        await tx.inventory.create({
+          data: { productId, agentId: toAgentIdVal, quantity: quantity }
+        });
+      }
 
       // 3. Log transaction
       await tx.inventoryTransaction.create({

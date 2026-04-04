@@ -69,6 +69,15 @@ export async function GET() {
         id: true,
       },
     });
+
+    // Get agents by city (Approved only for the map)
+    const agentsByCity = await db.agent.groupBy({
+      where: { status: 'APPROVED' },
+      by: ['city'],
+      _count: {
+        id: true,
+      },
+    });
     
     // Get agents by status
     const agentsByStatus = await db.agent.groupBy({
@@ -89,6 +98,7 @@ export async function GET() {
       recentApplications,
       monthlyTrend,
       agentsByRegion,
+      agentsByCity,
       agentsByStatus,
     });
   } catch (error) {

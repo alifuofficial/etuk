@@ -32,6 +32,7 @@ import {
   ResponsiveContainer,
   Cell
 } from 'recharts';
+import EthiopiaMap from './components/EthiopiaMap';
 
 interface DashboardStats {
   totalAgents: number;
@@ -40,6 +41,7 @@ interface DashboardStats {
   totalProducts: number;
   recentApplications: any[];
   monthlyTrend: { month: string; applications: number }[];
+  agentsByCity: any[];
 }
 
 export default function AdminDashboard() {
@@ -59,7 +61,8 @@ export default function AdminDashboard() {
         ...data.stats,
         recentApplications: data.recentApplications,
         monthlyTrend: data.monthlyTrend,
-        totalProducts: data.stats.totalProducts || 0, // Ensure it exists
+        totalProducts: data.stats.totalProducts || 0,
+        agentsByCity: data.agentsByCity || [],
       });
     } catch (error) {
       console.error('Failed to fetch dashboard data:', error);
@@ -210,6 +213,12 @@ export default function AdminDashboard() {
             </Link>
           </CardContent>
         </Card>
+
+        {/* Ethiopia Agent Map */}
+        <EthiopiaMap 
+          data={stats?.agentsByCity || []} 
+          className="lg:col-span-1"
+        />
 
         {/* Recent Applications Table */}
         <Card className="lg:col-span-3 border-gray-200 shadow-sm rounded-xl overflow-hidden">

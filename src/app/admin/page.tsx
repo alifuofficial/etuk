@@ -127,9 +127,9 @@ export default function AdminDashboard() {
       </div>
 
       {/* Analytics & Table Grid */}
-      <div className="grid lg:grid-cols-3 gap-8">
+      <div className="grid lg:grid-cols-2 gap-8">
         {/* Analytics Chart */}
-        <Card className="lg:col-span-2 border-gray-200 shadow-sm rounded-xl overflow-hidden">
+        <Card className="lg:col-span-1 border-gray-200 shadow-sm rounded-xl overflow-hidden flex flex-col">
           <CardHeader className="flex flex-row items-center justify-between border-b border-gray-100 pb-4 px-6">
             <div>
               <CardTitle className="text-lg font-bold">Registration Trends</CardTitle>
@@ -137,8 +137,8 @@ export default function AdminDashboard() {
             </div>
             <BarChart3 className="w-5 h-5 text-gray-300" />
           </CardHeader>
-          <CardContent className="p-6">
-            <div className="h-[300px] w-full">
+          <CardContent className="p-6 flex-1 flex flex-col">
+            <div className="flex-1 min-h-[300px] w-full pt-4">
               <ResponsiveContainer width="100%" height="100%">
                 <BarChart data={stats?.monthlyTrend || []} margin={{ top: 10, right: 10, left: -20, bottom: 0 }}>
                   <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#f1f5f9" />
@@ -174,10 +174,10 @@ export default function AdminDashboard() {
           </CardContent>
         </Card>
 
-        {/* Ethiopia Agent Map - Minimized */}
+        {/* Ethiopia Agent Map - Half Screen */}
         <EthiopiaMap 
           data={stats?.agentsByCity || []} 
-          className="lg:col-span-1"
+          className="lg:col-span-1 h-[50vh] min-h-[450px]"
         />
       </div>
 

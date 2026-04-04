@@ -68,7 +68,7 @@ const CITY_GEO_COORDINATES: Record<string, [number, number]> = {
 
 export default function EthiopiaMap({ data, className }: EthiopiaMapProps) {
   return (
-    <div className={`relative bg-white rounded-3xl p-6 border border-gray-100 shadow-sm overflow-hidden ${className}`}>
+    <div className={`relative bg-white rounded-3xl p-6 border border-gray-100 shadow-sm overflow-hidden flex flex-col ${className}`}>
       <div className="flex items-center justify-between mb-8">
         <div>
           <h3 className="text-xl font-black text-gray-900 tracking-tight text-shadow-sm">Administrative View</h3>
@@ -82,7 +82,7 @@ export default function EthiopiaMap({ data, className }: EthiopiaMapProps) {
         </div>
       </div>
 
-      <div className="relative h-[500px] w-full mt-4">
+      <div className="relative flex-1 w-full mt-4 min-h-[300px]">
         <LeafletMap data={data} geoCoordinates={CITY_GEO_COORDINATES} />
         
         {/* Dynamic Legend */}

@@ -217,7 +217,7 @@ export default function AdminDashboard() {
         {/* Ethiopia Agent Map */}
         <EthiopiaMap 
           data={stats?.agentsByCity || []} 
-          className="lg:col-span-3 h-[600px]"
+          className="lg:col-span-3"
         />
 
         {/* Recent Applications Table */}

@@ -71,7 +71,7 @@ export default function EthiopiaMap({ data, className }: EthiopiaMapProps) {
   const ethiopiaPath = "M465.1,10.6l-14.7,13.7l-26.4,7.8l-15.6,26.4l-31.3-1l-3.9,23.5l-31.3,31.3l-24.5,23.5l26.4,36.2l-14.7,46l-29.4,1l-47,5.9l-22.5,23.5l-33.3-10.8l-12.7,28.4l11.7,35.2l-39.2,27.4l2,36.2l-47,8.8l-15.6,35.2l31.3,46l0,58.7l-47,38.2l12.7,31.3l49.9,25.4l28.4,1l19.6-18.6l33.3,27.4l35.2-1l14.7,27.4l70.5-8.8l16.6,30.3l37.2-22.5l27.4,22.5l30.3-22.5l45,5.9l19.6,31.3l48,0l30.3-22.5l32.3,22.5l37.2-31.3l38.2,8.8l20.5-31.3l50.9-1l15.6-35.2l47-19.6l28.4-45l35.2-13.7l28.4-19.6l1,114.5l67.5,74.4l34.2-20.5l14.7-66.5l-39.2-58.7l2-166.4l-48-91l-48-46l-29.4-46l-47,1l-25.4-46l-67.5,0l-31.3-15.6l-31.3,35.2l-35.2-8.8l-30.3,5.9L465.1,10.6z";
 
   return (
-    <div className={`relative bg-white rounded-3xl p-6 border border-gray-100 shadow-sm ${className}`}>
+    <div className={`relative bg-white rounded-3xl p-6 border border-gray-100 shadow-sm overflow-hidden ${className}`}>
       <div className="flex items-center justify-between mb-8">
         <div>
           <h3 className="text-xl font-black text-gray-900 tracking-tight text-shadow-sm">Administrative View</h3>

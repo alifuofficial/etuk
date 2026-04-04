@@ -448,10 +448,20 @@ export default function AgentsPage() {
     if (!editAgent) return;
     setActionLoading(true);
     try {
+      const formData = new FormData();
+      Object.entries(editAgent).forEach(([key, value]) => {
+        if (value !== undefined && value !== null) {
+          if (key === 'newTradeLicense') {
+            formData.append('tradeLicense', value as File);
+          } else if (key !== 'tradeLicense' && key !== 'reviewer') {
+            formData.append(key, value.toString());
+          }
+        }
+      });
+
       const response = await fetch(`/api/agents/${editAgent.id}`, {
         method: 'PUT',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(editAgent),
+        body: formData,
       });
 
       if (response.ok) {
@@ -1420,6 +1430,34 @@ export default function AgentsPage() {
                             className="h-11 bg-white border-gray-200 rounded-lg"
                           />
                         </div>
+                      </div>
+
+                      <div className="space-y-3 p-5 bg-blue-50/50 rounded-xl border border-blue-100">
+                        <Label className="text-xs font-bold text-blue-700 uppercase tracking-wider flex items-center gap-2">
+                          <FileText className="w-3.5 h-3.5" />
+                          Update Trade License / Business ID
+                        </Label>
+                        <div className="flex items-center gap-4">
+                          <Input
+                            type="file"
+                            onChange={(e) => {
+                              const file = e.target.files?.[0] || null;
+                              setEditAgent({ ...editAgent, newTradeLicense: file });
+                            }}
+                            className="cursor-pointer bg-white h-11 border-blue-200"
+                            accept=".pdf,.jpg,.jpeg,.png,.webp"
+                          />
+                          {editAgent.newTradeLicense && (
+                            <Badge variant="secondary" className="h-11 px-4 bg-blue-600 text-white hover:bg-blue-700 border-none">
+                              <Upload className="w-4 h-4 mr-2" />
+                              Selected
+                            </Badge>
+                          )}
+                        </div>
+                        {editAgent.tradeLicense && !editAgent.newTradeLicense && (
+                          <p className="text-[10px] text-blue-600 font-medium">Current file: {editAgent.tradeLicense.split('/').pop()}</p>
+                        )}
+                        <p className="text-[10px] text-blue-500 font-medium">Leave empty to keep current file. Supporting PDF and Images (Max 5MB)</p>
                       </div>
                     </div>
                   </TabsContent>

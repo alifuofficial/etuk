@@ -2,6 +2,9 @@ import { NextRequest, NextResponse } from 'next/server';
 import { db } from '@/lib/db';
 import { getServerSession } from 'next-auth';
 import { authOptions } from '@/lib/auth';
+import { writeFile, mkdir } from 'node:fs/promises';
+import { join } from 'node:path';
+import { v4 as uuidv4 } from 'uuid';
 
 // GET - Get single agent
 export async function GET(
@@ -50,7 +53,60 @@ export async function PUT(
     }
     
     const { id } = await params;
-    const data = await request.json();
+    const contentType = request.headers.get('content-type') || '';
+    let data: Record<string, any> = {};
+    let tradeLicensePath: string | null = null;
+
+    if (contentType.includes('multipart/form-data')) {
+      const formData = await request.formData();
+      
+      // Extract text fields
+      formData.forEach((value, key) => {
+        if (typeof value === 'string') {
+          data[key] = value || null;
+        }
+      });
+
+      // Handle file upload
+      const file = formData.get('tradeLicense') as File | null;
+      if (file && file.size > 0) {
+        // Validate file size (max 5MB)
+        if (file.size > 5 * 1024 * 1024) {
+          return NextResponse.json(
+            { error: 'File too large. Maximum size is 5MB' },
+            { status: 400 }
+          );
+        }
+
+        // Validate file type
+        const allowedTypes = ['image/jpeg', 'image/png', 'image/webp', 'application/pdf'];
+        if (!allowedTypes.includes(file.type)) {
+          return NextResponse.json(
+            { error: 'Invalid file type. Allowed: JPEG, PNG, WebP, PDF' },
+            { status: 400 }
+          );
+        }
+
+        const bytes = await file.arrayBuffer();
+        const buffer = Buffer.from(bytes);
+
+        // Create unique filename
+        const extension = file.name.split('.').pop()?.toLowerCase() || 'pdf';
+        const filename = `${uuidv4()}.${extension}`;
+        const uploadDir = join(process.cwd(), 'public/uploads/agents');
+        
+        // Ensure directory exists
+        await mkdir(uploadDir, { recursive: true });
+        
+        const path = join(uploadDir, filename);
+        await writeFile(path, buffer);
+        
+        tradeLicensePath = `/uploads/agents/${filename}`;
+      }
+    } else {
+      // Assume JSON
+      data = await request.json();
+    }
     
     // Define all possible fields that can be updated
     const updateData: any = {};
@@ -65,9 +121,20 @@ export async function PUT(
 
     allowedFields.forEach(field => {
       if (data[field] !== undefined) {
-        updateData[field] = data[field];
+        // Handle special types
+        if (field === 'hasWarehouse') {
+          updateData[field] = data[field] === true || data[field] === 'true';
+        } else if (field === 'staffCount' && data[field]) {
+          updateData[field] = parseInt(data[field].toString());
+        } else {
+          updateData[field] = data[field];
+        }
       }
     });
+
+    if (tradeLicensePath) {
+      updateData.tradeLicense = tradeLicensePath;
+    }
 
     if (data.status) {
       updateData.reviewedAt = new Date();

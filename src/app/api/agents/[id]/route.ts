@@ -37,7 +37,7 @@ export async function GET(
   }
 }
 
-// PUT - Update agent (approve/reject)
+// PUT - Update agent
 export async function PUT(
   request: NextRequest,
   { params }: { params: Promise<{ id: string }> }
@@ -45,35 +45,63 @@ export async function PUT(
   try {
     const session = await getServerSession(authOptions);
     
-    if (!session?.user) {
+    if (!session?.user || session.user.role !== 'ADMIN') {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
     
     const { id } = await params;
     const data = await request.json();
     
-    const updateData: Record<string, unknown> = {
-      status: data.status,
-      reviewNotes: data.reviewNotes || null,
-      reviewedAt: new Date(),
-      reviewedBy: session.user.id,
-    };
+    // Define all possible fields that can be updated
+    const updateData: any = {};
+    const allowedFields = [
+      'firstName', 'lastName', 'email', 'phone', 'alternativePhone',
+      'businessName', 'businessType', 'experience', 'region', 'city',
+      'woreda', 'kebele', 'address', 'hasWarehouse', 'warehouseSize',
+      'existingBrands', 'staffCount', 'estimatedCapital', 'bankName',
+      'accountNumber', 'tinNumber', 'message', 'howDidYouHear', 'status',
+      'reviewNotes'
+    ];
+
+    allowedFields.forEach(field => {
+      if (data[field] !== undefined) {
+        updateData[field] = data[field];
+      }
+    });
+
+    if (data.status) {
+      updateData.reviewedAt = new Date();
+      updateData.reviewedBy = session.user.id;
+    }
     
     const agent = await db.agent.update({
       where: { id },
       data: updateData,
     });
     
-    // Log activity
-    await db.activityLog.create({
-      data: {
-        userId: session.user.id,
-        action: data.status === 'APPROVED' ? 'APPROVE' : 'REJECT',
-        entityType: 'AGENT',
-        entityId: id,
-        description: `Agent application ${data.status.toLowerCase()}`,
-      },
-    });
+    // Log activity if status changed
+    if (data.status) {
+      await db.activityLog.create({
+        data: {
+          userId: session.user.id,
+          action: data.status === 'APPROVED' ? 'APPROVE' : 'REJECT',
+          entityType: 'AGENT',
+          entityId: id,
+          description: `Agent application ${data.status.toLowerCase()}`,
+        },
+      });
+    } else {
+      // General update log
+      await db.activityLog.create({
+        data: {
+          userId: session.user.id,
+          action: 'UPDATE',
+          entityType: 'AGENT',
+          entityId: id,
+          description: `Agent details updated by ${session.user.name}`,
+        },
+      });
+    }
     
     return NextResponse.json(agent);
   } catch (error) {

@@ -212,31 +212,32 @@ export default function EthiopiaMap({ data, className }: EthiopiaMapProps) {
           </div>
         </div>
 
-        {/* Statistics Floating Summary */}
-        <div className="absolute bottom-6 left-6 right-6 flex items-center justify-between gap-4">
-           <div className="bg-gray-900/95 backdrop-blur-md px-6 py-4 rounded-3xl shadow-2xl border border-white/10 flex items-center gap-8">
-              <div className="flex flex-col">
-                 <span className="text-[9px] font-black text-gray-400 uppercase tracking-widest">Network Cities</span>
-                 <span className="text-xl font-black text-white">{data.length}</span>
-              </div>
-              <div className="h-6 w-[1px] bg-white/20" />
-              <div className="flex flex-col">
-                 <span className="text-[9px] font-black text-gray-400 uppercase tracking-widest">Global Reach</span>
-                 <span className="text-xl font-black text-white">96%</span>
-              </div>
-           </div>
-           
-           <div className="hidden sm:flex bg-white/90 backdrop-blur-md border border-slate-200/50 px-5 py-4 rounded-3xl shadow-lg items-center gap-3">
-              <div className="flex -space-x-3">
-                {[1, 2, 3].map(i => (
-                  <div key={i} className="w-8 h-8 rounded-full border-2 border-white bg-slate-100" />
-                ))}
-              </div>
-              <span className="text-[10px] font-black text-slate-900 uppercase tracking-tighter leading-tight">
-                National<br/>Coverage
-              </span>
-           </div>
-        </div>
+      </div>
+
+      {/* Statistics Summary - Moved under map and styled Italic */}
+      <div className="mt-8 flex items-center justify-between gap-4 px-2">
+         <div className="flex items-center gap-8">
+            <div className="flex flex-col">
+               <span className="text-[10px] font-black text-gray-400 uppercase tracking-widest italic">Network Cities</span>
+               <span className="text-xl font-black text-gray-900 italic">{data.length}</span>
+            </div>
+            <div className="h-8 w-[1px] bg-gray-100" />
+            <div className="flex flex-col">
+               <span className="text-[10px] font-black text-gray-400 uppercase tracking-widest italic">Global Reach</span>
+               <span className="text-xl font-black text-gray-900 italic">96%</span>
+            </div>
+         </div>
+         
+         <div className="flex items-center gap-3 bg-slate-50 px-4 py-2 rounded-2xl border border-slate-100/50">
+            <div className="flex -space-x-2">
+              {[1, 2].map(i => (
+                <div key={i} className="w-6 h-6 rounded-full border-2 border-white bg-slate-200" />
+              ))}
+            </div>
+            <span className="text-[9px] font-black text-slate-500 uppercase tracking-tighter leading-tight italic">
+              National<br/>Coverage
+            </span>
+         </div>
       </div>
     </div>
   );

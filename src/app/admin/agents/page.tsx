@@ -818,16 +818,16 @@ export default function AgentsPage() {
                         <div className="min-h-[300px] flex items-center justify-center p-2 bg-slate-50/50">
                           {selectedAgent.tradeLicense?.toLowerCase().endsWith('.pdf') ? (
                             <iframe 
-                              src={selectedAgent.tradeLicense.startsWith('/api') ? selectedAgent.tradeLicense : `/api${selectedAgent.tradeLicense}`} 
+                              src={selectedAgent.tradeLicense.startsWith('/api') ? selectedAgent.tradeLicense : selectedAgent.tradeLicense} 
                               className="w-full h-[500px] rounded-lg border-none shadow-sm"
                               title="License PDF"
                             />
                           ) : selectedAgent.tradeLicense ? (
                             <img 
-                              src={selectedAgent.tradeLicense.startsWith('/api') ? selectedAgent.tradeLicense : `/api${selectedAgent.tradeLicense}`} 
+                              src={selectedAgent.tradeLicense.startsWith('/api') ? selectedAgent.tradeLicense : selectedAgent.tradeLicense} 
                               alt="Business License" 
                               className="max-w-full h-auto rounded-lg shadow-sm cursor-zoom-in"
-                              onClick={() => window.open(selectedAgent.tradeLicense!.startsWith('/api') ? selectedAgent.tradeLicense! : `/api${selectedAgent.tradeLicense!}`, '_blank')}
+                              onClick={() => window.open(selectedAgent.tradeLicense!, '_blank')}
                             />
                           ) : (
                             <p className="text-sm text-gray-400 font-bold">No document available</p>

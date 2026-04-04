@@ -141,7 +141,7 @@ export async function POST(request: NextRequest) {
         const path = join(uploadDir, filename);
         await writeFile(path, buffer);
         
-        tradeLicensePath = `/api/uploads/agents/${filename}`;
+        tradeLicensePath = `/uploads/agents/${filename}`;
       }
     } else {
       // Assume JSON

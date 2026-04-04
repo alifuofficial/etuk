@@ -68,6 +68,7 @@ import {
   History,
   TrendingDown,
   TrendingUp,
+  Edit,
 } from 'lucide-react';
 import * as XLSX from 'xlsx';
 import { jsPDF } from 'jspdf';
@@ -1153,7 +1154,7 @@ export default function AgentsPage() {
                         <SelectContent className="bg-white">
                           {regions
                             .find((r) => r.name === newAgent.region)
-                            ?.cities.map((city) => (
+                            ?.cities?.map((city) => (
                               <SelectItem key={city.id} value={city.name}>{city.name}</SelectItem>
                             ))}
                         </SelectContent>
@@ -1489,7 +1490,7 @@ export default function AgentsPage() {
                             <SelectContent className="bg-white">
                               {regions
                                 .find((r) => r.name === editAgent.region)
-                                ?.cities.map((city) => (
+                                ?.cities?.map((city) => (
                                   <SelectItem key={city.id} value={city.name}>{city.name}</SelectItem>
                                 ))}
                             </SelectContent>

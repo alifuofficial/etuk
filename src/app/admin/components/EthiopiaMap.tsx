@@ -82,7 +82,7 @@ export default function EthiopiaMap({ data, className }: EthiopiaMapProps) {
         </div>
       </div>
 
-      <div className="relative aspect-[8/7.5] w-full mt-4">
+      <div className="relative h-[500px] w-full mt-4">
         <LeafletMap data={data} geoCoordinates={CITY_GEO_COORDINATES} />
         
         {/* Dynamic Legend */}

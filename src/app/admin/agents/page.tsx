@@ -823,21 +823,21 @@ export default function AgentsPage() {
                       <div className="border border-gray-200 rounded-xl overflow-hidden bg-white shadow-inner flex flex-col">
                         <div className="bg-gray-50 px-4 py-2 border-b border-gray-200 flex justify-between items-center text-[10px] font-bold text-gray-500 uppercase tracking-widest">
                           <span>Document Explorer</span>
-                          <span className="text-gray-400">{selectedAgent.tradeLicense.split('/').pop()}</span>
+                          <span className="text-gray-400">{selectedAgent.tradeLicense?.split('/').pop() || 'document'}</span>
                         </div>
                         <div className="min-h-[300px] flex items-center justify-center p-2 bg-slate-50/50">
                           {selectedAgent.tradeLicense?.toLowerCase().endsWith('.pdf') ? (
                             <iframe 
-                              src={selectedAgent.tradeLicense.startsWith('/api') ? selectedAgent.tradeLicense : selectedAgent.tradeLicense} 
+                              src={selectedAgent.tradeLicense.startsWith('/api') ? selectedAgent.tradeLicense : `/api${selectedAgent.tradeLicense}`} 
                               className="w-full h-[500px] rounded-lg border-none shadow-sm"
                               title="License PDF"
                             />
                           ) : selectedAgent.tradeLicense ? (
                             <img 
-                              src={selectedAgent.tradeLicense.startsWith('/api') ? selectedAgent.tradeLicense : selectedAgent.tradeLicense} 
+                              src={selectedAgent.tradeLicense.startsWith('/api') ? selectedAgent.tradeLicense : `/api${selectedAgent.tradeLicense}`} 
                               alt="Business License" 
                               className="max-w-full h-auto rounded-lg shadow-sm cursor-zoom-in"
-                              onClick={() => window.open(selectedAgent.tradeLicense!, '_blank')}
+                              onClick={() => window.open(selectedAgent.tradeLicense!.startsWith('/api') ? selectedAgent.tradeLicense! : `/api${selectedAgent.tradeLicense!}`, '_blank')}
                             />
                           ) : (
                             <p className="text-sm text-gray-400 font-bold">No document available</p>

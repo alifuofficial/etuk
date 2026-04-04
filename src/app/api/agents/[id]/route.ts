@@ -101,7 +101,7 @@ export async function PUT(
         const path = join(uploadDir, filename);
         await writeFile(path, buffer);
         
-        tradeLicensePath = `/uploads/agents/${filename}`;
+        tradeLicensePath = `/api/uploads/agents/${filename}`;
       }
     } else {
       // Assume JSON

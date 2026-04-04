@@ -174,6 +174,14 @@ export default function AdminDashboard() {
           </CardContent>
         </Card>
 
+        {/* Ethiopia Agent Map - Minimized */}
+        <EthiopiaMap 
+          data={stats?.agentsByCity || []} 
+          className="lg:col-span-1"
+        />
+      </div>
+
+      <div className="grid lg:grid-cols-3 gap-8">
         {/* Quick Actions / Summary Card */}
         <Card className="bg-white border-gray-200 shadow-sm rounded-xl overflow-hidden">
           <CardHeader className="border-b border-gray-100 pb-4 px-6">
@@ -214,14 +222,8 @@ export default function AdminDashboard() {
           </CardContent>
         </Card>
 
-        {/* Ethiopia Agent Map */}
-        <EthiopiaMap 
-          data={stats?.agentsByCity || []} 
-          className="lg:col-span-3"
-        />
-
         {/* Recent Applications Table */}
-        <Card className="lg:col-span-3 border-gray-200 shadow-sm rounded-xl overflow-hidden">
+        <Card className="lg:col-span-2 border-gray-200 shadow-sm rounded-xl overflow-hidden">
           <CardHeader className="flex flex-row items-center justify-between border-b border-gray-100 pb-4 px-6">
             <div>
               <CardTitle className="text-lg font-bold">Latest Applications</CardTitle>

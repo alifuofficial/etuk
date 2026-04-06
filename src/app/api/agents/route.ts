@@ -133,7 +133,7 @@ export async function POST(request: NextRequest) {
         // Create unique filename
         const extension = file.name.split('.').pop()?.toLowerCase() || 'pdf';
         const filename = `${uuidv4()}.${extension}`;
-        const uploadDir = join(process.cwd(), 'public/uploads/agents');
+        const uploadDir = join(process.cwd(), 'data/uploads/agents');
         
         // Ensure directory exists
         await mkdir(uploadDir, { recursive: true });

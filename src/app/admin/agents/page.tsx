@@ -384,11 +384,18 @@ export default function AgentsPage() {
 
   const getStatusStyle = (status: string) => {
     switch (status) {
-      case 'APPROVED': return 'text-green-700 bg-green-50 border-green-100';
-      case 'PENDING': return 'text-amber-700 bg-amber-50 border-amber-100';
-      case 'REJECTED': return 'text-red-700 bg-red-50 border-red-100';
-      default: return 'text-gray-700 bg-gray-50 border-gray-100';
+      case 'APPROVED': return 'bg-emerald-50 text-emerald-700 border-emerald-100';
+      case 'PENDING': return 'bg-amber-50 text-amber-700 border-amber-100';
+      case 'REJECTED': return 'bg-rose-50 text-rose-700 border-rose-100';
+      default: return 'bg-gray-50 text-gray-700 border-gray-100';
     }
+  };
+
+  const getFileUrl = (path: string | null) => {
+    if (!path) return '';
+    if (path.startsWith('http') || path.startsWith('/api')) return path;
+    if (path.startsWith('/uploads')) return `/api${path}`;
+    return `/api/uploads/agents/${path}`;
   };
 
   const formatDate = (dateString: string) => {
@@ -889,7 +896,7 @@ export default function AgentsPage() {
                           {previewOpen ? 'Hide Preview' : 'Preview'}
                         </Button>
                         <a 
-                          href={selectedAgent.tradeLicense} 
+                          href={getFileUrl(selectedAgent.tradeLicense)} 
                           target="_blank" 
                           rel="noopener noreferrer"
                         >
@@ -909,16 +916,16 @@ export default function AgentsPage() {
                         <div className="min-h-[300px] flex items-center justify-center p-2 bg-slate-50/50">
                           {selectedAgent.tradeLicense?.toLowerCase().endsWith('.pdf') ? (
                             <iframe 
-                              src={selectedAgent.tradeLicense.startsWith('/api') ? selectedAgent.tradeLicense : `/api${selectedAgent.tradeLicense}`} 
+                              src={getFileUrl(selectedAgent.tradeLicense)} 
                               className="w-full h-[500px] rounded-lg border-none shadow-sm"
                               title="License PDF"
                             />
                           ) : selectedAgent.tradeLicense ? (
                             <img 
-                              src={selectedAgent.tradeLicense.startsWith('/api') ? selectedAgent.tradeLicense : `/api${selectedAgent.tradeLicense}`} 
+                              src={getFileUrl(selectedAgent.tradeLicense)} 
                               alt="Business License" 
                               className="max-w-full h-auto rounded-lg shadow-sm cursor-zoom-in"
-                              onClick={() => window.open(selectedAgent.tradeLicense!.startsWith('/api') ? selectedAgent.tradeLicense! : `/api${selectedAgent.tradeLicense!}`, '_blank')}
+                              onClick={() => window.open(getFileUrl(selectedAgent.tradeLicense), '_blank')}
                             />
                           ) : (
                             <p className="text-sm text-gray-400 font-bold">No document available</p>

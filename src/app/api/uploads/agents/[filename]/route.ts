@@ -12,11 +12,10 @@ export async function GET(
     
     // Try multiple possible paths for robustness across different environments
     const possiblePaths = [
+      join(process.cwd(), 'data/uploads/agents', decodedFilename),
       join(process.cwd(), 'public/uploads/agents', decodedFilename),
       join(process.cwd(), '.next/standalone/public/uploads/agents', decodedFilename),
       join(process.cwd(), '..', 'public/uploads/agents', decodedFilename),
-      // For some Docker/Standalone environments
-      join(process.cwd(), '.next/standalone/public/uploads/agents', decodedFilename),
     ];
 
     let fileBuffer: Buffer | null = null;

@@ -4,6 +4,17 @@ import { getServerSession } from 'next-auth';
 import { authOptions } from '@/lib/auth';
 import bcrypt from 'bcryptjs';
 
+function normalizePhone(phone: string | null): string | null {
+  if (!phone) return null;
+  // Strip spaces, dashes, and leading +
+  let cleaned = phone.toString().replace(/[\s\-]/g, '').replace(/^\+/, '');
+  // If starts with 09 or 07 convert to 2519/2517
+  if (cleaned.startsWith('09') || cleaned.startsWith('07')) {
+    cleaned = '251' + cleaned.slice(1);
+  }
+  return cleaned;
+}
+
 // GET - Get single user
 export async function GET(
   request: NextRequest,
@@ -64,7 +75,7 @@ export async function PUT(
       name: data.name,
       email: data.email,
       role: data.role,
-      phone: data.phone,
+      phone: normalizePhone(data.phone),
       isActive: data.isActive,
     };
     

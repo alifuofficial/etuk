@@ -6,6 +6,17 @@ import { v4 as uuidv4 } from 'uuid';
 import { getServerSession } from 'next-auth';
 import { authOptions } from '@/lib/auth';
 
+function normalizePhone(phone: string | null): string | null {
+  if (!phone) return null;
+  // Strip spaces, dashes, and leading +
+  let cleaned = phone.toString().replace(/[\s\-]/g, '').replace(/^\+/, '');
+  // If starts with 09 or 07 convert to 2519/2517
+  if (cleaned.startsWith('09') || cleaned.startsWith('07')) {
+    cleaned = '251' + cleaned.slice(1);
+  }
+  return cleaned;
+}
+
 // GET - List all agents (Protected - Admin only)
 export async function GET(request: NextRequest) {
   try {
@@ -182,8 +193,8 @@ export async function POST(request: NextRequest) {
         firstName: data.firstName!,
         lastName: data.lastName!,
         email: data.email!,
-        phone: data.phone!,
-        alternativePhone: data.alternativePhone || null,
+        phone: normalizePhone(data.phone)!,
+        alternativePhone: normalizePhone(data.alternativePhone),
         businessName: data.businessName || null,
         businessType: data.businessType || null,
         experience: data.experience || null,

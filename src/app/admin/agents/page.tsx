@@ -135,6 +135,10 @@ export default function AgentsPage() {
   const [showEditDialog, setShowEditDialog] = useState(false);
   const [editAgent, setEditAgent] = useState<any>(null);
   
+  // Pagination State
+  const [currentPage, setCurrentPage] = useState(1);
+  const itemsPerPage = 10;
+  
   // Inventory State
   const [showInventoryDialog, setShowInventoryDialog] = useState(false);
   const [agentInventory, setAgentInventory] = useState<any[]>([]);
@@ -297,6 +301,11 @@ export default function AgentsPage() {
     fetchAgents();
     fetchRegions();
   }, [statusFilter]);
+
+  // Reset pagination on search or status change
+  useEffect(() => {
+    setCurrentPage(1);
+  }, [search, statusFilter]);
 
   const fetchRegions = async () => {
     setLoadingRegions(true);
@@ -552,6 +561,12 @@ export default function AgentsPage() {
     );
   }) : [];
 
+  const totalPages = Math.ceil(filteredAgents.length / itemsPerPage);
+  const paginatedAgents = filteredAgents.slice(
+    (currentPage - 1) * itemsPerPage,
+    currentPage * itemsPerPage
+  );
+
   return (
     <>
       <div className="space-y-6">
@@ -649,44 +664,44 @@ export default function AgentsPage() {
               <Table>
                 <TableHeader className="bg-gray-50/50">
                   <TableRow>
-                    <TableHead className="px-6 py-4 font-bold text-xs uppercase text-gray-600">Name</TableHead>
-                    <TableHead className="px-6 py-4 font-bold text-xs uppercase text-gray-600">Location</TableHead>
-                    <TableHead className="px-6 py-4 font-bold text-xs uppercase text-gray-600">Business</TableHead>
-                    <TableHead className="px-6 py-4 font-bold text-xs uppercase text-gray-600">Status</TableHead>
-                    <TableHead className="px-6 py-4 font-bold text-xs uppercase text-gray-600">Applied</TableHead>
-                    <TableHead className="px-6 py-4 text-right"></TableHead>
+                    <TableHead className="px-6 py-3 font-bold text-xs uppercase text-gray-600">Name</TableHead>
+                    <TableHead className="px-6 py-3 font-bold text-xs uppercase text-gray-600">Location</TableHead>
+                    <TableHead className="px-6 py-3 font-bold text-xs uppercase text-gray-600">Business</TableHead>
+                    <TableHead className="px-6 py-3 font-bold text-xs uppercase text-gray-600">Status</TableHead>
+                    <TableHead className="px-6 py-3 font-bold text-xs uppercase text-gray-600">Applied</TableHead>
+                    <TableHead className="px-6 py-3 text-right"></TableHead>
                   </TableRow>
                 </TableHeader>
                 <TableBody>
-                  {filteredAgents.map((agent) => (
+                  {paginatedAgents.map((agent) => (
                     <TableRow key={agent.id} className="hover:bg-gray-50/50 transition-colors">
-                      <TableCell className="px-6 py-5">
+                      <TableCell className="px-6 py-3">
                         <div className="flex flex-col">
                           <span className="font-bold text-gray-900">{agent.firstName} {agent.lastName}</span>
                           <span className="text-xs text-gray-500">{agent.email}</span>
                         </div>
                       </TableCell>
-                      <TableCell className="px-6 py-5">
+                      <TableCell className="px-6 py-3">
                         <div className="flex items-center gap-2 text-sm text-gray-700">
                           <MapPin className="w-3.5 h-3.5 text-gray-400" />
                           <span>{agent.city}, {agent.region}</span>
                         </div>
                       </TableCell>
-                      <TableCell className="px-6 py-5">
+                      <TableCell className="px-6 py-3">
                         <div className="flex items-center gap-2 text-sm text-gray-700">
                           <Building2 className="w-3.5 h-3.5 text-gray-400" />
                           <span>{agent.businessName || 'Individual'}</span>
                         </div>
                       </TableCell>
-                      <TableCell className="px-6 py-5">
+                      <TableCell className="px-6 py-3">
                         <span className={`inline-flex items-center px-3 py-1 rounded-full text-xs font-bold border ${getStatusStyle(agent.status)}`}>
                           {agent.status}
                         </span>
                       </TableCell>
-                      <TableCell className="px-6 py-5 text-sm text-gray-500">
+                      <TableCell className="px-6 py-3 text-sm text-gray-500">
                         {formatDate(agent.createdAt)}
                       </TableCell>
-                      <TableCell className="px-6 py-5 text-right">
+                      <TableCell className="px-6 py-3 text-right">
                         <div className="flex justify-end gap-2">
                           <Button
                             variant="ghost"
@@ -759,6 +774,50 @@ export default function AgentsPage() {
                   ))}
                 </TableBody>
               </Table>
+            </div>
+          )}
+
+          {/* Pagination Controls */}
+          {filteredAgents.length > itemsPerPage && (
+            <div className="px-6 py-4 bg-gray-50 border-t border-gray-100 flex items-center justify-between">
+              <div className="text-sm text-gray-500 font-medium">
+                Showing <span className="font-bold text-gray-900">{((currentPage - 1) * itemsPerPage) + 1}</span> to <span className="font-bold text-gray-900">{Math.min(currentPage * itemsPerPage, filteredAgents.length)}</span> of <span className="font-bold text-gray-900">{filteredAgents.length}</span> agents
+              </div>
+              <div className="flex items-center gap-2">
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={() => setCurrentPage(prev => Math.max(prev - 1, 1))}
+                  disabled={currentPage === 1}
+                  className="h-9 px-3 border-gray-200 text-gray-600 disabled:opacity-50 font-bold"
+                >
+                  <ArrowLeft className="w-4 h-4 mr-1" />
+                  Previous
+                </Button>
+                <div className="flex items-center gap-1">
+                  {Array.from({ length: totalPages }, (_, i) => i + 1).map((page) => (
+                    <Button
+                      key={page}
+                      variant={currentPage === page ? 'secondary' : 'ghost'}
+                      size="sm"
+                      onClick={() => setCurrentPage(page)}
+                      className={`h-9 w-9 p-0 font-bold ${currentPage === page ? 'bg-deep-sky-blue text-white hover:bg-deep-sky-blue/90' : 'text-gray-500'}`}
+                    >
+                      {page}
+                    </Button>
+                  ))}
+                </div>
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={() => setCurrentPage(prev => Math.min(prev + 1, totalPages))}
+                  disabled={currentPage === totalPages}
+                  className="h-9 px-3 border-gray-200 text-gray-600 disabled:opacity-50 font-bold"
+                >
+                  Next
+                  <ArrowRight className="w-4 h-4 ml-1" />
+                </Button>
+              </div>
             </div>
           )}
         </CardContent>

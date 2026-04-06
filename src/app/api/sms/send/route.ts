@@ -82,10 +82,12 @@ export async function POST(request: NextRequest) {
 
       const data = await res.json();
 
-      if (res.ok && data.status === 'success') {
+      // SMSEthiopia might return status: 'success' or success: true or just 200 OK.
+      // If res.ok is true and there is no explicit error, we treat it as success.
+      if (res.ok && (data.status === 'success' || data.success === true || (!data.error && !data.message?.toLowerCase().includes('fail')))) {
         status = 'success';
       } else {
-        errorMessage = data.message || `HTTP ${res.status}`;
+        errorMessage = data.message || data.error || `HTTP ${res.status}`;
       }
     } catch (err: any) {
       errorMessage = err.message || 'Network error';

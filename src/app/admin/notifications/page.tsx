@@ -89,6 +89,7 @@ export default function NotificationsPage() {
   const [agentSearch, setAgentSearch] = useState('');
   const [loadingAgents, setLoadingAgents] = useState(true);
   const [regions, setRegions] = useState<string[]>([]);
+  const [agentStatusFilter, setAgentStatusFilter] = useState<string>('all');
 
   // Logs state
   const [logs, setLogs] = useState<SmsLog[]>([]);
@@ -100,7 +101,7 @@ export default function NotificationsPage() {
   const fetchAgents = useCallback(async () => {
     setLoadingAgents(true);
     try {
-      const res = await fetch('/api/agents?status=APPROVED');
+      const res = await fetch('/api/agents');
       if (res.ok) {
         const data = await res.json();
         const arr: Agent[] = Array.isArray(data) ? data : [];
@@ -142,6 +143,7 @@ export default function NotificationsPage() {
   const filteredAgents = agents.filter((a) => {
     const q = agentSearch.toLowerCase();
     if (recipientMode === 'region' && selectedRegion && a.region !== selectedRegion) return false;
+    if (agentStatusFilter !== 'all' && a.status !== agentStatusFilter) return false;
     return (
       `${a.firstName} ${a.lastName}`.toLowerCase().includes(q) ||
       a.phone.includes(q) ||
@@ -150,8 +152,13 @@ export default function NotificationsPage() {
   });
 
   const effectiveRecipients = (): Agent[] => {
-    if (recipientMode === 'all') return agents;
-    if (recipientMode === 'region') return agents.filter((a) => a.region === selectedRegion);
+    if (recipientMode === 'all') {
+      return agentStatusFilter === 'all' ? agents : agents.filter(a => a.status === agentStatusFilter);
+    }
+    if (recipientMode === 'region') {
+      const byReg = agents.filter((a) => a.region === selectedRegion);
+      return agentStatusFilter === 'all' ? byReg : byReg.filter(a => a.status === agentStatusFilter);
+    }
     return agents.filter((a) => selectedAgentIds.has(a.id));
   };
 
@@ -256,8 +263,23 @@ export default function NotificationsPage() {
                   </SelectTrigger>
                   <SelectContent>
                     <SelectItem value="custom">Custom Selection</SelectItem>
-                    <SelectItem value="all">All Approved Agents ({agents.length})</SelectItem>
-                    <SelectItem value="region">Agents by Region</SelectItem>
+                    <SelectItem value="all">Targeted by Status</SelectItem>
+                    <SelectItem value="region">Targeted by Region + Status</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+
+              <div className="space-y-2">
+                <label className="text-xs font-bold text-gray-600 uppercase tracking-widest">Agent Status</label>
+                <Select value={agentStatusFilter} onValueChange={(v) => { setAgentStatusFilter(v); setSelectedAgentIds(new Set()); }}>
+                  <SelectTrigger className="h-10 bg-gray-50 border-gray-200 rounded-lg text-sm font-medium">
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="all">All Agents</SelectItem>
+                    <SelectItem value="APPROVED">Approved Only</SelectItem>
+                    <SelectItem value="PENDING">Pending Only</SelectItem>
+                    <SelectItem value="REJECTED">Rejected Only</SelectItem>
                   </SelectContent>
                 </Select>
               </div>
@@ -421,9 +443,17 @@ export default function NotificationsPage() {
                               </TableCell>
                             )}
                             <TableCell className="px-4 py-3">
-                              <span className="text-sm font-semibold text-gray-900">
-                                {agent.firstName} {agent.lastName}
-                              </span>
+                              <div className="flex flex-col">
+                                <span className="text-sm font-semibold text-gray-900">
+                                  {agent.firstName} {agent.lastName}
+                                </span>
+                                <span className={`text-[10px] font-bold uppercase ${
+                                  agent.status === 'APPROVED' ? 'text-green-500' :
+                                  agent.status === 'PENDING' ? 'text-amber-500' : 'text-red-500'
+                                }`}>
+                                  {agent.status}
+                                </span>
+                              </div>
                             </TableCell>
                             <TableCell className="px-4 py-3">
                               <div className="flex items-center gap-1.5 text-xs text-gray-600">

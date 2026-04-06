@@ -70,6 +70,7 @@ export default function SettingsPage() {
     youtube: '',
     factoryName: 'Modjo Factory',
     factoryDesc: 'Our main assembly hub ensuring rapid delivery and local parts support.',
+    footerContactTitle: 'Performance',
   });
 
   // Load settings on mount
@@ -283,9 +284,18 @@ export default function SettingsPage() {
 
               <Card className="md:col-span-2 border-gray-200 shadow-sm rounded-xl overflow-hidden">
                 <CardHeader className="border-b border-gray-50 pb-6 px-8 pt-8">
-                  <CardTitle className="text-lg font-bold">General Information</CardTitle>
+                  <CardTitle className="text-lg font-bold">General Information & Footer Header</CardTitle>
                 </CardHeader>
                 <CardContent className="p-8 space-y-6">
+                    <div className="space-y-2">
+                      <Label className="text-xs font-bold text-gray-600 uppercase tracking-widest pl-1">Footer Contact Section Title (e.g. Performance)</Label>
+                      <Input 
+                        value={siteData.footerContactTitle}
+                        onChange={(e) => setSiteData({...siteData, footerContactTitle: e.target.value})}
+                        className="h-11 bg-gray-50 border-gray-200 rounded-lg px-4 focus:bg-white focus:border-deep-sky-blue transition-all font-medium"
+                      />
+                    </div>
+
                     <div className="space-y-2">
                       <Label className="text-xs font-bold text-gray-600 uppercase tracking-widest pl-1">Platform Name</Label>
                       <Input 

@@ -69,6 +69,8 @@ import {
   TrendingDown,
   TrendingUp,
   Edit,
+  MessageSquare,
+  Send,
 } from 'lucide-react';
 import * as XLSX from 'xlsx';
 import { jsPDF } from 'jspdf';
@@ -143,6 +145,12 @@ export default function AgentsPage() {
   const [transferLoading, setTransferLoading] = useState(false);
   const [products, setProducts] = useState<any[]>([]);
   const [warehouseInventory, setWarehouseInventory] = useState<any[]>([]);
+
+  // SMS Quick-send state
+  const [showSmsDialog, setShowSmsDialog] = useState(false);
+  const [smsAgent, setSmsAgent] = useState<Agent | null>(null);
+  const [smsMessage, setSmsMessage] = useState('');
+  const [smsSending, setSmsSending] = useState(false);
 
   useEffect(() => {
     if (showInventoryDialog && selectedAgent) {
@@ -545,7 +553,8 @@ export default function AgentsPage() {
   }) : [];
 
   return (
-    <div className="space-y-6">
+    <>
+      <div className="space-y-6">
       {/* Header */}
       <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-6">
         <div>
@@ -690,6 +699,19 @@ export default function AgentsPage() {
                           >
                             <Boxes className="w-4 h-4" />
                             Units
+                          </Button>
+                          <Button
+                            variant="ghost"
+                            size="sm"
+                            className="text-purple-600 hover:bg-purple-50 font-bold gap-2"
+                            onClick={() => {
+                              setSmsAgent(agent);
+                              setSmsMessage('');
+                              setShowSmsDialog(true);
+                            }}
+                          >
+                            <MessageSquare className="w-4 h-4" />
+                            Notify
                           </Button>
                           {session?.user?.role === 'ADMIN' && (
                             <Button
@@ -1767,7 +1789,82 @@ export default function AgentsPage() {
           )}
         </DialogContent>
       </Dialog>
-    </div>
+      </div>
+
+      {/* SMS Quick-Send Dialog */}
+      <Dialog open={showSmsDialog} onOpenChange={(open) => { if (!open) { setShowSmsDialog(false); setSmsAgent(null); setSmsMessage(''); } }}>
+        <DialogContent className="max-w-md rounded-2xl">
+          <DialogHeader>
+            <div className="flex items-center gap-2 mb-1">
+              <MessageSquare className="w-4 h-4 text-purple-500" />
+              <span className="text-xs font-bold text-purple-500 uppercase tracking-widest">Quick SMS</span>
+            </div>
+            <DialogTitle className="text-xl font-bold">
+              Notify {smsAgent?.firstName} {smsAgent?.lastName}
+            </DialogTitle>
+            <DialogDescription className="text-gray-500 text-sm">
+              <span className="font-medium text-gray-700">{smsAgent?.phone}</span> · {smsAgent?.city}, {smsAgent?.region}
+            </DialogDescription>
+          </DialogHeader>
+          <div className="space-y-4 py-2">
+            <div className="space-y-2">
+              <div className="flex justify-between items-center">
+                <Label className="text-xs font-bold text-gray-600 uppercase tracking-widest">Message</Label>
+                <span className={`text-xs font-bold tabular-nums ${smsMessage.length > 150 ? 'text-red-500' : smsMessage.length > 120 ? 'text-amber-500' : 'text-gray-400'}`}>
+                  {smsMessage.length}/160
+                </span>
+              </div>
+              <Textarea
+                value={smsMessage}
+                onChange={(e) => setSmsMessage(e.target.value.slice(0, 160))}
+                placeholder="Type your message..."
+                className="bg-gray-50 border-gray-200 rounded-lg resize-none min-h-[100px] text-sm focus:border-purple-300"
+                autoFocus
+              />
+            </div>
+          </div>
+          <DialogFooter className="gap-2">
+            <Button variant="outline" onClick={() => setShowSmsDialog(false)} className="border-gray-200">
+              Cancel
+            </Button>
+            <Button
+              onClick={async () => {
+                if (!smsAgent || !smsMessage.trim()) return;
+                setSmsSending(true);
+                try {
+                  const res = await fetch('/api/sms/send', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ agentIds: [smsAgent.id], message: smsMessage }),
+                  });
+                  const data = await res.json();
+                  if (!res.ok) throw new Error(data.error);
+                  if (data.successCount > 0) {
+                    toast({ title: '✅ SMS Sent', description: `Message delivered to ${smsAgent.firstName}.` });
+                    setShowSmsDialog(false);
+                    setSmsMessage('');
+                  } else {
+                    toast({ title: 'Delivery failed', description: data.results?.[0]?.error || 'Unknown reason', variant: 'destructive' });
+                  }
+                } catch (e: any) {
+                  toast({ title: 'Error', description: e.message, variant: 'destructive' });
+                } finally {
+                  setSmsSending(false);
+                }
+              }}
+              disabled={!smsMessage.trim() || smsSending}
+              className="bg-purple-600 hover:bg-purple-700 text-white font-bold flex items-center gap-2"
+            >
+              {smsSending ? (
+                <><Loader2 className="w-4 h-4 animate-spin" /> Sending...</>
+              ) : (
+                <><Send className="w-4 h-4" /> Send SMS</>
+              )}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+    </>
   );
 }
 

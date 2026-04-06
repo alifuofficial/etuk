@@ -26,7 +26,12 @@ import {
   Factory,
   Layout,
   BookOpen,
-  Languages
+  Languages,
+  MessageSquare,
+  Send,
+  Eye,
+  EyeOff,
+  CheckCircle2,
 } from 'lucide-react';
 import LanguageManager from '@/components/admin/settings/LanguageManager';
 import TranslationManager from '@/components/admin/settings/TranslationManager';
@@ -36,6 +41,14 @@ export default function SettingsPage() {
   const { toast } = useToast();
   const [loading, setLoading] = useState(false);
   const [fetching, setFetching] = useState(true);
+
+  // SMS Settings State
+  const [smsApiKey, setSmsApiKey] = useState('');
+  const [showApiKey, setShowApiKey] = useState(false);
+  const [smsTestPhone, setSmsTestPhone] = useState('');
+  const [smsTestMsg, setSmsTestMsg] = useState('Hello! This is a test SMS from ETUK Admin.');
+  const [smsSaving, setSmsSaving] = useState(false);
+  const [smsTesting, setSmsTesting] = useState(false);
 
   // Profile Form State
   const [profileData, setProfileData] = useState({
@@ -149,7 +162,7 @@ export default function SettingsPage() {
       </div>
 
       <Tabs defaultValue="profile" className="w-full">
-        <TabsList className={`grid w-full max-w-2xl ${session?.user?.role === 'ADMIN' ? 'grid-cols-4' : 'grid-cols-1'} h-12 bg-slate-100/50 p-1 rounded-xl mb-8`}>
+        <TabsList className={`grid w-full max-w-3xl ${session?.user?.role === 'ADMIN' ? 'grid-cols-5' : 'grid-cols-1'} h-12 bg-slate-100/50 p-1 rounded-xl mb-8`}>
           <TabsTrigger value="profile" className="rounded-lg data-[state=active]:bg-white data-[state=active]:text-gray-900 data-[state=active]:shadow-sm font-bold text-xs text-slate-500 transition-all">
             <Lock className="w-3.5 h-3.5 mr-2 text-deep-sky-blue" />
             Security
@@ -167,6 +180,10 @@ export default function SettingsPage() {
               <TabsTrigger value="translations" className="rounded-lg data-[state=active]:bg-white data-[state=active]:text-gray-900 data-[state=active]:shadow-sm font-bold text-xs text-slate-500 transition-all">
                 <BookOpen className="w-3.5 h-3.5 mr-2 text-deep-sky-blue" />
                 Dictionary
+              </TabsTrigger>
+              <TabsTrigger value="sms" className="rounded-lg data-[state=active]:bg-white data-[state=active]:text-gray-900 data-[state=active]:shadow-sm font-bold text-xs text-slate-500 transition-all">
+                <MessageSquare className="w-3.5 h-3.5 mr-2 text-deep-sky-blue" />
+                SMS
               </TabsTrigger>
             </>
           )}
@@ -451,6 +468,153 @@ export default function SettingsPage() {
             </TabsContent>
             <TabsContent value="translations" className="space-y-6 outline-none">
               <TranslationManager />
+            </TabsContent>
+            <TabsContent value="sms" className="space-y-10 outline-none">
+              {/* API Key Section */}
+              <div className="grid md:grid-cols-3 gap-8">
+                <div className="md:col-span-1">
+                  <h3 className="text-lg font-bold text-gray-900">SMS API Key</h3>
+                  <p className="text-sm text-gray-500 mt-2 leading-relaxed">
+                    Your SMSEthiopia.et API key is configured in the server environment variable{' '}
+                    <code className="text-xs bg-gray-100 px-1 py-0.5 rounded font-mono">SMS_ETHIOPIA_API_KEY</code>.
+                    Updating it here saves it to the settings store for reference only — restart the server to apply new env values.
+                  </p>
+                  <div className="mt-6 p-4 bg-amber-50 rounded-xl border border-amber-100 flex items-start gap-3">
+                    <ShieldCheck className="w-5 h-5 text-amber-500 shrink-0 mt-0.5" />
+                    <p className="text-xs text-amber-700 font-medium leading-relaxed">
+                      Never share your API key. Set it as an environment variable for maximum security.
+                    </p>
+                  </div>
+                </div>
+                <Card className="md:col-span-2 border-gray-200 shadow-sm rounded-xl overflow-hidden">
+                  <CardHeader className="border-b border-gray-50 pb-6 px-8 pt-8">
+                    <CardTitle className="text-lg font-bold">SMSEthiopia.et Configuration</CardTitle>
+                    <CardDescription>Base URL: https://smsethiopia.et/api/sms/send</CardDescription>
+                  </CardHeader>
+                  <CardContent className="p-8 space-y-6">
+                    <div className="space-y-2">
+                      <Label className="text-xs font-bold text-gray-600 uppercase tracking-widest pl-1">API Key</Label>
+                      <div className="relative">
+                        <input
+                          type={showApiKey ? 'text' : 'password'}
+                          value={smsApiKey}
+                          onChange={(e) => setSmsApiKey(e.target.value)}
+                          placeholder="Enter your SMSEthiopia API key..."
+                          className="w-full h-11 bg-gray-50 border border-gray-200 rounded-lg pl-4 pr-12 focus:bg-white focus:border-deep-sky-blue outline-none transition-all text-sm font-mono"
+                        />
+                        <button
+                          type="button"
+                          onClick={() => setShowApiKey(!showApiKey)}
+                          className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-700 transition-colors"
+                        >
+                          {showApiKey ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
+                        </button>
+                      </div>
+                      <p className="text-xs text-gray-400 pl-1">This is stored in settings for reference. The active key is read from your environment.</p>
+                    </div>
+                    <div className="pt-2 flex justify-end">
+                      <Button
+                        onClick={async () => {
+                          setSmsSaving(true);
+                          try {
+                            const res = await fetch('/api/settings', {
+                              method: 'POST',
+                              headers: { 'Content-Type': 'application/json' },
+                              body: JSON.stringify({ sms_api_key: smsApiKey }),
+                            });
+                            if (res.ok) {
+                              toast({ title: 'API Key saved', description: 'Key stored in settings. Update your .env for the active server key.' });
+                            } else throw new Error();
+                          } catch {
+                            toast({ title: 'Error', description: 'Failed to save key.', variant: 'destructive' });
+                          } finally { setSmsSaving(false); }
+                        }}
+                        disabled={!smsApiKey || smsSaving}
+                        className="bg-gray-900 hover:bg-black text-white font-bold h-11 px-8 rounded-lg"
+                      >
+                        {smsSaving ? 'Saving...' : 'Save Key'}
+                      </Button>
+                    </div>
+                  </CardContent>
+                </Card>
+              </div>
+
+              {/* Test SMS Section */}
+              <div className="grid md:grid-cols-3 gap-8">
+                <div className="md:col-span-1">
+                  <h3 className="text-lg font-bold text-gray-900">Test SMS</h3>
+                  <p className="text-sm text-gray-500 mt-2 leading-relaxed">
+                    Send a test message to verify your API key and SMS delivery are working correctly.
+                  </p>
+                </div>
+                <Card className="md:col-span-2 border-gray-200 shadow-sm rounded-xl overflow-hidden">
+                  <CardHeader className="border-b border-gray-50 pb-6 px-8 pt-8">
+                    <CardTitle className="text-lg font-bold">Send Test Message</CardTitle>
+                  </CardHeader>
+                  <CardContent className="p-8 space-y-5">
+                    <div className="space-y-2">
+                      <Label className="text-xs font-bold text-gray-600 uppercase tracking-widest pl-1">Phone Number</Label>
+                      <div className="relative">
+                        <Phone className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
+                        <input
+                          type="tel"
+                          value={smsTestPhone}
+                          onChange={(e) => setSmsTestPhone(e.target.value)}
+                          placeholder="251911234567"
+                          className="w-full h-11 bg-gray-50 border border-gray-200 rounded-lg pl-10 pr-4 focus:bg-white focus:border-deep-sky-blue outline-none transition-all text-sm"
+                        />
+                      </div>
+                      <p className="text-xs text-gray-400 pl-1">Format: 251XXXXXXXXX (include country code, no +)</p>
+                    </div>
+                    <div className="space-y-2">
+                      <div className="flex justify-between items-center">
+                        <Label className="text-xs font-bold text-gray-600 uppercase tracking-widest pl-1">Message</Label>
+                        <span className={`text-xs font-bold tabular-nums ${smsTestMsg.length > 150 ? 'text-red-500' : 'text-gray-400'}`}>
+                          {smsTestMsg.length}/160
+                        </span>
+                      </div>
+                      <textarea
+                        value={smsTestMsg}
+                        onChange={(e) => setSmsTestMsg(e.target.value.slice(0, 160))}
+                        rows={3}
+                        className="w-full bg-gray-50 border border-gray-200 rounded-lg p-3 focus:bg-white focus:border-deep-sky-blue outline-none transition-all text-sm resize-none"
+                      />
+                    </div>
+                    <div className="pt-2 flex justify-end">
+                      <Button
+                        onClick={async () => {
+                          if (!smsTestPhone || !smsTestMsg) return;
+                          setSmsTesting(true);
+                          try {
+                            const res = await fetch('/api/sms/send', {
+                              method: 'POST',
+                              headers: { 'Content-Type': 'application/json' },
+                              body: JSON.stringify({ phones: [{ phone: smsTestPhone }], message: smsTestMsg }),
+                            });
+                            const data = await res.json();
+                            if (!res.ok) throw new Error(data.error);
+                            if (data.successCount > 0) {
+                              toast({ title: '✅ Test SMS sent!', description: `Delivered to ${smsTestPhone}` });
+                            } else {
+                              toast({ title: 'Delivery failed', description: data.results?.[0]?.error || 'Unknown error', variant: 'destructive' });
+                            }
+                          } catch (e: any) {
+                            toast({ title: 'Error', description: e.message, variant: 'destructive' });
+                          } finally { setSmsTesting(false); }
+                        }}
+                        disabled={!smsTestPhone || !smsTestMsg || smsTesting}
+                        className="bg-deep-sky-blue hover:bg-blue-600 text-white font-bold h-11 px-8 rounded-lg flex items-center gap-2"
+                      >
+                        {smsTesting ? (
+                          <><span className="animate-spin inline-block w-4 h-4 border-2 border-white border-t-transparent rounded-full" />Sending...</>
+                        ) : (
+                          <><Send className="w-4 h-4" />Send Test</>
+                        )}
+                      </Button>
+                    </div>
+                  </CardContent>
+                </Card>
+              </div>
             </TabsContent>
           </>
         )}

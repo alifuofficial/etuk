@@ -168,3 +168,14 @@ model Translation {
 
   @@unique([key, languageId])
 }
+
+model SmsLog {
+  id           String   @id @default(cuid())
+  agentId      String?
+  recipient    String
+  message      String
+  status       String   // "success" | "failed"
+  errorMessage String?
+  sentBy       String?
+  createdAt    DateTime @default(now())
+}

@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { db } from '@/lib/db';
+import { triggerTemplateSms } from '@/lib/sms';
 import { writeFile, mkdir } from 'node:fs/promises';
 import { join } from 'node:path';
 import { v4 as uuidv4 } from 'uuid';
@@ -222,10 +223,23 @@ export async function POST(request: NextRequest) {
         firstName: true,
         lastName: true,
         email: true,
+        phone: true,
         status: true,
         createdAt: true,
       },
     });
+    
+    // Trigger SMS notification
+    try {
+      if (agent.phone) {
+        await triggerTemplateSms('AGENT_APPLIED', agent.phone, agent.id, {
+          NAME: `${agent.firstName} ${agent.lastName}`
+        });
+      }
+    } catch (smsError) {
+      console.error('Failed to trigger application SMS:', smsError);
+      // Don't fail the whole request
+    }
     
     return NextResponse.json(agent, { status: 201 });
   } catch (error) {

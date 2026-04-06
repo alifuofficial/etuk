@@ -179,3 +179,11 @@ model SmsLog {
   sentBy       String?
   createdAt    DateTime @default(now())
 }
+
+model SmsTemplate {
+  id        String   @id @default(cuid())
+  name      String   @unique // AGENT_APPLIED, AGENT_APPROVED, AGENT_REJECTED
+  content   String
+  isActive  Boolean  @default(true)
+  updatedAt DateTime @updatedAt
+}

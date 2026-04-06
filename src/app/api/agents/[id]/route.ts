@@ -13,6 +13,7 @@ function normalizePhone(phone: string | null): string | null {
   }
   return cleaned;
 }
+import { triggerTemplateSms } from '@/lib/sms';
 import { writeFile, mkdir } from 'node:fs/promises';
 import { join } from 'node:path';
 import { v4 as uuidv4 } from 'uuid';
@@ -161,6 +162,17 @@ export async function PUT(
     
     // Log activity if status changed
     if (data.status) {
+      // Trigger automated SMS if active template exists
+      try {
+        if (data.status === 'APPROVED' || data.status === 'REJECTED') {
+          await triggerTemplateSms(`AGENT_${data.status}`, agent.phone, agent.id, {
+            NAME: `${agent.firstName} ${agent.lastName}`
+          });
+        }
+      } catch (smsError) {
+        console.error('Failed to trigger status change SMS:', smsError);
+      }
+
       await db.activityLog.create({
         data: {
           userId: session.user.id,

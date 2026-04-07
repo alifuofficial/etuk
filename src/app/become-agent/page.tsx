@@ -475,13 +475,50 @@ export default function BecomeAgentPage() {
                   />
                 </div>
 
-                <Card className="bg-blue-50 border-blue-100 rounded-xl p-6">
-                  <h4 className="text-sm font-bold text-blue-900 mb-2">Final Review</h4>
-                  <div className="grid grid-cols-2 gap-y-3 text-xs">
-                    <div className="text-gray-500">Name:</div><div className="font-bold">{formData.firstName} {formData.lastName}</div>
-                    <div className="text-gray-500">Phone:</div><div className="font-bold">{formData.phone}</div>
-                    <div className="text-gray-500">TIN:</div><div className="font-bold">{formData.tinNumber}</div>
-                    <div className="text-gray-500">Location:</div><div className="font-bold">{formData.city}, {formData.region}</div>
+                <Card className="bg-blue-50/50 border-blue-100 rounded-2xl p-6 lg:p-8">
+                  <div className="flex items-center gap-2 mb-6 pb-4 border-b border-blue-100">
+                    <div className="w-8 h-8 bg-blue-100 rounded-full flex items-center justify-center">
+                      <CheckCircle className="w-5 h-5 text-blue-600" />
+                    </div>
+                    <h4 className="text-lg font-bold text-blue-900">Application Summary</h4>
+                  </div>
+                  
+                  <div className="space-y-8">
+                    {/* Identity Summary */}
+                    <div>
+                      <h5 className="text-[10px] uppercase tracking-wider font-bold text-blue-400 mb-3 ml-1">Personal Identity</h5>
+                      <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 bg-white/50 p-4 rounded-xl border border-blue-50">
+                        <ReviewItem label="Full Name" value={`${formData.firstName} ${formData.lastName}`} />
+                        <ReviewItem label="Email Address" value={formData.email} />
+                        <ReviewItem label="Phone Number" value={formData.phone} />
+                      </div>
+                    </div>
+
+                    {/* Business Summary */}
+                    <div>
+                      <h5 className="text-[10px] uppercase tracking-wider font-bold text-blue-400 mb-3 ml-1">Business Details</h5>
+                      <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 bg-white/50 p-4 rounded-xl border border-blue-50">
+                        <ReviewItem label="Business Name" value={formData.businessName || 'Not Provided'} />
+                        <ReviewItem label="TIN Number" value={formData.tinNumber} />
+                        <ReviewItem label="Business Type" value={formData.businessType || 'Not Provided'} />
+                        <ReviewItem label="Warehouse" value={formData.hasWarehouse ? 'Available' : 'None'} />
+                      </div>
+                    </div>
+
+                    {/* Location Summary */}
+                    <div>
+                      <h5 className="text-[10px] uppercase tracking-wider font-bold text-blue-400 mb-3 ml-1">Location & Documents</h5>
+                      <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 bg-white/50 p-4 rounded-xl border border-blue-50">
+                        <ReviewItem label="Region" value={formData.region} />
+                        <ReviewItem label="City" value={formData.city} />
+                        <ReviewItem label="Address" value={formData.address || 'Not Provided'} />
+                        <ReviewItem 
+                          label="Trade License" 
+                          value={tradeLicenseFile?.name || 'File Uploaded'} 
+                          icon={<FileText className="w-3 h-3" />}
+                        />
+                      </div>
+                    </div>
                   </div>
                 </Card>
               </div>
@@ -549,5 +586,19 @@ function SectionCard({ title, icon, children }: { title: string; icon: React.Rea
         {children}
       </CardContent>
     </Card>
+  );
+}
+
+function ReviewItem({ label, value, icon }: { label: string; value: string; icon?: React.ReactNode }) {
+  return (
+    <div className="space-y-1">
+      <div className="text-[10px] font-bold text-gray-400 uppercase tracking-tight flex items-center gap-1">
+        {label}
+      </div>
+      <div className="text-sm font-semibold text-gray-900 flex items-center gap-2">
+        {icon && <span className="text-blue-500">{icon}</span>}
+        {value}
+      </div>
+    </div>
   );
 }

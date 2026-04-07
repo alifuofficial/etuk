@@ -1,0 +1,57 @@
+import { NextResponse } from 'next/server';
+import { otpStore } from '../forgot-password/route';
+
+export async function POST(req: Request) {
+  try {
+    const { phone, otp } = await req.json();
+
+    if (!phone || !otp) {
+      return NextResponse.json({ error: 'Phone number and OTP are required' }, { status: 400 });
+    }
+
+    const storedData = otpStore.get(phone);
+
+    if (!storedData) {
+      return NextResponse.json({ error: 'No OTP found. Please request a new one.' }, { status: 400 });
+    }
+
+    // Check if OTP expired
+    if (Date.now() > storedData.expiresAt) {
+      otpStore.delete(phone);
+      return NextResponse.json({ error: 'OTP has expired. Please request a new one.' }, { status: 400 });
+    }
+
+    // Check attempts
+    if (storedData.attempts >= 5) {
+      otpStore.delete(phone);
+      return NextResponse.json({ error: 'Too many attempts. Please request a new OTP.' }, { status: 429 });
+    }
+
+    // Verify OTP
+    if (storedData.otp !== otp) {
+      storedData.attempts += 1;
+      return NextResponse.json({ 
+        error: 'Invalid OTP. Please try again.',
+        attemptsRemaining: 5 - storedData.attempts 
+      }, { status: 400 });
+    }
+
+    // OTP is valid - generate a reset token
+    const resetToken = Buffer.from(`${phone}:${Date.now()}`).toString('base64');
+    
+    // Update the store with reset token
+    otpStore.set(phone, {
+      otp: storedData.otp,
+      expiresAt: Date.now() + 30 * 60 * 1000, // 30 minutes for password reset
+      attempts: 0
+    });
+
+    return NextResponse.json({ 
+      message: 'OTP verified successfully',
+      resetToken
+    });
+  } catch (error: any) {
+    console.error('Verify OTP error:', error);
+    return NextResponse.json({ error: 'Internal server error' }, { status: 500 });
+  }
+}

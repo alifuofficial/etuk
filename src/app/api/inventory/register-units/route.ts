@@ -64,7 +64,7 @@ export async function POST(req: Request) {
       }
 
       // 3. Create ProductUnit records
-      let createdUnits = [];
+      const createdUnits: { id: string }[] = [];
       for (const chassis of chassisNumbers) {
         const unit = await tx.productUnit.create({
           data: {
@@ -74,7 +74,7 @@ export async function POST(req: Request) {
             status: 'AVAILABLE'
           }
         });
-        createdUnits.push(unit);
+        createdUnits.push({ id: unit.id });
       }
 
       // 4. Record transaction and link units

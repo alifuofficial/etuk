@@ -8,11 +8,12 @@ import { Button } from '@/components/ui/button';
 import { 
   Package, 
   Edit, 
-  Star, 
+  Star,
   Plus,
   Boxes,
   Loader2,
-  AlertCircle
+  AlertCircle,
+  Trash2
 } from 'lucide-react';
 import {
   Dialog,
@@ -22,6 +23,16 @@ import {
   DialogDescription,
   DialogFooter,
 } from '@/components/ui/dialog';
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from '@/components/ui/alert-dialog';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { toast } from '@/hooks/use-toast';
@@ -82,6 +93,27 @@ export default function ProductsPage() {
     featured: false,
   });
   const [addingProduct, setAddingProduct] = useState(false);
+
+  // Edit Product State
+  const [showEditDialog, setShowEditDialog] = useState(false);
+  const [editingProduct, setEditingProduct] = useState<Product | null>(null);
+  const [editProductData, setEditProductData] = useState({
+    name: '',
+    nameAm: '',
+    nameOr: '',
+    category: '',
+    price: '',
+    description: '',
+    isSerialized: false,
+    featured: false,
+    isActive: true,
+  });
+  const [updatingProduct, setUpdatingProduct] = useState(false);
+
+  // Delete Product State
+  const [showDeleteDialog, setShowDeleteDialog] = useState(false);
+  const [deletingProduct, setDeletingProduct] = useState<Product | null>(null);
+  const [deleteLoading, setDeleteLoading] = useState(false);
 
   useEffect(() => {
     fetchData();
@@ -253,6 +285,111 @@ export default function ProductsPage() {
     }
   };
 
+  const openEditDialog = (product: Product) => {
+    setEditingProduct(product);
+    setEditProductData({
+      name: product.name,
+      nameAm: product.nameAm || '',
+      nameOr: product.nameOr || '',
+      category: product.category,
+      price: product.price?.toString() || '',
+      description: product.description || '',
+      isSerialized: product.isSerialized,
+      featured: product.featured,
+      isActive: product.isActive,
+    });
+    setShowEditDialog(true);
+  };
+
+  const handleUpdateProduct = async () => {
+    if (!editingProduct || !editProductData.name || !editProductData.category) {
+      toast({
+        title: 'Validation Error',
+        description: 'Name and category are required.',
+        variant: 'destructive',
+      });
+      return;
+    }
+
+    setUpdatingProduct(true);
+    try {
+      const response = await fetch(`/api/products/${editingProduct.id}`, {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          name: editProductData.name,
+          nameAm: editProductData.nameAm || null,
+          nameOr: editProductData.nameOr || null,
+          category: editProductData.category,
+          price: editProductData.price || null,
+          description: editProductData.description || null,
+          isSerialized: editProductData.isSerialized,
+          featured: editProductData.featured,
+          isActive: editProductData.isActive,
+        }),
+      });
+
+      if (response.ok) {
+        toast({
+          title: 'Product Updated',
+          description: `Successfully updated ${editProductData.name}.`,
+        });
+        fetchData();
+        setShowEditDialog(false);
+        setEditingProduct(null);
+      } else {
+        const errorData = await response.json();
+        throw new Error(errorData.error || 'Failed to update product');
+      }
+    } catch (error: any) {
+      toast({
+        title: 'Error',
+        description: error.message || 'Failed to update product. Please try again.',
+        variant: 'destructive',
+      });
+    } finally {
+      setUpdatingProduct(false);
+    }
+  };
+
+  const openDeleteDialog = (product: Product) => {
+    setDeletingProduct(product);
+    setShowDeleteDialog(true);
+  };
+
+  const handleDeleteProduct = async () => {
+    if (!deletingProduct) return;
+
+    setDeleteLoading(true);
+    try {
+      const response = await fetch(`/api/products/${deletingProduct.id}`, {
+        method: 'DELETE',
+      });
+
+      if (response.ok) {
+        const data = await response.json();
+        toast({
+          title: 'Product Deleted',
+          description: data.message || `Successfully deleted ${deletingProduct.name}.`,
+        });
+        fetchData();
+        setShowDeleteDialog(false);
+        setDeletingProduct(null);
+      } else {
+        const errorData = await response.json();
+        throw new Error(errorData.error || 'Failed to delete product');
+      }
+    } catch (error: any) {
+      toast({
+        title: 'Error',
+        description: error.message || 'Failed to delete product. Please try again.',
+        variant: 'destructive',
+      });
+    } finally {
+      setDeleteLoading(false);
+    }
+  };
+
   const getWarehouseStock = (productId: string) => {
     const item = inventory.find(i => i.productId === productId && i.agentId === null);
     return item ? item.quantity : 0;
@@ -375,8 +512,19 @@ export default function ProductsPage() {
                     <Boxes className="w-3.5 h-3.5 mr-2 text-deep-sky-blue" />
                     Manage Stock
                   </Button>
-                  <Button variant="outline" className="w-10 h-10 rounded-lg border-gray-200 text-gray-400">
+                  <Button 
+                    variant="outline" 
+                    className="w-10 h-10 rounded-lg border-gray-200 text-gray-400 hover:text-deep-sky-blue hover:border-deep-sky-blue"
+                    onClick={() => openEditDialog(product)}
+                  >
                     <Edit className="w-4 h-4" />
+                  </Button>
+                  <Button 
+                    variant="outline" 
+                    className="w-10 h-10 rounded-lg border-gray-200 text-gray-400 hover:text-red-500 hover:border-red-300"
+                    onClick={() => openDeleteDialog(product)}
+                  >
+                    <Trash2 className="w-4 h-4" />
                   </Button>
                 </div>
               </CardContent>
@@ -559,7 +707,7 @@ export default function ProductsPage() {
 
       {/* Add Product Dialog */}
       <Dialog open={showAddProductDialog} onOpenChange={setShowAddProductDialog}>
-        <DialogContent className="max-w-lg rounded-2xl p-8 border-none shadow-2xl">
+        <DialogContent className="max-w-lg max-h-[90vh] overflow-y-auto rounded-2xl p-8 border-none shadow-2xl">
           <DialogHeader>
             <div className="w-12 h-12 bg-green-50 rounded-xl flex items-center justify-center mb-4">
               <Package className="w-6 h-6 text-green-600" />
@@ -614,6 +762,7 @@ export default function ProductsPage() {
                   <option value="SCOOTER">Electric Scooter</option>
                   <option value="MOTORCYCLE">Electric Motorcycle</option>
                   <option value="TRICYCLE">Electric Tricycle</option>
+                  <option value="3-WHEELER">3-Wheeler</option>
                   <option value="BICYCLE">Electric Bicycle</option>
                   <option value="ACCESSORY">Accessories</option>
                   <option value="SPARE_PART">Spare Parts</option>
@@ -698,6 +847,176 @@ export default function ProductsPage() {
           </DialogFooter>
         </DialogContent>
       </Dialog>
+
+      {/* Edit Product Dialog */}
+      <Dialog open={showEditDialog} onOpenChange={setShowEditDialog}>
+        <DialogContent className="max-w-lg max-h-[90vh] overflow-y-auto rounded-2xl p-8 border-none shadow-2xl">
+          <DialogHeader>
+            <div className="w-12 h-12 bg-blue-50 rounded-xl flex items-center justify-center mb-4">
+              <Edit className="w-6 h-6 text-deep-sky-blue" />
+            </div>
+            <DialogTitle className="text-2xl font-bold">Edit Product</DialogTitle>
+            <DialogDescription className="text-gray-500 font-medium">
+              Update the details for <strong>{editingProduct?.name}</strong>.
+            </DialogDescription>
+          </DialogHeader>
+
+          <div className="py-6 space-y-4">
+            <div className="space-y-2">
+              <Label className="text-xs font-bold text-gray-500 uppercase tracking-widest pl-1">Product Name *</Label>
+              <Input
+                placeholder="e.g., ETUK Pro Max"
+                value={editProductData.name}
+                onChange={(e) => setEditProductData({ ...editProductData, name: e.target.value })}
+                className="h-12 bg-white border-gray-200 rounded-xl"
+              />
+            </div>
+
+            <div className="grid grid-cols-2 gap-4">
+              <div className="space-y-2">
+                <Label className="text-xs font-bold text-gray-500 uppercase tracking-widest pl-1">Name (Amharic)</Label>
+                <Input
+                  placeholder="e.g., ኢቱክ ፕሮ ማክስ"
+                  value={editProductData.nameAm}
+                  onChange={(e) => setEditProductData({ ...editProductData, nameAm: e.target.value })}
+                  className="h-12 bg-white border-gray-200 rounded-xl"
+                />
+              </div>
+              <div className="space-y-2">
+                <Label className="text-xs font-bold text-gray-500 uppercase tracking-widest pl-1">Name (Oromo)</Label>
+                <Input
+                  placeholder="e.g., ETUK Pro Max"
+                  value={editProductData.nameOr}
+                  onChange={(e) => setEditProductData({ ...editProductData, nameOr: e.target.value })}
+                  className="h-12 bg-white border-gray-200 rounded-xl"
+                />
+              </div>
+            </div>
+
+            <div className="grid grid-cols-2 gap-4">
+              <div className="space-y-2">
+                <Label className="text-xs font-bold text-gray-500 uppercase tracking-widest pl-1">Category *</Label>
+                <select
+                  className="w-full h-12 bg-white border border-gray-200 rounded-xl px-4 font-medium focus:border-deep-sky-blue focus:ring-4 focus:ring-deep-sky-blue/5 outline-none transition-all"
+                  value={editProductData.category}
+                  onChange={(e) => setEditProductData({ ...editProductData, category: e.target.value })}
+                >
+                  <option value="">Select category...</option>
+                  <option value="SCOOTER">Electric Scooter</option>
+                  <option value="MOTORCYCLE">Electric Motorcycle</option>
+                  <option value="TRICYCLE">Electric Tricycle</option>
+                  <option value="3-WHEELER">3-Wheeler</option>
+                  <option value="BICYCLE">Electric Bicycle</option>
+                  <option value="ACCESSORY">Accessories</option>
+                  <option value="SPARE_PART">Spare Parts</option>
+                </select>
+              </div>
+              <div className="space-y-2">
+                <Label className="text-xs font-bold text-gray-500 uppercase tracking-widest pl-1">Price (ETB)</Label>
+                <Input
+                  type="number"
+                  placeholder="e.g., 45000"
+                  value={editProductData.price}
+                  onChange={(e) => setEditProductData({ ...editProductData, price: e.target.value })}
+                  className="h-12 bg-white border-gray-200 rounded-xl"
+                />
+              </div>
+            </div>
+
+            <div className="space-y-2">
+              <Label className="text-xs font-bold text-gray-500 uppercase tracking-widest pl-1">Description</Label>
+              <textarea
+                placeholder="Product description..."
+                value={editProductData.description}
+                onChange={(e) => setEditProductData({ ...editProductData, description: e.target.value })}
+                className="w-full h-24 p-3 bg-white border border-gray-200 rounded-xl text-sm focus:border-deep-sky-blue focus:ring-4 focus:ring-deep-sky-blue/5 outline-none transition-all resize-none"
+              />
+            </div>
+
+            <div className="flex gap-6 pt-4">
+              <label className="flex items-center gap-2 cursor-pointer">
+                <input
+                  type="checkbox"
+                  checked={editProductData.isSerialized}
+                  onChange={(e) => setEditProductData({ ...editProductData, isSerialized: e.target.checked })}
+                  className="w-4 h-4 rounded border-gray-300 text-deep-sky-blue focus:ring-deep-sky-blue"
+                />
+                <span className="text-sm font-medium text-gray-700">Serialized</span>
+              </label>
+              <label className="flex items-center gap-2 cursor-pointer">
+                <input
+                  type="checkbox"
+                  checked={editProductData.featured}
+                  onChange={(e) => setEditProductData({ ...editProductData, featured: e.target.checked })}
+                  className="w-4 h-4 rounded border-gray-300 text-amber-500 focus:ring-amber-500"
+                />
+                <span className="text-sm font-medium text-gray-700">Featured</span>
+              </label>
+              <label className="flex items-center gap-2 cursor-pointer">
+                <input
+                  type="checkbox"
+                  checked={editProductData.isActive}
+                  onChange={(e) => setEditProductData({ ...editProductData, isActive: e.target.checked })}
+                  className="w-4 h-4 rounded border-gray-300 text-green-500 focus:ring-green-500"
+                />
+                <span className="text-sm font-medium text-gray-700">Active</span>
+              </label>
+            </div>
+          </div>
+
+          <DialogFooter className="gap-3 sm:gap-0">
+            <Button
+              variant="outline"
+              className="h-12 flex-1 rounded-xl font-bold border-gray-200"
+              onClick={() => {
+                setShowEditDialog(false);
+                setEditingProduct(null);
+              }}
+            >
+              Cancel
+            </Button>
+            <Button
+              className="h-12 flex-1 rounded-xl bg-deep-sky-blue hover:bg-deep-sky-blue/90 text-white font-bold"
+              onClick={handleUpdateProduct}
+              disabled={updatingProduct || !editProductData.name || !editProductData.category}
+            >
+              {updatingProduct ? <Loader2 className="w-4 h-4 animate-spin" /> : 'Save Changes'}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      {/* Delete Confirmation Dialog */}
+      <AlertDialog open={showDeleteDialog} onOpenChange={setShowDeleteDialog}>
+        <AlertDialogContent className="max-w-md rounded-2xl">
+          <AlertDialogHeader>
+            <div className="w-12 h-12 bg-red-50 rounded-xl flex items-center justify-center mb-4 mx-auto">
+              <Trash2 className="w-6 h-6 text-red-500" />
+            </div>
+            <AlertDialogTitle className="text-xl font-bold text-center">Delete Product</AlertDialogTitle>
+            <AlertDialogDescription className="text-gray-500 text-center">
+              Are you sure you want to delete <strong>{deletingProduct?.name}</strong>? This action cannot be undone.
+              {deletingProduct?.isSerialized && (
+                <span className="block mt-2 text-amber-600 text-sm">
+                  This is a serialized product with chassis tracking. The product will be deactivated instead.
+                </span>
+              )}
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter className="gap-3">
+            <AlertDialogCancel className="h-12 flex-1 rounded-xl font-bold border-gray-200">
+              Cancel
+            </AlertDialogCancel>
+            <AlertDialogAction
+              className="h-12 flex-1 rounded-xl bg-red-600 hover:bg-red-700 text-white font-bold"
+              onClick={handleDeleteProduct}
+              disabled={deleteLoading}
+            >
+              {deleteLoading ? <Loader2 className="w-4 h-4 animate-spin" /> : 'Delete'}
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </div>
   );
 }

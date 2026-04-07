@@ -77,7 +77,7 @@ export default function InventoryPage() {
   const [selectedProduct, setSelectedProduct] = useState<Product | null>(null);
   const [stockAdjustment, setStockAdjustment] = useState<number>(0);
   const [chassisInput, setChassisInput] = useState<string>('');
-  const [stockMode, setStockMode] = useState<'ADD' | 'REGISTER'>('ADD');
+  const [stockMode, setStockMode] = useState<'ADD' | 'REMOVE' | 'REGISTER'>('ADD');
   const [actionLoading, setActionLoading] = useState(false);
 
   useEffect(() => {
@@ -106,17 +106,27 @@ export default function InventoryPage() {
 
   const handleUpdateStock = async () => {
     if (!selectedProduct) return;
-    if (stockMode === 'ADD' && stockAdjustment === 0) return;
+    if (stockAdjustment === 0 && stockMode !== 'REGISTER') return;
 
     const chassisNumbers = selectedProduct.isSerialized 
       ? chassisInput.split(/[\n,]+/).map(s => s.trim()).filter(Boolean)
       : null;
+
+    const absQuantity = Math.abs(stockAdjustment);
 
     if (selectedProduct.isSerialized) {
       if (stockMode === 'ADD' && (!chassisNumbers || chassisNumbers.length !== stockAdjustment)) {
         toast({
           title: 'Input Error',
           description: `Please provide exactly ${stockAdjustment} chassis numbers.`,
+          variant: 'destructive',
+        });
+        return;
+      }
+      if (stockMode === 'REMOVE' && (!chassisNumbers || chassisNumbers.length !== absQuantity)) {
+        toast({
+          title: 'Input Error',
+          description: `Please provide exactly ${absQuantity} chassis numbers to remove.`,
           variant: 'destructive',
         });
         return;
@@ -134,12 +144,13 @@ export default function InventoryPage() {
     setActionLoading(true);
     try {
       const endpoint = stockMode === 'REGISTER' ? '/api/inventory/register-units' : '/api/inventory';
+      const actualQuantity = stockMode === 'REMOVE' ? -absQuantity : stockAdjustment;
       const body = stockMode === 'REGISTER' 
         ? { productId: selectedProduct.id, chassisNumbers }
         : {
             productId: selectedProduct.id,
-            quantity: stockAdjustment,
-            notes: 'Manual stock adjustment from inventory page',
+            quantity: actualQuantity,
+            notes: stockMode === 'REMOVE' ? 'Stock removal from inventory page' : 'Manual stock adjustment from inventory page',
             chassisNumbers
           };
 
@@ -151,9 +162,11 @@ export default function InventoryPage() {
 
       if (response.ok) {
         toast({
-          title: stockMode === 'REGISTER' ? 'Units Registered' : 'Stock Updated',
+          title: stockMode === 'REGISTER' ? 'Units Registered' : stockMode === 'REMOVE' ? 'Stock Removed' : 'Stock Updated',
           description: stockMode === 'REGISTER' 
             ? `Successfully registered ${chassisNumbers?.length} chassis numbers.`
+            : stockMode === 'REMOVE'
+            ? `Successfully removed ${absQuantity} units from ${selectedProduct.name}.`
             : `Successfully added ${stockAdjustment} units to ${selectedProduct.name}.`,
         });
         fetchInventory();
@@ -405,37 +418,63 @@ export default function InventoryPage() {
                   <div className="flex bg-gray-100 p-1 rounded-xl mb-4">
                     <button
                       className={`flex-1 py-2 text-sm font-bold rounded-lg transition-all ${stockMode === 'ADD' ? 'bg-white shadow text-deep-sky-blue' : 'text-gray-500 hover:text-gray-900'}`}
-                      onClick={() => setStockMode('ADD')}
+                      onClick={() => { setStockMode('ADD'); setStockAdjustment(0); setChassisInput(''); }}
                     >
-                      Add New Stock
+                      Add Stock
+                    </button>
+                    <button
+                      className={`flex-1 py-2 text-sm font-bold rounded-lg transition-all ${stockMode === 'REMOVE' ? 'bg-white shadow text-red-500' : 'text-gray-500 hover:text-gray-900'}`}
+                      onClick={() => { setStockMode('REMOVE'); setStockAdjustment(0); setChassisInput(''); }}
+                    >
+                      Remove Stock
                     </button>
                     <button
                       className={`flex-1 py-2 text-sm font-bold rounded-lg transition-all ${stockMode === 'REGISTER' ? 'bg-white shadow text-deep-sky-blue' : 'text-gray-500 hover:text-gray-900'}`}
-                      onClick={() => setStockMode('REGISTER')}
+                      onClick={() => { setStockMode('REGISTER'); setChassisInput(''); }}
                     >
-                      Register Existing Units
+                      Register Units
+                    </button>
+                  </div>
+                )}
+
+                {!selectedProduct.isSerialized && (
+                  <div className="flex bg-gray-100 p-1 rounded-xl mb-4">
+                    <button
+                      className={`flex-1 py-2 text-sm font-bold rounded-lg transition-all ${stockMode === 'ADD' ? 'bg-white shadow text-deep-sky-blue' : 'text-gray-500 hover:text-gray-900'}`}
+                      onClick={() => { setStockMode('ADD'); setStockAdjustment(0); }}
+                    >
+                      Add Stock
+                    </button>
+                    <button
+                      className={`flex-1 py-2 text-sm font-bold rounded-lg transition-all ${stockMode === 'REMOVE' ? 'bg-white shadow text-red-500' : 'text-gray-500 hover:text-gray-900'}`}
+                      onClick={() => { setStockMode('REMOVE'); setStockAdjustment(0); }}
+                    >
+                      Remove Stock
                     </button>
                   </div>
                 )}
 
                 <div className="space-y-2 pt-2">
-                  {stockMode === 'ADD' && (
+                  {(stockMode === 'ADD' || stockMode === 'REMOVE') && (
                     <>
-                      <Label className="text-xs font-bold text-gray-500 uppercase tracking-widest pl-1">Units to Add</Label>
+                      <Label className="text-xs font-bold text-gray-500 uppercase tracking-widest pl-1">
+                        {stockMode === 'ADD' ? 'Units to Add' : 'Units to Remove'}
+                      </Label>
                       <Input
                         type="number"
                         placeholder="e.g. 150"
                         value={stockAdjustment || ''}
                         onChange={(e) => {
                           const val = parseInt(e.target.value) || 0;
-                          setStockAdjustment(val);
+                          setStockAdjustment(Math.abs(val));
                         }}
-                        className="h-12 bg-white border-gray-200 rounded-xl font-bold text-lg mb-4"
+                        className={`h-12 bg-white border-gray-200 rounded-xl font-bold text-lg mb-4 ${stockMode === 'REMOVE' ? 'border-red-200 focus:border-red-400' : ''}`}
+                        min="0"
                       />
                     </>
                   )}
                   
-                  {selectedProduct.isSerialized && (
+                  {selectedProduct.isSerialized && (stockMode === 'ADD' || stockMode === 'REMOVE' || stockMode === 'REGISTER') && (
                     <div className="space-y-2 pt-4">
                       <div className="flex items-center justify-between">
                         <Label className="text-xs font-bold text-gray-500 uppercase tracking-widest pl-1">Chassis Numbers</Label>
@@ -453,7 +492,7 @@ export default function InventoryPage() {
                                   const text = event.target?.result as string;
                                   const lines = text.split(/[\n,]+/).map(s => s.trim()).filter(Boolean);
                                   setChassisInput(lines.join('\n'));
-                                  if (stockMode === 'ADD') {
+                                  if (stockMode === 'ADD' || stockMode === 'REMOVE') {
                                     setStockAdjustment(lines.length);
                                   }
                                 };
@@ -463,7 +502,7 @@ export default function InventoryPage() {
                           />
                           <Label 
                             htmlFor="bulk-chassis-upload-inv" 
-                            className="text-[10px] bg-blue-50 text-deep-sky-blue px-2 py-1 rounded cursor-pointer hover:bg-blue-100 transition-colors"
+                            className={`text-[10px] px-2 py-1 rounded cursor-pointer transition-colors ${stockMode === 'REMOVE' ? 'bg-red-50 text-red-600 hover:bg-red-100' : 'bg-blue-50 text-deep-sky-blue hover:bg-blue-100'}`}
                           >
                             Bulk Upload (CSV)
                           </Label>
@@ -474,12 +513,12 @@ export default function InventoryPage() {
                         value={chassisInput}
                         onChange={(e) => {
                           setChassisInput(e.target.value);
-                          if (stockMode === 'ADD') {
+                          if (stockMode === 'ADD' || stockMode === 'REMOVE') {
                             const count = e.target.value.split(/[\n,]+/).map(s => s.trim()).filter(Boolean).length;
                             setStockAdjustment(count);
                           }
                         }}
-                        className="w-full h-32 p-3 bg-white border border-gray-200 rounded-xl text-sm font-mono focus:border-deep-sky-blue focus:ring-4 focus:ring-deep-sky-blue/5 outline-none transition-all resize-none"
+                        className={`w-full h-32 p-3 bg-white border rounded-xl text-sm font-mono focus:ring-4 outline-none transition-all resize-none ${stockMode === 'REMOVE' ? 'border-red-200 focus:border-red-400 focus:ring-red-100' : 'border-gray-200 focus:border-deep-sky-blue focus:ring-deep-sky-blue/5'}`}
                       />
                       <p className="text-[10px] text-gray-400 font-medium italic">
                         Detected {chassisInput.split(/[\n,]+/).map(s => s.trim()).filter(Boolean).length} units.
@@ -489,9 +528,9 @@ export default function InventoryPage() {
 
                   <p className="text-[10px] text-gray-400 font-medium pl-1 flex items-center gap-1 mt-4">
                     <AlertCircle className="w-3 h-3" />
-                    {stockMode === 'ADD' 
-                      ? 'This will record an INITIAL_STOCK transaction and increment total stock.' 
-                      : 'This will associate chassis numbers with existing stock without increasing quantity.'}
+                    {stockMode === 'ADD' && 'This will record an INITIAL_STOCK transaction and increment total stock.'}
+                    {stockMode === 'REMOVE' && 'This will remove chassis numbers from warehouse stock and decrement quantity.'}
+                    {stockMode === 'REGISTER' && 'This will associate chassis numbers with existing stock without increasing quantity.'}
                   </p>
                 </div>
               </>
@@ -513,11 +552,11 @@ export default function InventoryPage() {
               Cancel
             </Button>
             <Button
-              className="h-12 flex-1 rounded-xl bg-gray-900 text-white font-bold hover:bg-black"
+              className={`h-12 flex-1 rounded-xl font-bold ${stockMode === 'REMOVE' ? 'bg-red-600 hover:bg-red-700 text-white' : 'bg-gray-900 text-white hover:bg-black'}`}
               onClick={handleUpdateStock}
-              disabled={actionLoading || !selectedProduct || (stockMode === 'ADD' && stockAdjustment === 0) || (stockMode === 'REGISTER' && chassisInput.trim() === '')}
+              disabled={actionLoading || !selectedProduct || (stockMode === 'ADD' && stockAdjustment === 0) || (stockMode === 'REMOVE' && stockAdjustment === 0) || (stockMode === 'REGISTER' && chassisInput.trim() === '')}
             >
-              {actionLoading ? <Loader2 className="w-4 h-4 animate-spin" /> : (stockMode === 'REGISTER' ? 'Register Units' : 'Confirm Adjustment')}
+              {actionLoading ? <Loader2 className="w-4 h-4 animate-spin" /> : (stockMode === 'REGISTER' ? 'Register Units' : stockMode === 'REMOVE' ? 'Remove Stock' : 'Add Stock')}
             </Button>
           </DialogFooter>
         </DialogContent>

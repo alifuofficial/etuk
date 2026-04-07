@@ -29,6 +29,7 @@ import {
   Bell,
   Boxes,
   MessageSquare,
+  Warehouse,
 } from 'lucide-react';
 import { signOut } from 'next-auth/react';
 
@@ -39,6 +40,7 @@ const navItems = [
   { href: '/admin/users', label: 'Users', icon: UserCircle, roles: ['ADMIN'] },
   { href: '/admin/products', label: 'Products', icon: Package, roles: ['ADMIN'] },
   { href: '/admin/inventory', label: 'Inventory', icon: Boxes, roles: ['ADMIN'] },
+  { href: '/admin/warehouse', label: 'Warehouse', icon: Warehouse, roles: ['ADMIN', 'WAREHOUSE_MANAGER'] },
   { href: '/admin/notifications', label: 'Notifications', icon: MessageSquare, roles: ['ADMIN', 'MARKETING_MANAGER'] },
   { href: '/admin/settings', label: 'Settings', icon: Settings, roles: ['ADMIN', 'MARKETING_MANAGER'] },
 ];

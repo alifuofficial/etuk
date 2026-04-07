@@ -58,6 +58,7 @@ model Agent {
   reviewer         User?     @relation(fields: [reviewedBy], references: [id])
   inventory        Inventory[]
   units            ProductUnit[]
+  sales            Sale[]
 }
 
 model Product {
@@ -97,6 +98,7 @@ model ProductUnit {
   product       Product  @relation(fields: [productId], references: [id], onDelete: Cascade)
   agent         Agent?   @relation(fields: [currentAgentId], references: [id], onDelete: SetNull)
   transactions  InventoryTransaction[] @relation("TransactionUnits")
+  sales         Sale[]   @relation("UnitSales")
 }
 
 model Inventory {
@@ -207,4 +209,19 @@ model SmsTemplate {
   content   String
   isActive  Boolean  @default(true)
   updatedAt DateTime @updatedAt
+}
+
+model Sale {
+  id            String   @id @default(cuid())
+  productUnitId String
+  agentId       String
+  customerName  String
+  customerPhone String
+  soldAt        DateTime @default(now())
+  notes         String?
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+
+  productUnit ProductUnit @relation(fields: [productUnitId], references: [id], name: "UnitSales")
+  agent       Agent       @relation(fields: [agentId], references: [id])
 }

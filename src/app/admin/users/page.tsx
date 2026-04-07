@@ -221,6 +221,8 @@ export default function UsersPage() {
     switch (role) {
       case 'ADMIN':
         return 'text-red-700 bg-red-50 border-red-100';
+      case 'WAREHOUSE_MANAGER':
+        return 'text-amber-700 bg-amber-50 border-amber-100';
       case 'MARKETING_MANAGER':
         return 'text-purple-700 bg-purple-50 border-purple-100';
       case 'MARKETING_OFFICER':
@@ -308,6 +310,7 @@ export default function UsersPage() {
               <SelectContent>
                 <SelectItem value="all">All Roles</SelectItem>
                 <SelectItem value="ADMIN">Admin</SelectItem>
+                <SelectItem value="WAREHOUSE_MANAGER">Warehouse Manager</SelectItem>
                 <SelectItem value="MARKETING_MANAGER">Marketing Manager</SelectItem>
                 <SelectItem value="MARKETING_OFFICER">Marketing Officer</SelectItem>
               </SelectContent>
@@ -455,6 +458,7 @@ export default function UsersPage() {
                           </SelectTrigger>
                           <SelectContent className="rounded-xl border-gray-200 shadow-xl mt-2">
                               <SelectItem value="ADMIN" className="py-3 font-medium">Administrator</SelectItem>
+                              <SelectItem value="WAREHOUSE_MANAGER" className="py-3 font-medium">Warehouse Manager</SelectItem>
                               <SelectItem value="MARKETING_MANAGER" className="py-3 font-medium">Marketing Manager</SelectItem>
                               <SelectItem value="MARKETING_OFFICER" className="py-3 font-medium">Marketing Officer</SelectItem>
                           </SelectContent>

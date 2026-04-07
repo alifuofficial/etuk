@@ -66,6 +66,7 @@ export default function ProductsPage() {
   const [selectedProduct, setSelectedProduct] = useState<Product | null>(null);
   const [stockAdjustment, setStockAdjustment] = useState<number>(0);
   const [chassisInput, setChassisInput] = useState<string>('');
+  const [stockMode, setStockMode] = useState<'ADD' | 'REGISTER'>('ADD');
   const [actionLoading, setActionLoading] = useState(false);
 
   useEffect(() => {
@@ -97,43 +98,62 @@ export default function ProductsPage() {
   };
 
   const handleUpdateStock = async () => {
-    if (!selectedProduct || stockAdjustment === 0) return;
+    if (!selectedProduct) return;
+    if (stockMode === 'ADD' && stockAdjustment === 0) return;
 
     const chassisNumbers = selectedProduct.isSerialized 
       ? chassisInput.split(/[\n,]+/).map(s => s.trim()).filter(Boolean)
       : null;
 
-    if (selectedProduct.isSerialized && (!chassisNumbers || chassisNumbers.length !== stockAdjustment)) {
-      toast({
-        title: 'Input Error',
-        description: `Please provide exactly ${stockAdjustment} chassis numbers.`,
-        variant: 'destructive',
-      });
-      return;
+    if (selectedProduct.isSerialized) {
+      if (stockMode === 'ADD' && (!chassisNumbers || chassisNumbers.length !== stockAdjustment)) {
+        toast({
+          title: 'Input Error',
+          description: `Please provide exactly ${stockAdjustment} chassis numbers.`,
+          variant: 'destructive',
+        });
+        return;
+      }
+      if (stockMode === 'REGISTER' && (!chassisNumbers || chassisNumbers.length === 0)) {
+        toast({
+          title: 'Input Error',
+          description: 'Please provide at least one chassis number to register.',
+          variant: 'destructive',
+        });
+        return;
+      }
     }
     
     setActionLoading(true);
     try {
-      const response = await fetch('/api/inventory', {
+      const endpoint = stockMode === 'REGISTER' ? '/api/inventory/register-units' : '/api/inventory';
+      const body = stockMode === 'REGISTER' 
+        ? { productId: selectedProduct.id, chassisNumbers }
+        : {
+            productId: selectedProduct.id,
+            quantity: stockAdjustment,
+            notes: 'Manual stock adjustment from admin panel',
+            chassisNumbers
+          };
+
+      const response = await fetch(endpoint, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          productId: selectedProduct.id,
-          quantity: stockAdjustment,
-          notes: 'Manual stock adjustment from admin panel',
-          chassisNumbers
-        }),
+        body: JSON.stringify(body),
       });
 
       if (response.ok) {
         toast({
-          title: 'Stock Updated',
-          description: `Successfully added ${stockAdjustment} units to ${selectedProduct.name}.`,
+          title: stockMode === 'REGISTER' ? 'Units Registered' : 'Stock Updated',
+          description: stockMode === 'REGISTER' 
+            ? `Successfully registered ${chassisNumbers?.length} chassis numbers.`
+            : `Successfully added ${stockAdjustment} units to ${selectedProduct.name}.`,
         });
         fetchData();
         setShowStockDialog(false);
         setStockAdjustment(0);
         setChassisInput('');
+        setStockMode('ADD');
       } else {
         const errorData = await response.json();
         throw new Error(errorData.details || errorData.error || 'Failed to update stock');
@@ -261,6 +281,7 @@ export default function ProductsPage() {
                     className="flex-1 h-10 rounded-lg border-gray-200 text-xs font-bold hover:bg-gray-50"
                     onClick={() => {
                       setSelectedProduct(product);
+                      setStockMode('ADD');
                       setShowStockDialog(true);
                     }}
                   >
@@ -299,23 +320,44 @@ export default function ProductsPage() {
           </DialogHeader>
 
           <div className="py-6 space-y-4">
+            {selectedProduct?.isSerialized && (
+              <div className="flex bg-gray-100 p-1 rounded-xl mb-6">
+                <button
+                  className={`flex-1 py-2 text-sm font-bold rounded-lg transition-all ${stockMode === 'ADD' ? 'bg-white shadow text-deep-sky-blue' : 'text-gray-500 hover:text-gray-900'}`}
+                  onClick={() => setStockMode('ADD')}
+                >
+                  Add New Stock
+                </button>
+                <button
+                  className={`flex-1 py-2 text-sm font-bold rounded-lg transition-all ${stockMode === 'REGISTER' ? 'bg-white shadow text-deep-sky-blue' : 'text-gray-500 hover:text-gray-900'}`}
+                  onClick={() => setStockMode('REGISTER')}
+                >
+                  Register Existing Units
+                </button>
+              </div>
+            )}
+
             <div className="p-4 bg-gray-50 rounded-xl flex items-center justify-between border border-gray-100">
               <span className="text-sm font-bold text-gray-600">Current Warehouse Stock</span>
               <span className="text-xl font-black text-gray-900">{selectedProduct ? getWarehouseStock(selectedProduct.id) : 0}</span>
             </div>
 
             <div className="space-y-2 pt-2">
-              <Label className="text-xs font-bold text-gray-500 uppercase tracking-widest pl-1">Units to Add (or Subtract)</Label>
-              <Input
-                type="number"
-                placeholder="e.g. 150"
-                value={stockAdjustment || ''}
-                onChange={(e) => {
-                  const val = parseInt(e.target.value) || 0;
-                  setStockAdjustment(val);
-                }}
-                className="h-12 bg-white border-gray-200 rounded-xl font-bold text-lg"
-              />
+              {stockMode === 'ADD' && (
+                <>
+                  <Label className="text-xs font-bold text-gray-500 uppercase tracking-widest pl-1">Units to Add</Label>
+                  <Input
+                    type="number"
+                    placeholder="e.g. 150"
+                    value={stockAdjustment || ''}
+                    onChange={(e) => {
+                      const val = parseInt(e.target.value) || 0;
+                      setStockAdjustment(val);
+                    }}
+                    className="h-12 bg-white border-gray-200 rounded-xl font-bold text-lg mb-4"
+                  />
+                </>
+              )}
               
               {selectedProduct?.isSerialized && (
                 <div className="space-y-2 pt-4">
@@ -335,7 +377,9 @@ export default function ProductsPage() {
                               const text = event.target?.result as string;
                               const lines = text.split(/[\n,]+/).map(s => s.trim()).filter(Boolean);
                               setChassisInput(lines.join('\n'));
-                              setStockAdjustment(lines.length);
+                              if (stockMode === 'ADD') {
+                                setStockAdjustment(lines.length);
+                              }
                             };
                             reader.readAsText(file);
                           }
@@ -354,8 +398,10 @@ export default function ProductsPage() {
                     value={chassisInput}
                     onChange={(e) => {
                       setChassisInput(e.target.value);
-                      const count = e.target.value.split(/[\n,]+/).map(s => s.trim()).filter(Boolean).length;
-                      setStockAdjustment(count);
+                      if (stockMode === 'ADD') {
+                        const count = e.target.value.split(/[\n,]+/).map(s => s.trim()).filter(Boolean).length;
+                        setStockAdjustment(count);
+                      }
                     }}
                     className="w-full h-32 p-3 bg-white border border-gray-200 rounded-xl text-sm font-mono focus:border-deep-sky-blue focus:ring-4 focus:ring-deep-sky-blue/5 outline-none transition-all resize-none"
                   />
@@ -365,9 +411,11 @@ export default function ProductsPage() {
                 </div>
               )}
 
-              <p className="text-[10px] text-gray-400 font-medium pl-1 flex items-center gap-1">
+              <p className="text-[10px] text-gray-400 font-medium pl-1 flex items-center gap-1 mt-4">
                 <AlertCircle className="w-3 h-3" />
-                This will record an INITIAL_STOCK transaction.
+                {stockMode === 'ADD' 
+                  ? 'This will record an INITIAL_STOCK transaction and increment total stock.' 
+                  : 'This will associate chassis numbers with existing stock without increasing quantity.'}
               </p>
             </div>
           </div>
@@ -383,9 +431,9 @@ export default function ProductsPage() {
             <Button
               className="h-12 flex-1 rounded-xl bg-gray-900 text-white font-bold hover:bg-black"
               onClick={handleUpdateStock}
-              disabled={actionLoading || stockAdjustment === 0}
+              disabled={actionLoading || (stockMode === 'ADD' && stockAdjustment === 0) || (stockMode === 'REGISTER' && chassisInput.trim() === '')}
             >
-              {actionLoading ? <Loader2 className="w-4 h-4 animate-spin" /> : 'Confirm Adjustment'}
+              {actionLoading ? <Loader2 className="w-4 h-4 animate-spin" /> : (stockMode === 'REGISTER' ? 'Register Units' : 'Confirm Adjustment')}
             </Button>
           </DialogFooter>
         </DialogContent>

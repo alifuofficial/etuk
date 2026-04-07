@@ -189,12 +189,40 @@ export async function POST(request: NextRequest) {
       );
     }
 
+    // Normalize identifiers for duplicate checks
+    const normalizedEmail = data.email!.toLowerCase().trim();
+    const normalizedPhone = normalizePhone(data.phone)!;
+    const tinNumber = data.tinNumber ? data.tinNumber.toString().trim() : null;
+
+    // Check for existing agent with same email, phone, or TIN
+    const existingAgent = await db.agent.findFirst({
+      where: {
+        OR: [
+          { email: normalizedEmail },
+          { phone: normalizedPhone },
+          ...(tinNumber ? [{ tinNumber }] : [])
+        ]
+      }
+    });
+
+    if (existingAgent) {
+      let conflictField = 'information';
+      if (existingAgent.email === normalizedEmail) conflictField = 'email address';
+      else if (existingAgent.phone === normalizedPhone) conflictField = 'phone number';
+      else if (existingAgent.tinNumber === tinNumber) conflictField = 'TIN number';
+
+      return NextResponse.json(
+        { error: `This ${conflictField} is already registered. Please use a different one or contact support.` },
+        { status: 400 }
+      );
+    }
+
     const agent = await db.agent.create({
       data: {
         firstName: data.firstName!,
         lastName: data.lastName!,
-        email: data.email!,
-        phone: normalizePhone(data.phone)!,
+        email: normalizedEmail,
+        phone: normalizedPhone,
         alternativePhone: normalizePhone(data.alternativePhone),
         businessName: data.businessName || null,
         businessType: data.businessType || null,

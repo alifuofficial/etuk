@@ -103,8 +103,8 @@ export default function BecomeAgentPage() {
     }
   };
 
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
+  const handleSubmit = async (e?: React.FormEvent) => {
+    if (e) e.preventDefault();
     setLoading(true);
 
     try {
@@ -121,16 +121,18 @@ export default function BecomeAgentPage() {
         body: submissionData,
       });
 
+      const data = await response.json();
+
       if (response.ok) {
         setSubmitted(true);
         window.scrollTo({ top: 0, behavior: 'smooth' });
       } else {
-        throw new Error('Failed to submit');
+        throw new Error(data.error || 'Failed to submit');
       }
-    } catch {
+    } catch (err: any) {
       toast({
-        title: 'Submission Error',
-        description: 'Please try again or contact support.',
+        title: 'Application Error',
+        description: err.message || 'Please try again or contact support.',
         variant: 'destructive',
       });
     } finally {
@@ -270,7 +272,7 @@ export default function BecomeAgentPage() {
         )}
 
         {/* Multi-Step Application Form */}
-        <form onSubmit={handleSubmit} className="space-y-8">
+        <div className="space-y-8">
           {currentStep === 1 && (
             <SectionCard title={t('agent.form.personal')} icon={<User className="w-5 h-5 text-blue-500" />}>
               <div className="grid sm:grid-cols-2 gap-6">
@@ -548,7 +550,8 @@ export default function BecomeAgentPage() {
               </Button>
             ) : (
               <Button
-                type="submit"
+                type="button"
+                onClick={() => handleSubmit()}
                 disabled={loading}
                 className="h-14 flex-[2] bg-deep-sky-blue hover:bg-deep-sky-blue-dark text-white font-bold text-lg rounded-xl shadow-lg transition-all"
               >
@@ -567,7 +570,7 @@ export default function BecomeAgentPage() {
           <p className="text-center text-[10px] text-gray-400 uppercase tracking-widest font-bold">
             {t('agent.form.privacy')}
           </p>
-        </form>
+        </div>
       </main>
 
       <Footer />

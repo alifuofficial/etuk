@@ -24,8 +24,8 @@ model Agent {
   id               String    @id @default(cuid())
   firstName        String
   lastName         String
-  email            String
-  phone            String
+  email            String    @unique
+  phone            String    @unique
   alternativePhone String?
   businessName     String?
   businessType     String?
@@ -44,7 +44,7 @@ model Agent {
   accountNumber    String?
   tradeLicense     String?
   idDocument       String?
-  tinNumber        String?
+  tinNumber        String?   @unique
   status           String    @default("PENDING")
   reviewedBy       String?
   reviewedAt       DateTime?

@@ -37,6 +37,7 @@ interface Product {
   price: number | null;
   isActive: boolean;
   featured: boolean;
+  isSerialized: boolean;
   createdAt: string;
 }
 
@@ -64,6 +65,7 @@ export default function ProductsPage() {
   const [showStockDialog, setShowStockDialog] = useState(false);
   const [selectedProduct, setSelectedProduct] = useState<Product | null>(null);
   const [stockAdjustment, setStockAdjustment] = useState<number>(0);
+  const [chassisInput, setChassisInput] = useState<string>('');
   const [actionLoading, setActionLoading] = useState(false);
 
   useEffect(() => {
@@ -96,6 +98,19 @@ export default function ProductsPage() {
 
   const handleUpdateStock = async () => {
     if (!selectedProduct || stockAdjustment === 0) return;
+
+    const chassisNumbers = selectedProduct.isSerialized 
+      ? chassisInput.split(/[\n,]+/).map(s => s.trim()).filter(Boolean)
+      : null;
+
+    if (selectedProduct.isSerialized && (!chassisNumbers || chassisNumbers.length !== stockAdjustment)) {
+      toast({
+        title: 'Input Error',
+        description: `Please provide exactly ${stockAdjustment} chassis numbers.`,
+        variant: 'destructive',
+      });
+      return;
+    }
     
     setActionLoading(true);
     try {
@@ -105,7 +120,8 @@ export default function ProductsPage() {
         body: JSON.stringify({
           productId: selectedProduct.id,
           quantity: stockAdjustment,
-          notes: 'Manual stock adjustment from admin panel'
+          notes: 'Manual stock adjustment from admin panel',
+          chassisNumbers
         }),
       });
 
@@ -117,6 +133,7 @@ export default function ProductsPage() {
         fetchData();
         setShowStockDialog(false);
         setStockAdjustment(0);
+        setChassisInput('');
       } else {
         const errorData = await response.json();
         throw new Error(errorData.details || errorData.error || 'Failed to update stock');
@@ -293,9 +310,61 @@ export default function ProductsPage() {
                 type="number"
                 placeholder="e.g. 150"
                 value={stockAdjustment || ''}
-                onChange={(e) => setStockAdjustment(parseInt(e.target.value) || 0)}
+                onChange={(e) => {
+                  const val = parseInt(e.target.value) || 0;
+                  setStockAdjustment(val);
+                }}
                 className="h-12 bg-white border-gray-200 rounded-xl font-bold text-lg"
               />
+              
+              {selectedProduct?.isSerialized && (
+                <div className="space-y-2 pt-4">
+                  <div className="flex items-center justify-between">
+                    <Label className="text-xs font-bold text-gray-500 uppercase tracking-widest pl-1">Chassis Numbers</Label>
+                    <div className="relative">
+                      <input
+                        type="file"
+                        accept=".txt,.csv"
+                        className="hidden"
+                        id="bulk-chassis-upload"
+                        onChange={(e) => {
+                          const file = e.target.files?.[0];
+                          if (file) {
+                            const reader = new FileReader();
+                            reader.onload = (event) => {
+                              const text = event.target?.result as string;
+                              const lines = text.split(/[\n,]+/).map(s => s.trim()).filter(Boolean);
+                              setChassisInput(lines.join('\n'));
+                              setStockAdjustment(lines.length);
+                            };
+                            reader.readAsText(file);
+                          }
+                        }}
+                      />
+                      <Label 
+                        htmlFor="bulk-chassis-upload" 
+                        className="text-[10px] bg-blue-50 text-deep-sky-blue px-2 py-1 rounded cursor-pointer hover:bg-blue-100 transition-colors"
+                      >
+                        Bulk Upload (CSV)
+                      </Label>
+                    </div>
+                  </div>
+                  <textarea
+                    placeholder="Enter chassis numbers, one per line..."
+                    value={chassisInput}
+                    onChange={(e) => {
+                      setChassisInput(e.target.value);
+                      const count = e.target.value.split(/[\n,]+/).map(s => s.trim()).filter(Boolean).length;
+                      setStockAdjustment(count);
+                    }}
+                    className="w-full h-32 p-3 bg-white border border-gray-200 rounded-xl text-sm font-mono focus:border-deep-sky-blue focus:ring-4 focus:ring-deep-sky-blue/5 outline-none transition-all resize-none"
+                  />
+                  <p className="text-[10px] text-gray-400 font-medium italic">
+                    Detected {chassisInput.split(/[\n,]+/).map(s => s.trim()).filter(Boolean).length} units.
+                  </p>
+                </div>
+              )}
+
               <p className="text-[10px] text-gray-400 font-medium pl-1 flex items-center gap-1">
                 <AlertCircle className="w-3 h-3" />
                 This will record an INITIAL_STOCK transaction.

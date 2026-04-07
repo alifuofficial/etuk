@@ -12,7 +12,11 @@ export async function GET() {
   try {
     const inventory = await prisma.inventory.findMany({
       include: {
-        product: true,
+        product: {
+          include: {
+            units: true
+          }
+        },
         agent: {
           select: {
             id: true,
@@ -41,52 +45,100 @@ export async function POST(req: Request) {
   }
 
   try {
-    const { productId, quantity, notes } = await req.json();
+    const { productId, quantity, notes, chassisNumbers } = await req.json();
 
-    if (!productId || typeof quantity !== 'number') {
-      return NextResponse.json({ error: 'Product ID and quantity are required' }, { status: 400 });
+    if (!productId || typeof quantity !== 'number' || quantity <= 0) {
+      return NextResponse.json({ error: 'Product ID and valid quantity are required' }, { status: 400 });
     }
 
-    // Update or create warehouse inventory (agentId: null)
-    // Note: Prisma 5/6 doesn't support null in compound unique constraints for upsert/findUnique
-    const existing = await prisma.inventory.findFirst({
-      where: {
-        productId,
-        agentId: null
-      }
+    const product = await prisma.product.findUnique({
+      where: { id: productId }
     });
 
-    let inventory;
-    if (existing) {
-      inventory = await prisma.inventory.update({
-        where: { id: existing.id },
-        data: {
-          quantity: { increment: quantity }
-        }
+    if (!product) {
+      return NextResponse.json({ error: 'Product not found' }, { status: 404 });
+    }
+
+    // Validation for serialized products
+    if (product.isSerialized) {
+      if (!chassisNumbers || !Array.isArray(chassisNumbers) || chassisNumbers.length !== quantity) {
+        return NextResponse.json({ 
+          error: `This product is serialized. Please provide exactly ${quantity} unique chassis numbers.` 
+        }, { status: 400 });
+      }
+
+      // Check for duplicate chassis numbers in the input
+      const uniqueInput = new Set(chassisNumbers);
+      if (uniqueInput.size !== chassisNumbers.length) {
+        return NextResponse.json({ error: 'Duplicate chassis numbers in input' }, { status: 400 });
+      }
+
+      // Check for existing chassis numbers in database
+      const existingUnits = await prisma.productUnit.findMany({
+        where: { chassisNumber: { in: chassisNumbers } }
       });
-    } else {
-      inventory = await prisma.inventory.create({
+
+      if (existingUnits.length > 0) {
+        return NextResponse.json({ 
+          error: `Some chassis numbers are already registered: ${existingUnits.map(u => u.chassisNumber).join(', ')}` 
+        }, { status: 400 });
+      }
+    }
+
+    // Atomic transaction for inventory increase
+    const result = await prisma.$transaction(async (tx) => {
+      // 1. Update or create warehouse inventory (agentId: null)
+      const existingInv = await tx.inventory.findFirst({
+        where: { productId, agentId: null }
+      });
+
+      let updatedInventory;
+      if (existingInv) {
+        updatedInventory = await tx.inventory.update({
+          where: { id: existingInv.id },
+          data: { quantity: { increment: quantity } }
+        });
+      } else {
+        updatedInventory = await tx.inventory.create({
+          data: { productId, agentId: null, quantity }
+        });
+      }
+
+      // 2. Create ProductUnit records if serialized
+      let createdUnits = [];
+      if (product.isSerialized && chassisNumbers) {
+        for (const chassis of chassisNumbers) {
+          const unit = await tx.productUnit.create({
+            data: {
+              productId,
+              chassisNumber: chassis,
+              currentAgentId: null, // Warehouse
+              status: 'AVAILABLE'
+            }
+          });
+          createdUnits.push(unit);
+        }
+      }
+
+      // 3. Record transaction and link units
+      await tx.inventoryTransaction.create({
         data: {
           productId,
-          agentId: null,
+          toAgentId: null,
           quantity,
+          type: 'INITIAL_STOCK',
+          notes: notes || 'Initial stock adjustment',
+          performedBy: session.user.id,
+          units: product.isSerialized ? {
+            connect: createdUnits.map(u => ({ id: u.id }))
+          } : undefined
         }
       });
-    }
 
-    // Record transaction
-    await prisma.inventoryTransaction.create({
-      data: {
-        productId,
-        toAgentId: null, // To Warehouse
-        quantity,
-        type: 'INITIAL_STOCK',
-        notes: notes || 'Initial stock adjustment',
-        performedBy: session.user.id,
-      }
+      return updatedInventory;
     });
 
-    return NextResponse.json(inventory);
+    return NextResponse.json(result);
   } catch (error: any) {
     console.error('CRITICAL: Failed to update inventory:', error);
     return NextResponse.json({ 

@@ -20,6 +20,11 @@ export async function GET(
       }
     });
 
+    const units = await prisma.productUnit.findMany({
+      where: { currentAgentId: params.id, isSold: false },
+      include: { product: true }
+    });
+
     const transactions = await prisma.inventoryTransaction.findMany({
       where: {
         OR: [
@@ -28,13 +33,14 @@ export async function GET(
         ]
       },
       include: {
-        product: true
+        product: true,
+        units: true
       },
       orderBy: { createdAt: 'desc' },
       take: 20
     });
 
-    return NextResponse.json({ inventory, transactions });
+    return NextResponse.json({ inventory, transactions, units });
   } catch (error: any) {
     console.error('CRITICAL: Failed to fetch agent inventory:', error);
     return NextResponse.json({ 

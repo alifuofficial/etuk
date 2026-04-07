@@ -22,6 +22,7 @@ import {
   TableHeader,
   TableRow,
 } from '@/components/ui/table';
+import { Badge } from '@/components/ui/badge';
 
 export default function InventoryPage() {
   const { data: session, status } = useSession();
@@ -157,50 +158,56 @@ export default function InventoryPage() {
             <Table>
               <TableHeader className="bg-gray-50/30">
                 <TableRow>
-                  <TableHead className="px-6 py-4 font-bold text-xs uppercase text-gray-600">Product</TableHead>
-                  <TableHead className="px-6 py-4 font-bold text-xs uppercase text-gray-600">Current Holder</TableHead>
-                  <TableHead className="px-6 py-4 font-bold text-xs uppercase text-gray-600">Quantity</TableHead>
+                  <TableHead className="font-bold text-gray-700">Product</TableHead>
+                  <TableHead className="font-bold text-gray-700">Holder</TableHead>
+                  <TableHead className="font-bold text-gray-700 text-center">Type</TableHead>
+                  <TableHead className="font-bold text-gray-700 text-center">Quantity</TableHead>
+                  <TableHead className="font-bold text-gray-700">Units / Chassis</TableHead>
                   <TableHead className="px-6 py-4 font-bold text-xs uppercase text-gray-600">Last Updated</TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>
                 {filteredInventory.map((item) => (
                   <TableRow key={item.id} className="hover:bg-gray-50/50 transition-colors">
-                    <TableCell className="px-6 py-4">
-                      <div className="flex items-center gap-3">
-                        <div className="w-8 h-8 bg-gray-100 rounded-lg flex items-center justify-center">
-                          <Package className="w-4 h-4 text-gray-400" />
-                        </div>
-                        <div>
-                          <p className="font-bold text-gray-900">{item.product.name}</p>
-                          <p className="text-[10px] text-gray-400 font-bold uppercase">{item.product.category}</p>
-                        </div>
-                      </div>
-                    </TableCell>
-                    <TableCell className="px-6 py-4">
-                      {item.agentId ? (
-                        <div className="flex items-center gap-2">
-                          <div className="w-6 h-6 bg-green-50 rounded-full flex items-center justify-center">
-                            <Users className="w-3 h-3 text-green-600" />
-                          </div>
-                          <div>
-                            <p className="text-sm font-bold text-gray-900">{item.agent.firstName} {item.agent.lastName}</p>
-                            <p className="text-[10px] text-gray-500">{item.agent.businessName || 'Individual'}</p>
-                          </div>
+                    <TableCell className="font-medium text-gray-900">{item.product.name}</TableCell>
+                    <TableCell>
+                      {item.agent ? (
+                        <div className="flex flex-col">
+                          <span className="font-bold text-gray-900">{item.agent.firstName} {item.agent.lastName}</span>
+                          <span className="text-[10px] text-gray-500 uppercase">{item.agent.businessName || 'Independent Agent'}</span>
                         </div>
                       ) : (
-                        <div className="flex items-center gap-2">
-                          <div className="w-6 h-6 bg-amber-50 rounded-full flex items-center justify-center">
-                            <Warehouse className="w-3 h-3 text-amber-600" />
-                          </div>
-                          <span className="text-sm font-bold text-amber-700">Central Warehouse</span>
+                        <div className="flex items-center gap-2 text-deep-sky-blue font-bold">
+                          <Warehouse className="w-3.5 h-3.5" />
+                          Central Warehouse
                         </div>
                       )}
                     </TableCell>
-                    <TableCell className="px-6 py-4">
-                      <span className={`inline-flex items-center px-3 py-1 rounded-full text-xs font-black ${item.quantity > 0 ? 'bg-blue-50 text-deep-sky-blue' : 'bg-red-50 text-red-600'}`}>
-                        {item.quantity} Units
-                      </span>
+                    <TableCell className="text-center">
+                      {item.product.isSerialized ? (
+                        <Badge className="bg-purple-50 text-purple-600 border-purple-100 font-bold text-[9px] uppercase tracking-widest">Serialized</Badge>
+                      ) : (
+                        <Badge variant="outline" className="text-gray-400 font-medium text-[9px] uppercase tracking-widest">Standard</Badge>
+                      )}
+                    </TableCell>
+                    <TableCell className="text-center">
+                      <span className="text-lg font-black text-gray-900">{item.quantity}</span>
+                    </TableCell>
+                    <TableCell>
+                      {item.product.isSerialized ? (
+                        <div className="flex flex-wrap gap-1 max-w-[250px] max-h-[60px] overflow-y-auto pr-2 custom-scrollbar">
+                          {item.product.units
+                            .filter((u: any) => u.currentAgentId === item.agentId && !u.isSold)
+                            .map((unit: any) => (
+                              <span key={unit.id} className="inline-block px-1.5 py-0.5 bg-gray-50 border border-gray-100 rounded text-[9px] font-black tabular-nums text-gray-500 hover:bg-white transition-colors" title={unit.chassisNumber}>
+                                {unit.chassisNumber}
+                              </span>
+                            ))
+                          }
+                        </div>
+                      ) : (
+                        <span className="text-[10px] text-gray-400 italic">Bulk (non-serialized)</span>
+                      )}
                     </TableCell>
                     <TableCell className="px-6 py-4 text-sm text-gray-500 font-medium">
                       {new Date(item.updatedAt).toLocaleDateString()}

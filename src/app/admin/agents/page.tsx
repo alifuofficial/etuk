@@ -109,6 +109,16 @@ interface Agent {
   reviewer?: { name: string } | null;
 }
 
+interface ProductUnit {
+  id: string;
+  chassisNumber: string;
+  status: string;
+  product: {
+    id: string;
+    name: string;
+  };
+}
+
 interface Region {
   id: string;
   name: string;
@@ -147,6 +157,10 @@ export default function AgentsPage() {
   const [transferAmount, setTransferAmount] = useState<number>(0);
   const [transferProductId, setTransferProductId] = useState<string>('');
   const [transferLoading, setTransferLoading] = useState(false);
+  const [availableUnits, setAvailableUnits] = useState<ProductUnit[]>([]);
+  const [currentAgentUnits, setCurrentAgentUnits] = useState<ProductUnit[]>([]);
+  const [selectedUnitIds, setSelectedUnitIds] = useState<string[]>([]);
+  const [unitsLoading, setUnitsLoading] = useState(false);
   const [products, setProducts] = useState<any[]>([]);
   const [warehouseInventory, setWarehouseInventory] = useState<any[]>([]);
 
@@ -155,6 +169,38 @@ export default function AgentsPage() {
   const [smsAgent, setSmsAgent] = useState<Agent | null>(null);
   const [smsMessage, setSmsMessage] = useState('');
   const [smsSending, setSmsSending] = useState(false);
+
+  useEffect(() => {
+    if (transferProductId) {
+      const product = products.find(p => p.id === transferProductId);
+      if (product?.isSerialized) {
+        fetchAvailableUnits();
+      } else {
+        setAvailableUnits([]);
+        setSelectedUnitIds([]);
+      }
+    } else {
+      setAvailableUnits([]);
+      setSelectedUnitIds([]);
+    }
+  }, [transferProductId, products]);
+
+  const fetchAvailableUnits = async () => {
+    if (!transferProductId) return;
+    setUnitsLoading(true);
+    try {
+      const res = await fetch(`/api/inventory/units?productId=${transferProductId}`);
+      if (res.ok) {
+        const data = await res.json();
+        setAvailableUnits(data);
+        setSelectedUnitIds([]);
+      }
+    } catch (error) {
+      console.error('Failed to fetch units:', error);
+    } finally {
+      setUnitsLoading(false);
+    }
+  };
 
   useEffect(() => {
     if (showInventoryDialog && selectedAgent) {
@@ -171,6 +217,7 @@ export default function AgentsPage() {
         const data = await res.json();
         setAgentInventory(data.inventory);
         setInventoryHistory(data.transactions);
+        setCurrentAgentUnits(data.units || []);
       }
     } catch (error) {
       console.error('Failed to fetch agent inventory:', error);
@@ -205,6 +252,7 @@ export default function AgentsPage() {
           toAgentId: selectedAgent.id,
           quantity: transferAmount,
           type: 'TRANSFER',
+          unitIds: selectedUnitIds.length > 0 ? selectedUnitIds : undefined,
           notes: `Assigned units to agent ${selectedAgent.firstName}`
         })
       });
@@ -217,6 +265,8 @@ export default function AgentsPage() {
         fetchAgentInventory(selectedAgent.id);
         setTransferAmount(0);
         setTransferProductId('');
+        setSelectedUnitIds([]);
+        fetchGlobalInventory();
       } else {
         const error = await res.json();
         toast({
@@ -1754,17 +1804,35 @@ export default function AgentsPage() {
                     </div>
                   ) : (
                     <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                      {agentInventory.map((item) => (
-                        <div key={item.id} className="p-4 bg-gray-50 border border-gray-100 rounded-xl flex items-center justify-between">
-                          <div>
-                            <p className="text-sm font-bold text-gray-900">{item.product.name}</p>
-                            <p className="text-[10px] text-gray-500 font-bold uppercase">{item.product.category}</p>
+                      {agentInventory.map((item) => {
+                        const productUnits = currentAgentUnits.filter(u => u.product.id === item.product.id);
+                        return (
+                          <div key={item.id} className="p-4 bg-gray-50 border border-gray-100 rounded-xl space-y-3">
+                            <div className="flex items-center justify-between">
+                              <div>
+                                <p className="text-sm font-bold text-gray-900">{item.product.name}</p>
+                                <p className="text-[10px] text-gray-500 font-bold uppercase">{item.product.category}</p>
+                              </div>
+                              <div className="text-right">
+                                <p className="text-lg font-black text-deep-sky-blue">{item.quantity}</p>
+                              </div>
+                            </div>
+                            
+                            {item.product.isSerialized && productUnits.length > 0 && (
+                              <div className="pt-3 border-t border-gray-200/50">
+                                <p className="text-[9px] font-bold text-gray-400 uppercase tracking-widest mb-2 text-xs">Chassis Numbers</p>
+                                <div className="flex flex-wrap gap-1.5">
+                                  {productUnits.map((unit) => (
+                                    <span key={unit.id} className="px-2 py-1 bg-white border border-gray-200 rounded-md text-[9px] font-black tabular-nums text-gray-600 shadow-sm">
+                                      {unit.chassisNumber}
+                                    </span>
+                                  ))}
+                                </div>
+                              </div>
+                            )}
                           </div>
-                          <div className="text-right">
-                            <p className="text-lg font-black text-deep-sky-blue">{item.quantity}</p>
-                          </div>
-                        </div>
-                      ))}
+                        );
+                      })}
                     </div>
                   )}
                 </div>
@@ -1810,12 +1878,67 @@ export default function AgentsPage() {
                     <div className="flex items-end">
                       <Button 
                         onClick={handleTransfer} 
-                        disabled={transferLoading || !transferProductId || transferAmount <= 0}
+                        disabled={transferLoading || !transferProductId || transferAmount <= 0 || (products.find(p => p.id === transferProductId)?.isSerialized && selectedUnitIds.length !== transferAmount)}
                         className="w-full bg-gray-900 text-white font-bold h-10 hover:bg-black"
                       >
                         {transferLoading ? <Loader2 className="w-4 h-4 animate-spin" /> : 'Assign Units'}
                       </Button>
                     </div>
+
+                    {/* Chassis Selection for Serialized Products */}
+                    {availableUnits.length > 0 && (
+                      <div className="md:col-span-3 space-y-3 pt-4 border-t border-blue-100 mt-2">
+                        <div className="flex items-center justify-between">
+                          <Label className="text-[10px] font-bold text-gray-500 uppercase">Select Chassis Numbers ({selectedUnitIds.length} / {transferAmount} selected)</Label>
+                          {unitsLoading && <Loader2 className="w-3 h-3 animate-spin text-deep-sky-blue" />}
+                        </div>
+                        <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-2 max-h-48 overflow-y-auto p-4 bg-white rounded-xl border border-blue-100 shadow-inner">
+                          {availableUnits.map((unit) => (
+                            <div 
+                              key={unit.id} 
+                              className={`flex items-center gap-2 p-2 rounded-lg border cursor-pointer transition-all ${
+                                selectedUnitIds.includes(unit.id) 
+                                  ? 'bg-blue-50 border-deep-sky-blue shadow-sm' 
+                                  : 'bg-white border-gray-100 hover:border-blue-200'
+                              }`}
+                              onClick={() => {
+                                if (selectedUnitIds.includes(unit.id)) {
+                                  setSelectedUnitIds(selectedUnitIds.filter(id => id !== unit.id));
+                                } else if (selectedUnitIds.length < transferAmount) {
+                                  setSelectedUnitIds([...selectedUnitIds, unit.id]);
+                                }
+                              }}
+                            >
+                              <Checkbox 
+                                id={unit.id} 
+                                checked={selectedUnitIds.includes(unit.id)}
+                                onCheckedChange={(checked) => {
+                                  if (checked) {
+                                    if (selectedUnitIds.length < transferAmount) {
+                                      setSelectedUnitIds([...selectedUnitIds, unit.id]);
+                                    }
+                                  } else {
+                                    setSelectedUnitIds(selectedUnitIds.filter(id => id !== unit.id));
+                                  }
+                                }}
+                              />
+                              <Label 
+                                htmlFor={unit.id} 
+                                className="text-[10px] font-black cursor-pointer truncate"
+                                title={unit.chassisNumber}
+                              >
+                                {unit.chassisNumber}
+                              </Label>
+                            </div>
+                          ))}
+                        </div>
+                        {selectedUnitIds.length > 0 && selectedUnitIds.length !== transferAmount && (
+                          <p className="text-[10px] text-amber-600 font-bold italic">
+                            * Please select exactly {transferAmount} units to match the quantity.
+                          </p>
+                        )}
+                      </div>
+                    )}
                   </div>
                 </div>
 

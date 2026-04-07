@@ -57,6 +57,7 @@ model Agent {
   contactPhone     String?
   reviewer         User?     @relation(fields: [reviewedBy], references: [id])
   inventory        Inventory[]
+  units            ProductUnit[]
 }
 
 model Product {
@@ -73,10 +74,29 @@ model Product {
   images         String?
   isActive       Boolean  @default(true)
   featured       Boolean  @default(false)
+  isSerialized   Boolean  @default(false)
   createdAt      DateTime @default(now())
   updatedAt      DateTime @updatedAt
   inventory      Inventory[]
   transactions   InventoryTransaction[]
+  units          ProductUnit[]
+}
+
+model ProductUnit {
+  id            String   @id @default(cuid())
+  productId     String
+  chassisNumber String   @unique
+  currentAgentId String? // null = Warehouse
+  status        String   @default("AVAILABLE") // AVAILABLE, SOLD, MAINTENANCE
+  isSold        Boolean  @default(false)
+  soldAt        DateTime?
+  notes         String?
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+
+  product       Product  @relation(fields: [productId], references: [id], onDelete: Cascade)
+  agent         Agent?   @relation(fields: [currentAgentId], references: [id], onDelete: SetNull)
+  transactions  InventoryTransaction[] @relation("TransactionUnits")
 }
 
 model Inventory {
@@ -104,6 +124,7 @@ model InventoryTransaction {
   performedBy     String?  // User id who did the transaction
   
   product Product @relation(fields: [productId], references: [id], onDelete: Cascade)
+  units   ProductUnit[] @relation("TransactionUnits")
 }
 
 model Region {

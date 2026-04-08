@@ -115,6 +115,7 @@ export default function NotificationsPage() {
   const [logsPage, setLogsPage] = useState(1);
   const [loadingLogs, setLoadingLogs] = useState(true);
   const [logsStatusFilter, setLogsStatusFilter] = useState('all');
+  const [logsSearch, setLogsSearch] = useState('');
 
   // Templates state
   const [templates, setTemplates] = useState<SmsTemplate[]>([]);
@@ -149,6 +150,7 @@ export default function NotificationsPage() {
         page: logsPage.toString(),
         limit: '20',
         status: logsStatusFilter,
+        search: logsSearch,
       });
       const res = await fetch(`/api/sms/logs?${params}`);
       if (res.ok) {
@@ -161,7 +163,7 @@ export default function NotificationsPage() {
     } finally {
       setLoadingLogs(false);
     }
-  }, [logsPage, logsStatusFilter]);
+  }, [logsPage, logsStatusFilter, logsSearch]);
 
   const fetchTemplates = useCallback(async () => {
     setLoadingTemplates(true);
@@ -574,9 +576,18 @@ export default function NotificationsPage() {
         <TabsContent value="history" className="space-y-4">
           <div className="flex items-center justify-between">
             <h2 className="text-lg font-bold text-gray-900">Notification History</h2>
-            <div className="flex items-center gap-3">
+            <div className="flex items-center gap-3 flex-1 md:flex-none">
+              <div className="relative flex-1 md:w-64">
+                <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-gray-400" />
+                <Input
+                  value={logsSearch}
+                  onChange={(e) => { setLogsSearch(e.target.value); setLogsPage(1); }}
+                  placeholder="Search recipient or message..."
+                  className="pl-9 h-9 bg-gray-50 border-gray-200 rounded-lg text-xs"
+                />
+              </div>
               <Select value={logsStatusFilter} onValueChange={(v) => { setLogsStatusFilter(v); setLogsPage(1); }}>
-                <SelectTrigger className="w-40 h-9 bg-gray-50 border-gray-200 rounded-lg text-xs font-medium">
+                <SelectTrigger className="w-32 md:w-40 h-9 bg-gray-50 border-gray-200 rounded-lg text-xs font-medium">
                   <Filter className="w-3 h-3 mr-2 text-gray-400" />
                   <SelectValue />
                 </SelectTrigger>
@@ -605,6 +616,7 @@ export default function NotificationsPage() {
                     <TableHeader className="bg-gray-50/60 font-bold">
                       <TableRow>
                         <TableHead className="px-6 py-2 text-[10px] uppercase tracking-wider text-gray-500">Recipient</TableHead>
+                        <TableHead className="px-6 py-2 text-[10px] uppercase tracking-wider text-gray-500">Type</TableHead>
                         <TableHead className="px-6 py-2 text-[10px] uppercase tracking-wider text-gray-500">Message</TableHead>
                         <TableHead className="px-6 py-2 text-[10px] uppercase tracking-wider text-gray-500">Status</TableHead>
                         <TableHead className="px-6 py-2 text-[10px] uppercase tracking-wider text-gray-500">Sent At</TableHead>
@@ -615,7 +627,14 @@ export default function NotificationsPage() {
                         <TableRow key={log.id} className="hover:bg-gray-50/50 transition-colors">
                           <TableCell className="px-6 py-1.5 focus:outline-none">
                             <div className="font-semibold text-xs text-gray-900">{log.agentName || log.recipient}</div>
-                            {log.agentName && <div className="text-[9px] text-gray-500 tabular-nums">{log.recipient}</div>}
+                            {log.agentId ? <div className="text-[9px] text-gray-500 tabular-nums">{log.recipient}</div> : <div className="text-[9px] text-deep-sky-blue font-bold uppercase tracking-wider">System / OTP</div>}
+                          </TableCell>
+                          <TableCell className="px-6 py-1.5">
+                            {log.message.includes('verification code') ? (
+                              <Badge variant="outline" className="bg-blue-50 text-blue-600 border-blue-100 text-[9px] font-bold px-2 py-0 h-4">OTP</Badge>
+                            ) : (
+                              <Badge variant="outline" className="bg-gray-50 text-gray-600 border-gray-100 text-[9px] font-bold px-2 py-0 h-4">MSG</Badge>
+                            )}
                           </TableCell>
                           <TableCell className="px-6 py-1.5">
                             <p className="text-[11px] text-gray-700 max-w-xs truncate" title={log.message}>{log.message}</p>

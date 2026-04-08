@@ -1497,12 +1497,10 @@ export default function AgentsPage() {
                       <Warehouse className="w-3.5 h-3.5 mr-2" />
                       Logistics & Location
                     </TabsTrigger>
-                    {editAgent.status === 'APPROVED' && (
-                      <TabsTrigger value="portal" className="data-[state=active]:bg-transparent data-[state=active]:text-deep-sky-blue data-[state=active]:shadow-none data-[state=active]:border-b-2 data-[state=active]:border-deep-sky-blue rounded-none h-full px-0 text-xs font-bold uppercase tracking-widest text-gray-400">
-                        <ShieldCheck className="w-3.5 h-3.5 mr-2" />
-                        Security & Portal
-                      </TabsTrigger>
-                    )}
+                    <TabsTrigger value="portal" className="data-[state=active]:bg-transparent data-[state=active]:text-deep-sky-blue data-[state=active]:shadow-none data-[state=active]:border-b-2 data-[state=active]:border-deep-sky-blue rounded-none h-full px-0 text-xs font-bold uppercase tracking-widest text-gray-400">
+                      <ShieldCheck className="w-3.5 h-3.5 mr-2" />
+                      Security & Portal
+                    </TabsTrigger>
                   </TabsList>
                 </div>
 
@@ -1854,7 +1852,7 @@ export default function AgentsPage() {
                       )}
                     </Button>
                     
-                    {currentTab !== 'portal' && (currentTab !== 'logistics' || editAgent.status !== 'APPROVED') ? (
+                    {currentTab !== 'portal' ? (
                       <Button
                         onClick={() => {
                           if (currentTab === 'personal') setCurrentTab('business');

@@ -36,6 +36,14 @@ import {
   DialogDescription,
   DialogFooter,
 } from '@/components/ui/dialog';
+import {
+  Sheet,
+  SheetContent,
+  SheetHeader,
+  SheetTitle,
+  SheetDescription,
+  SheetFooter,
+} from '@/components/ui/sheet';
 import { Textarea } from '@/components/ui/textarea';
 import { Label } from '@/components/ui/label';
 import { toast } from '@/hooks/use-toast';
@@ -1598,41 +1606,35 @@ export default function AgentsPage() {
       {/* Agent Edit Dialog */}
 
       {showEditDialog && editAgent && (
-        <Dialog open={showEditDialog} onOpenChange={setShowEditDialog}>
-          <DialogContent className="max-w-5xl w-[95vw] p-0 overflow-hidden rounded-[3rem] shadow-2xl bg-white border-none max-h-[92vh] flex flex-col">
-            <Tabs defaultValue="personal" onValueChange={(v) => setCurrentTab(v as any)} value={currentTab} className="w-full h-full flex flex-col">
+        <Sheet open={showEditDialog} onOpenChange={setShowEditDialog}>
+          <SheetContent side="right" className="sm:max-w-2xl w-[95vw] p-0 overflow-hidden shadow-2xl bg-white border-l border-slate-200 h-full flex flex-col">
+            <Tabs defaultValue="personal" onValueChange={(v) => setCurrentTab(v as any)} value={currentTab} className="w-full h-full flex flex-col min-h-0">
               {/* Premium Header Section */}
-              <div className="pt-10 px-10 bg-slate-950 shrink-0">
-                <div className="flex items-center justify-between mb-8">
-                  <div className="flex items-center gap-6">
-                    <div className="h-20 w-20 rounded-[2rem] bg-gradient-to-br from-deep-sky-blue to-blue-600 flex items-center justify-center shadow-2xl shadow-deep-sky-blue/20 group-hover:scale-105 transition-transform duration-500">
-                      <UserCog className="w-10 h-10 text-slate-950" />
-                    </div>
-                    <div>
-                      <div className="flex items-center gap-3">
-                        <h2 className="text-3xl font-black text-white tracking-tighter uppercase">Edit Master Agent</h2>
-                        <span className={`px-4 py-1.5 rounded-full text-[10px] font-black uppercase tracking-widest ${
-                          editAgent.status === 'APPROVED' ? 'bg-emerald-500/10 text-emerald-400 border border-emerald-500/20' : 
-                          'bg-deep-sky-blue/10 text-deep-sky-blue border border-deep-sky-blue/20'
-                        }`}>
-                          {editAgent.status}
-                        </span>
+              <div className="pt-10 px-10 bg-slate-950 shrink-0 relative">
+                <SheetHeader className="p-0 mb-8 border-none space-y-0 text-left">
+                  <div className="flex items-center justify-between">
+                    <div className="flex items-center gap-6">
+                      <div className="h-20 w-20 rounded-[2rem] bg-gradient-to-br from-deep-sky-blue to-blue-600 flex items-center justify-center shadow-2xl shadow-deep-sky-blue/20 group-hover:scale-105 transition-transform duration-500">
+                        <UserCog className="w-10 h-10 text-slate-950" />
                       </div>
-                      <p className="text-slate-400 font-bold uppercase tracking-[0.2em] text-xs mt-2 flex items-center gap-2">
-                        <Shield className="w-3 h-3 text-deep-sky-blue" />
-                        SECURE IDENTITY MANAGEMENT · SYSTEM ID: {editAgent.id.slice(0, 8)}
-                      </p>
+                      <div className="text-left flex flex-col items-start">
+                        <div className="flex items-center gap-3">
+                          <SheetTitle className="text-3xl font-black text-white tracking-tighter uppercase p-0">Edit Master Agent</SheetTitle>
+                          <span className={`px-4 py-1.5 rounded-full text-[10px] font-black uppercase tracking-widest ${
+                            editAgent.status === 'APPROVED' ? 'bg-emerald-500/10 text-emerald-400 border border-emerald-500/20' : 
+                            'bg-deep-sky-blue/10 text-deep-sky-blue border border-deep-sky-blue/20'
+                          }`}>
+                            {editAgent.status}
+                          </span>
+                        </div>
+                        <SheetDescription className="text-slate-400 font-bold uppercase tracking-[0.2em] text-xs mt-2 flex items-center gap-2">
+                          <Shield className="w-3 h-3 text-deep-sky-blue" />
+                          SECURE IDENTITY MANAGEMENT · SYSTEM ID: {editAgent.id.slice(0, 8)}
+                        </SheetDescription>
+                      </div>
                     </div>
                   </div>
-                  <Button 
-                    variant="ghost" 
-                    size="icon" 
-                    onClick={() => setShowEditDialog(false)}
-                    className="h-14 w-14 rounded-2xl hover:bg-white/10 text-slate-400 transition-all"
-                  >
-                    <X className="w-8 h-8" />
-                  </Button>
-                </div>
+                </SheetHeader>
 
                 {/* Deluxe Tabs Navigation - Now Scrollable */}
                 <div className="overflow-x-auto scrollbar-hide">
@@ -2005,8 +2007,8 @@ export default function AgentsPage() {
                 </TabsContent>
               </div>
 
-              <DialogFooter className="p-10 bg-slate-50/50 border-t border-slate-100 flex items-center justify-between">
-                <div className="flex flex-col">
+              <SheetFooter className="p-10 bg-slate-50 border-t border-slate-100 flex items-center justify-between shrink-0 mt-0">
+                <div className="flex flex-col text-left">
                   <span className="text-[10px] font-black text-slate-400 uppercase tracking-[0.3em]">Operational Step</span>
                   <p className="text-sm font-black text-slate-900 uppercase tracking-tight mt-1">
                     {currentTab === 'personal' ? '01 · Basic Profile' : 
@@ -2026,7 +2028,7 @@ export default function AgentsPage() {
                     }}
                     className="h-14 px-8 border-slate-200 text-slate-600 font-black rounded-2xl hover:bg-white hover:text-slate-900 transition-all active:scale-95 uppercase text-xs tracking-widest"
                   >
-                    {currentTab === 'personal' ? 'Discard' : (
+                    {currentTab === 'personal' ? 'Close' : (
                       <>
                         <ArrowLeft className="w-4 h-4 mr-2" />
                         Previous
@@ -2063,10 +2065,10 @@ export default function AgentsPage() {
                     </Button>
                   )}
                 </div>
-              </DialogFooter>
+              </SheetFooter>
             </Tabs>
-          </DialogContent>
-        </Dialog>
+          </SheetContent>
+        </Sheet>
       )}
 
       {/* Agent Inventory Dialog */}

@@ -1,6 +1,7 @@
 import { redirect } from 'next/navigation';
 import { getServerSession } from 'next-auth';
 import { authOptions } from '@/lib/auth';
+import { db } from '@/lib/db';
 
 export default async function AgentLayout({
   children,
@@ -15,6 +16,25 @@ export default async function AgentLayout({
 
   if (session.user.role !== 'AGENT') {
     redirect('/');
+  }
+
+  // Check if agent portal is globally enabled
+  const portalSetting = await db.setting.findUnique({
+    where: { key: 'isAgentPortalEnabled' }
+  });
+  
+  if (portalSetting?.value === 'false') {
+    redirect('/');
+  }
+
+  // Check if this specific agent user is active
+  const user = await db.user.findUnique({
+    where: { id: session.user.id },
+    select: { isActive: true }
+  });
+
+  if (!user || !user.isActive) {
+    redirect('/auth/login?error=AccountDisabled');
   }
 
   return (

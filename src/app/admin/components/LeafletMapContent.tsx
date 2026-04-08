@@ -48,15 +48,17 @@ export default function LeafletMap({ data, geoCoordinates }: LeafletMapProps) {
           url="https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png"
         />
         {data.map((cityData) => {
-          const coords = geoCoordinates[cityData.city];
-          if (!coords) return null;
+          const normalizedCity = cityData.city.toLowerCase().trim();
+          const coords = geoCoordinates[normalizedCity];
+          
+          if (!coords) {
+            console.warn(`Map: No coordinates found for city "${cityData.city}" (Normalized: "${normalizedCity}")`);
+            return null;
+          }
+
+          console.log(`Map: Pinned ${cityData.city} with ${cityData._count.id} approved agents.`);
 
           const count = cityData._count.id;
-          // Scale marker size or opacity based on count? 
-          // react-leaflet Marker doesn't easily scale like SVG, 
-          // but we can use CircleMarker for that if needed. 
-          // For now, let's use standard Markers with Tooltips.
-
           return (
             <Marker 
               key={cityData.city} 

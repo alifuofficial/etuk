@@ -16,7 +16,29 @@ export async function POST(
     }
 
     const { id } = params;
-    const { password } = await request.json();
+    const { password, isActive } = await request.json();
+
+    // If only toggling active status
+    if (isActive !== undefined && !password) {
+      const agent = await db.agent.findUnique({
+        where: { id },
+        include: { user: true },
+      });
+
+      if (!agent || !agent.userId) {
+        return NextResponse.json({ error: 'Agent user account not found' }, { status: 404 });
+      }
+
+      await db.user.update({
+        where: { id: agent.userId },
+        data: { isActive }
+      });
+
+      return NextResponse.json({ 
+        success: true, 
+        message: `Portal access ${isActive ? 'activated' : 'deactivated'} successfully` 
+      });
+    }
 
     if (!password || password.length < 6) {
       return NextResponse.json(

@@ -86,6 +86,13 @@ export async function GET(request: NextRequest) {
             email: true,
           },
         },
+        user: {
+          select: {
+            id: true,
+            isActive: true,
+          },
+        },
+        userId: true,
       },
       orderBy: {
         createdAt: 'desc',

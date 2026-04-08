@@ -74,6 +74,7 @@ export default function SettingsPage() {
     factoryDesc: 'Our main assembly hub ensuring rapid delivery and local parts support.',
     footerContactTitle: 'Performance',
     isAgentRegistrationEnabled: 'true',
+    isAgentPortalEnabled: 'true',
   });
 
   // Load settings on mount
@@ -478,10 +479,10 @@ export default function SettingsPage() {
                 <CardHeader className="border-b border-gray-100 pb-6 px-8 pt-8 bg-slate-50/50">
                   <CardTitle className="text-lg font-bold">Registration & Portal</CardTitle>
                 </CardHeader>
-                <CardContent className="p-8">
-                  <div className="flex items-center justify-between p-6 bg-deep-sky-blue/[0.03] rounded-2xl border border-deep-sky-blue/10">
+                <CardContent className="p-8 space-y-6">
+                  <div className="flex items-center justify-between p-6 bg-deep-sky-blue/[0.03] rounded-2xl border border-deep-sky-blue/10 transition-all hover:bg-deep-sky-blue/[0.05]">
                     <div className="space-y-1">
-                      <Label className="text-sm font-bold flex items-center gap-2 text-gray-900">
+                      <Label className="text-sm font-bold flex items-center gap-2 text-gray-900 group cursor-pointer">
                         <User className="w-4 h-4 text-deep-sky-blue" />
                         Enable Agent Registration
                       </Label>
@@ -490,6 +491,20 @@ export default function SettingsPage() {
                     <Switch 
                       checked={siteData.isAgentRegistrationEnabled === 'true'} 
                       onCheckedChange={(checked) => setSiteData({...siteData, isAgentRegistrationEnabled: String(checked)})}
+                    />
+                  </div>
+
+                  <div className="flex items-center justify-between p-6 bg-amber-500/[0.03] rounded-2xl border border-amber-500/10 transition-all hover:bg-amber-500/[0.05]">
+                    <div className="space-y-1">
+                      <Label className="text-sm font-bold flex items-center gap-2 text-gray-900">
+                        <ShieldCheck className="w-4 h-4 text-amber-500" />
+                        Enable Agent Portal
+                      </Label>
+                      <p className="text-xs text-gray-500 font-medium">Turn off access to the agent dashboard (e.g. for maintenance).</p>
+                    </div>
+                    <Switch 
+                      checked={siteData.isAgentPortalEnabled === 'true'} 
+                      onCheckedChange={(checked) => setSiteData({...siteData, isAgentPortalEnabled: String(checked)})}
                     />
                   </div>
                 </CardContent>

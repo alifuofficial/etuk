@@ -72,6 +72,7 @@ import {
   MessageSquare,
   Send,
   ShieldCheck,
+  ShieldOff,
 } from 'lucide-react';
 import * as XLSX from 'xlsx';
 import { jsPDF } from 'jspdf';
@@ -108,6 +109,7 @@ interface Agent {
   createdAt: string;
   reviewedAt: string | null;
   userId?: string | null;
+  user?: { id: string; isActive: boolean } | null;
   reviewer?: { name: string } | null;
 }
 
@@ -175,6 +177,9 @@ export default function AgentsPage() {
   // Portal Access state
   const [portalPassword, setPortalPassword] = useState('');
   const [portalLoading, setPortalLoading] = useState(false);
+  
+  // Bulk selection
+  const [selectedAgentIds, setSelectedAgentIds] = useState<string[]>([]);
 
   useEffect(() => {
     if (transferProductId) {
@@ -407,6 +412,55 @@ export default function AgentsPage() {
     }
   };
 
+  const toggleSelectAll = () => {
+    if (selectedAgentIds.length === filteredAgents.length && filteredAgents.length > 0) {
+      setSelectedAgentIds([]);
+    } else {
+      setSelectedAgentIds(filteredAgents.map(a => a.id));
+    }
+  };
+
+  const toggleSelectAgent = (id: string) => {
+    setSelectedAgentIds(prev => 
+      prev.includes(id) ? prev.filter(i => i !== id) : [...prev, id]
+    );
+  };
+
+  const handleBulkPortalAction = async (isActive: boolean) => {
+    if (selectedAgentIds.length === 0) return;
+    
+    setActionLoading(true);
+    try {
+      const res = await fetch('/api/admin/agents/bulk-portal', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          agentIds: selectedAgentIds,
+          isActive
+        })
+      });
+
+      if (res.ok) {
+        toast({
+          title: `Portals ${isActive ? 'activated' : 'deactivated'}`,
+          description: `Successfully updated ${selectedAgentIds.length} agents.`,
+        });
+        fetchAgents();
+        setSelectedAgentIds([]);
+      } else {
+        throw new Error('Bulk update failed');
+      }
+    } catch {
+      toast({
+        title: 'Error',
+        description: 'Failed to update portal access in bulk.',
+        variant: 'destructive'
+      });
+    } finally {
+      setActionLoading(false);
+    }
+  };
+
   const handleStatusUpdate = async (agentId: string, newStatus: string) => {
     setActionLoading(true);
     try {
@@ -540,25 +594,26 @@ export default function AgentsPage() {
       const res = await fetch(`/api/admin/agents/${editAgent.id}/portal-access`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ password: portalPassword }),
+        body: JSON.stringify({ 
+          password: portalPassword,
+          isActive: true // Always true when setting/updating password
+        })
       });
 
       if (res.ok) {
-        const data = await res.json();
         toast({
-          title: 'Success',
-          description: data.message,
+          title: 'Portal access updated',
+          description: `Access for ${editAgent.firstName} has been updated successfully.`,
         });
         setPortalPassword('');
         fetchAgents();
       } else {
-        const error = await res.json();
-        throw new Error(error.error || 'Failed to update portal access');
+        throw new Error('Update failed');
       }
     } catch (error: any) {
       toast({
         title: 'Error',
-        description: error.message,
+        description: error.message || 'Failed to update portal access.',
         variant: 'destructive',
       });
     } finally {
@@ -566,9 +621,43 @@ export default function AgentsPage() {
     }
   };
 
-  const handleUpdateAgent = async () => {
-    if (!editAgent) return;
+  const handleDeactivatePortal = async () => {
+    if (!editAgent?.id || !editAgent?.userId) return;
+    
+    setPortalLoading(true);
+    try {
+      const res = await fetch(`/api/admin/agents/${editAgent.id}/portal-access`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ 
+          isActive: false 
+        })
+      });
+
+      if (res.ok) {
+        toast({
+          title: 'Portal deactivated',
+          description: `Access for ${editAgent.firstName} has been disabled.`,
+        });
+        fetchAgents();
+      } else {
+        throw new Error('Deactivation failed');
+      }
+    } catch (error: any) {
+      toast({
+        title: 'Error',
+        description: error.message || 'Failed to deactivate portal.',
+        variant: 'destructive',
+      });
+    } finally {
+      setPortalLoading(false);
+    }
+  };
+
+  const handleUpdateAgent = async (e: React.FormEvent) => {
+    e.preventDefault();
     setActionLoading(true);
+
     try {
       const formData = new FormData();
       Object.entries(editAgent).forEach(([key, value]) => {
@@ -593,15 +682,13 @@ export default function AgentsPage() {
         });
         fetchAgents();
         setShowEditDialog(false);
-        setEditAgent(null);
       } else {
-        const errorData = await response.json();
-        throw new Error(errorData.error || 'Failed to update agent');
+        throw new Error('Failed to update agent');
       }
-    } catch (error: any) {
+    } catch {
       toast({
         title: 'Error',
-        description: error.message || 'Failed to update agent details.',
+        description: 'Failed to update agent. Check your connection.',
         variant: 'destructive',
       });
     } finally {
@@ -765,120 +852,164 @@ export default function AgentsPage() {
               <p className="text-gray-500 font-medium">No records found matching your search.</p>
             </div>
           ) : (
-            <div className="overflow-x-auto">
-              <Table>
-                <TableHeader className="bg-gray-50/50">
-                  <TableRow>
-                    <TableHead className="px-6 py-3 font-bold text-xs uppercase text-gray-600">Name</TableHead>
-                    <TableHead className="px-6 py-3 font-bold text-xs uppercase text-gray-600">Location</TableHead>
-                    <TableHead className="px-6 py-3 font-bold text-xs uppercase text-gray-600">Business</TableHead>
-                    <TableHead className="px-6 py-3 font-bold text-xs uppercase text-gray-600">Status</TableHead>
-                    <TableHead className="px-6 py-3 font-bold text-xs uppercase text-gray-600">Applied</TableHead>
-                    <TableHead className="px-6 py-3 text-right"></TableHead>
-                  </TableRow>
-                </TableHeader>
-                <TableBody>
-                  {paginatedAgents.map((agent) => (
-                    <TableRow key={agent.id} className="hover:bg-gray-50/50 transition-colors">
-                      <TableCell className="px-6 py-3">
-                        <div className="flex flex-col">
-                          <span className="font-bold text-gray-900">{agent.firstName} {agent.lastName}</span>
-                          <span className="text-xs text-gray-500">{agent.email}</span>
-                        </div>
-                      </TableCell>
-                      <TableCell className="px-6 py-3">
-                        <div className="flex items-center gap-2 text-sm text-gray-700">
-                          <MapPin className="w-3.5 h-3.5 text-gray-400" />
-                          <span>{agent.city}, {agent.region}</span>
-                        </div>
-                      </TableCell>
-                      <TableCell className="px-6 py-3">
-                        <div className="flex items-center gap-2 text-sm text-gray-700">
-                          <Building2 className="w-3.5 h-3.5 text-gray-400" />
-                          <span>{agent.businessName || 'Individual'}</span>
-                        </div>
-                      </TableCell>
-                      <TableCell className="px-6 py-3">
-                        <span className={`inline-flex items-center px-3 py-1 rounded-full text-xs font-bold border ${getStatusStyle(agent.status)}`}>
-                          {agent.status}
-                        </span>
-                      </TableCell>
-                      <TableCell className="px-6 py-3 text-sm text-gray-500">
-                        {formatDate(agent.createdAt)}
-                      </TableCell>
-                      <TableCell className="px-6 py-3 text-right">
-                        <div className="flex justify-end gap-2">
-                          <Button
-                            variant="ghost"
-                            size="sm"
-                            className="text-amber-600 hover:bg-amber-50 font-bold gap-2"
-                            onClick={() => {
-                              setSelectedAgent(agent);
-                              setShowInventoryDialog(true);
-                            }}
-                          >
-                            <Boxes className="w-4 h-4" />
-                            Units
-                          </Button>
-                          <Button
-                            variant="ghost"
-                            size="sm"
-                            className="text-purple-600 hover:bg-purple-50 font-bold gap-2"
-                            onClick={() => {
-                              setSmsAgent(agent);
-                              setSmsMessage('');
-                              setShowSmsDialog(true);
-                            }}
-                          >
-                            <MessageSquare className="w-4 h-4" />
-                            Notify
-                          </Button>
-                          {session?.user?.role === 'ADMIN' && (
+            <div className="flex flex-col">
+              {selectedAgentIds.length > 0 && (
+                <div className="px-6 py-4 bg-blue-50/50 border-b border-blue-100 flex items-center justify-between animate-in slide-in-from-top-2 duration-300">
+                  <div className="flex items-center gap-3">
+                    <div className="bg-deep-sky-blue text-white text-[10px] font-black px-2 py-0.5 rounded-full">
+                      {selectedAgentIds.length} SELECTED
+                    </div>
+                    <p className="text-xs font-bold text-gray-600">Apply portal actions to selected agents</p>
+                  </div>
+                  <div className="flex gap-2">
+                    <Button
+                      size="sm"
+                      onClick={() => handleBulkPortalAction(false)}
+                      disabled={actionLoading}
+                      className="h-8 bg-white text-red-600 hover:bg-red-50 border-red-100 font-bold text-[11px] gap-2 shadow-sm"
+                    >
+                      <ShieldOff className="w-3.5 h-3.5" />
+                      Disable Portal
+                    </Button>
+                    <Button
+                      size="sm"
+                      onClick={() => handleBulkPortalAction(true)}
+                      disabled={actionLoading}
+                      className="h-8 bg-gray-900 text-white hover:bg-black font-bold text-[11px] gap-2 shadow-sm"
+                    >
+                      <ShieldCheck className="w-3.5 h-3.5" />
+                      Enable Portal
+                    </Button>
+                  </div>
+                </div>
+              )}
+              <div className="overflow-x-auto">
+                <Table>
+                  <TableHeader className="bg-gray-50/50">
+                    <TableRow>
+                      <TableHead className="w-10 px-6 py-3">
+                        <Checkbox 
+                          checked={selectedAgentIds.length === filteredAgents.length && filteredAgents.length > 0}
+                          onCheckedChange={toggleSelectAll}
+                        />
+                      </TableHead>
+                      <TableHead className="px-6 py-3 font-bold text-xs uppercase text-gray-600">Name</TableHead>
+                      <TableHead className="px-6 py-3 font-bold text-xs uppercase text-gray-600">Location</TableHead>
+                      <TableHead className="px-6 py-3 font-bold text-xs uppercase text-gray-600">Business</TableHead>
+                      <TableHead className="px-6 py-3 font-bold text-xs uppercase text-gray-600">Status</TableHead>
+                      <TableHead className="px-6 py-3 font-bold text-xs uppercase text-gray-600">Applied</TableHead>
+                      <TableHead className="px-6 py-3 text-right"></TableHead>
+                    </TableRow>
+                  </TableHeader>
+                  <TableBody>
+                    {paginatedAgents.map((agent) => (
+                      <TableRow key={agent.id} className="hover:bg-gray-50/50 transition-colors">
+                        <TableCell className="px-6 py-3">
+                          <Checkbox 
+                            checked={selectedAgentIds.includes(agent.id)}
+                            onCheckedChange={() => toggleSelectAgent(agent.id)}
+                          />
+                        </TableCell>
+                        <TableCell className="px-6 py-3">
+                          <div className="flex flex-col">
+                            <span className="font-bold text-gray-900">{agent.firstName} {agent.lastName}</span>
+                            <span className="text-xs text-gray-500">{agent.email}</span>
+                          </div>
+                        </TableCell>
+                        <TableCell className="px-6 py-3">
+                          <div className="flex items-center gap-2 text-sm text-gray-700">
+                            <MapPin className="w-3.5 h-3.5 text-gray-400" />
+                            <span>{agent.city}, {agent.region}</span>
+                          </div>
+                        </TableCell>
+                        <TableCell className="px-6 py-3">
+                          <div className="flex items-center gap-2 text-sm text-gray-700">
+                            <Building2 className="w-3.5 h-3.5 text-gray-400" />
+                            <span>{agent.businessName || 'Individual'}</span>
+                          </div>
+                        </TableCell>
+                        <TableCell className="px-6 py-3">
+                          <span className={`inline-flex items-center px-3 py-1 rounded-full text-xs font-bold border ${getStatusStyle(agent.status)}`}>
+                            {agent.status}
+                          </span>
+                        </TableCell>
+                        <TableCell className="px-6 py-3 text-sm text-gray-500">
+                          {formatDate(agent.createdAt)}
+                        </TableCell>
+                        <TableCell className="px-6 py-3 text-right">
+                          <div className="flex justify-end gap-2">
                             <Button
                               variant="ghost"
                               size="sm"
-                              className="text-gray-600 hover:bg-gray-100 font-bold gap-2"
+                              className="text-amber-600 hover:bg-amber-50 font-bold gap-2"
                               onClick={() => {
-                                setEditAgent({ ...agent });
-                                setShowEditDialog(true);
-                                setCurrentTab('personal');
+                                setSelectedAgent(agent);
+                                setShowInventoryDialog(true);
                               }}
                             >
-                              <Edit className="w-4 h-4" />
-                              Edit
+                              <Boxes className="w-4 h-4" />
+                              Units
                             </Button>
-                          )}
-                          <Button
-                            variant="ghost"
-                            size="sm"
-                            className="text-deep-sky-blue hover:bg-gray-100 font-bold gap-2"
-                            onClick={() => {
-                              setSelectedAgent(agent);
-                              setReviewNotes(agent.reviewNotes || '');
-                              setPreviewOpen(false);
-                              setShowDialog(true);
-                            }}
-                          >
-                            <Eye className="w-4 h-4" />
-                            Review
-                          </Button>
-                          {session?.user?.role === 'ADMIN' && (
                             <Button
                               variant="ghost"
                               size="sm"
-                              className="text-red-500 hover:bg-red-50 hover:text-red-600 font-bold"
-                              onClick={() => handleDeleteAgent(agent.id)}
-                              disabled={actionLoading}
+                              className="text-purple-600 hover:bg-purple-50 font-bold gap-2"
+                              onClick={() => {
+                                setSmsAgent(agent);
+                                setSmsMessage('');
+                                setShowSmsDialog(true);
+                              }}
                             >
-                              <Trash2 className="w-4 h-4" />
+                              <MessageSquare className="w-4 h-4" />
+                              Notify
                             </Button>
-                          )}
-                        </div>
-                      </TableCell>
-                    </TableRow>
-                  ))}
-                </TableBody>
-              </Table>
+                            {session?.user?.role === 'ADMIN' && (
+                              <Button
+                                variant="ghost"
+                                size="sm"
+                                className="text-gray-600 hover:bg-gray-100 font-bold gap-2"
+                                onClick={() => {
+                                  setEditAgent({ ...agent });
+                                  setShowEditDialog(true);
+                                  setCurrentTab('personal');
+                                }}
+                              >
+                                <Edit className="w-4 h-4" />
+                                Edit
+                              </Button>
+                            )}
+                            <Button
+                              variant="ghost"
+                              size="sm"
+                              className="text-deep-sky-blue hover:bg-gray-100 font-bold gap-2"
+                              onClick={() => {
+                                setSelectedAgent(agent);
+                                setReviewNotes(agent.reviewNotes || '');
+                                setPreviewOpen(false);
+                                setShowDialog(true);
+                              }}
+                            >
+                              <Eye className="w-4 h-4" />
+                              Review
+                            </Button>
+                            {session?.user?.role === 'ADMIN' && (
+                              <Button
+                                variant="ghost"
+                                size="sm"
+                                className="text-red-500 hover:bg-red-50 hover:text-red-600 font-bold"
+                                onClick={() => handleDeleteAgent(agent.id)}
+                                disabled={actionLoading}
+                              >
+                                <Trash2 className="w-4 h-4" />
+                              </Button>
+                            )}
+                          </div>
+                        </TableCell>
+                      </TableRow>
+                    ))}
+                  </TableBody>
+                </Table>
+              </div>
             </div>
           )}
 
@@ -1497,10 +1628,12 @@ export default function AgentsPage() {
                       <Warehouse className="w-3.5 h-3.5 mr-2" />
                       Logistics & Location
                     </TabsTrigger>
-                    <TabsTrigger value="portal" className="data-[state=active]:bg-transparent data-[state=active]:text-deep-sky-blue data-[state=active]:shadow-none data-[state=active]:border-b-2 data-[state=active]:border-deep-sky-blue rounded-none h-full px-0 text-xs font-bold uppercase tracking-widest text-gray-400">
-                      <ShieldCheck className="w-3.5 h-3.5 mr-2" />
-                      Security & Portal
-                    </TabsTrigger>
+                    {editAgent.status === 'APPROVED' && (
+                      <TabsTrigger value="portal" className="data-[state=active]:bg-transparent data-[state=active]:text-deep-sky-blue data-[state=active]:shadow-none data-[state=active]:border-b-2 data-[state=active]:border-deep-sky-blue rounded-none h-full px-0 text-xs font-bold uppercase tracking-widest text-gray-400">
+                        <ShieldCheck className="w-3.5 h-3.5 mr-2" />
+                        Security & Portal
+                      </TabsTrigger>
+                    )}
                   </TabsList>
                 </div>
 
@@ -1794,13 +1927,12 @@ export default function AgentsPage() {
                               </div>
                               <Button
                                 onClick={handleUpdatePortalAccess}
-                                disabled={portalLoading || !portalPassword}
-                                className="h-11 px-6 bg-gray-900 text-white hover:bg-black font-bold rounded-lg shadow-lg shadow-gray-200 transition-all"
+                            className="h-11 px-6 bg-gray-900 text-white hover:bg-black font-bold rounded-lg shadow-lg shadow-gray-200 transition-all"
                               >
                                 {portalLoading ? (
                                   <Loader2 className="w-4 h-4 animate-spin" />
                                 ) : (
-                                  editAgent.userId ? 'Update' : 'Activate'
+                                  editAgent.userId ? 'Update Password' : 'Activate Portal'
                                 )}
                               </Button>
                             </div>
@@ -1809,6 +1941,20 @@ export default function AgentsPage() {
                             </p>
                           </div>
                         </div>
+
+                        {editAgent.userId && (
+                          <div className="pt-4 flex justify-end">
+                            <Button
+                              variant="outline"
+                              onClick={handleDeactivatePortal}
+                              disabled={portalLoading}
+                              className="text-red-600 border-red-100 hover:bg-red-50 hover:text-red-700 font-bold gap-2"
+                            >
+                              <ShieldOff className="w-4 h-4" />
+                              Deactivate Portal Access
+                            </Button>
+                          </div>
+                        )}
                       </div>
 
                       {editAgent.userId && (

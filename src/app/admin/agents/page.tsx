@@ -73,6 +73,18 @@ import {
   Send,
   ShieldCheck,
   ShieldOff,
+  Lock,
+  Inbox,
+  CheckSquare,
+  AlertCircle,
+  X,
+  User,
+  Shield,
+  Briefcase,
+  Truck,
+  Key,
+  Package,
+  UserCog
 } from 'lucide-react';
 import * as XLSX from 'xlsx';
 import { jsPDF } from 'jspdf';
@@ -1521,219 +1533,441 @@ export default function AgentsPage() {
               </TabsContent>
             </div>
 
-            <DialogFooter className="p-8 bg-gray-50 border-t border-gray-100 flex items-center justify-between">
-              <div className="text-[10px] font-bold text-gray-400 uppercase tracking-[0.2em]">
-                {currentTab === 'personal' ? 'Step 1 of 3: Identity' : currentTab === 'business' ? 'Step 2 of 3: Profile' : 'Step 3 of 3: Fulfillment'}
+            <DialogFooter className="p-10 bg-slate-50 border-t border-slate-100 flex items-center justify-between shrink-0">
+              <div className="flex flex-col">
+                <span className="text-[10px] font-black text-slate-400 uppercase tracking-[0.3em]">Registration Step</span>
+                <p className="text-sm font-black text-slate-900 uppercase tracking-tight mt-1">
+                  {currentTab === 'personal' ? '01 · Basic Profile' : 
+                   currentTab === 'business' ? '02 · Commercial Info' : 
+                   '03 · Geo-Logistics'}
+                </p>
               </div>
-              <div className="flex gap-3">
-                <Button
-                  variant="ghost"
-                  onClick={() => {
-                    if (currentTab === 'personal') setShowAddDialog(false);
-                    else if (currentTab === 'business') setCurrentTab('personal');
-                    else setCurrentTab('business');
-                  }}
-                  className="h-12 font-bold text-gray-500 hover:bg-white"
-                >
-                  {currentTab === 'personal' ? 'Cancel' : (
-                    <>
-                      <ArrowLeft className="w-4 h-4 mr-2" />
-                      Back
-                    </>
-                  )}
-                </Button>
-                
-                {currentTab !== 'logistics' ? (
+              <div className="flex gap-4">
                   <Button
+                    variant="ghost"
                     onClick={() => {
-                      if (currentTab === 'personal') setCurrentTab('business');
+                      if (currentTab === 'personal') setShowAddDialog(false);
+                      else if (currentTab === 'business') setCurrentTab('personal');
+                      else if (currentTab === 'logistics') setCurrentTab('business');
                       else setCurrentTab('logistics');
                     }}
-                    disabled={currentTab === 'personal' && (!newAgent.firstName || !newAgent.lastName || !newAgent.email || !newAgent.phone)}
-                    className="h-12 px-10 bg-deep-sky-blue text-white hover:bg-deep-sky-blue/90 font-bold rounded-xl shadow-lg shadow-blue-100 transition-all flex items-center gap-2"
+                    className="h-14 px-8 border-slate-200 text-slate-600 font-black rounded-2xl hover:bg-white hover:text-slate-900 transition-all active:scale-95 uppercase text-xs tracking-widest"
                   >
-                    Next Step
-                    <ArrowRight className="w-4 h-4" />
-                  </Button>
-                ) : (
-                  <Button
-                    onClick={handleAddAgent}
-                    disabled={actionLoading || !newAgent.region || !newAgent.city}
-                    className="h-12 px-10 bg-gray-900 text-white hover:bg-black font-bold rounded-xl shadow-lg shadow-gray-200 transition-all flex items-center gap-2"
-                  >
-                    {actionLoading ? (
+                    {currentTab === 'personal' ? 'Cancel' : (
                       <>
-                        <Loader2 className="w-4 h-4 animate-spin" />
-                        Registering...
+                        <ArrowLeft className="w-4 h-4 mr-2" />
+                        Previous
                       </>
-                    ) : (
-                      'Complete Onboarding'
                     )}
                   </Button>
-                )}
-                  <div className="space-y-3">
-                    <Label className="text-[11px] font-black text-slate-500 uppercase tracking-widest ml-1">Legal First Name</Label>
-                    <Input
-                      value={editAgent.firstName}
-                      onChange={(e) => setEditAgent({ ...editAgent, firstName: e.target.value })}
-                      className="h-14 bg-white border-slate-200 rounded-2xl shadow-sm focus:ring-amber-500/20 focus:border-amber-500 transition-all text-slate-900 font-medium px-5"
-                      placeholder="First Name"
-                    />
-                  </div>
-                  <div className="space-y-3">
-                    <Label className="text-[11px] font-black text-slate-500 uppercase tracking-widest ml-1">Legal Last Name</Label>
-                    <Input
-                      value={editAgent.lastName}
-                      onChange={(e) => setEditAgent({ ...editAgent, lastName: e.target.value })}
-                      className="h-14 bg-white border-slate-200 rounded-2xl shadow-sm focus:ring-amber-500/20 focus:border-amber-500 transition-all text-slate-900 font-medium px-5"
-                      placeholder="Last Name"
-                    />
-                  </div>
+                  
+                  {currentTab !== 'logistics' ? (
+                    <Button
+                      onClick={() => {
+                        if (currentTab === 'personal') setCurrentTab('business');
+                        else setCurrentTab('logistics');
+                      }}
+                      disabled={currentTab === 'personal' && (!newAgent.firstName || !newAgent.lastName || !newAgent.email || !newAgent.phone)}
+                      className="h-14 px-10 bg-amber-500 text-slate-950 hover:bg-amber-400 font-black rounded-2xl shadow-lg shadow-amber-500/20 transition-all active:scale-95 uppercase text-xs tracking-widest border-none"
+                    >
+                      Continue
+                      <ArrowRight className="w-4 h-4 ml-2" />
+                    </Button>
+                  ) : (
+                    <Button
+                      onClick={handleAddAgent}
+                      disabled={actionLoading || !newAgent.region || !newAgent.city}
+                      className="h-14 px-12 bg-slate-900 text-white hover:bg-slate-800 font-black rounded-2xl shadow-xl shadow-slate-900/20 transition-all active:scale-95 uppercase text-xs tracking-widest border-none"
+                    >
+                      {actionLoading ? (
+                        <>
+                          <Loader2 className="w-5 h-5 mr-2 animate-spin" />
+                          Registering...
+                        </>
+                      ) : (
+                        'Complete Onboarding'
+                      )}
+                    </Button>
+                  )}
                 </div>
+              </DialogFooter>
+            </Tabs>
+          </DialogContent>
+        </Dialog>
 
-                <div className="space-y-3">
-                  <Label className="text-[11px] font-black text-slate-500 uppercase tracking-widest ml-1">Primary Email Communication</Label>
-                  <Input
-                    type="email"
-                    value={editAgent.email}
-                    onChange={(e) => setEditAgent({ ...editAgent, email: e.target.value })}
-                    className="h-14 bg-white border-slate-200 rounded-2xl shadow-sm focus:ring-amber-500/20 focus:border-amber-500 transition-all text-slate-900 font-medium px-5"
-                    placeholder="Email Address"
-                  />
-                </div>
+      {/* Agent Edit Dialog */}
 
-                <div className="grid grid-cols-2 gap-8">
-                  <div className="space-y-3">
-                    <Label className="text-[11px] font-black text-slate-500 uppercase tracking-widest ml-1">Verified Phone</Label>
-                    <Input
-                      value={editAgent.phone}
-                      onChange={(e) => setEditAgent({ ...editAgent, phone: e.target.value })}
-                      className="h-14 bg-white border-slate-200 rounded-2xl shadow-sm focus:ring-amber-500/20 focus:border-amber-500 transition-all text-slate-900 font-medium px-5 font-mono"
-                      placeholder="+251 ..."
-                    />
-                  </div>
-                  <div className="space-y-3">
-                    <Label className="text-[11px] font-black text-slate-500 uppercase tracking-widest ml-1">Secondary Contact</Label>
-                    <Input
-                      value={editAgent.alternativePhone || ''}
-                      onChange={(e) => setEditAgent({ ...editAgent, alternativePhone: e.target.value })}
-                      className="h-14 bg-white border-slate-200 rounded-2xl shadow-sm focus:ring-amber-500/20 focus:border-amber-500 transition-all text-slate-900 font-medium px-5 font-mono"
-                      placeholder="Optional"
-                    />
-                  </div>
-                </div>
-
-                <div className="space-y-3">
-                  <Label className="text-[11px] font-black text-slate-500 uppercase tracking-widest ml-1">Background & Experience</Label>
-                  <Textarea
-                    value={editAgent.experience || ''}
-                    onChange={(e) => setEditAgent({ ...editAgent, experience: e.target.value })}
-                    className="bg-white border-slate-200 rounded-2xl shadow-sm focus:ring-amber-500/20 focus:border-amber-500 transition-all text-slate-900 font-medium p-5 resize-none h-32 leading-relaxed"
-                    placeholder="Describe professional background..."
-                  />
-                </div>
-              </TabsContent>
-
-              <TabsContent value="business" className="p-10 m-0 space-y-8 animate-in fade-in slide-in-from-bottom-2 duration-500">
-                <div className="grid grid-cols-2 gap-8">
-                  <div className="space-y-3">
-                    <Label className="text-[11px] font-black text-slate-500 uppercase tracking-widest ml-1">Registered Business Name</Label>
-                    <Input
-                      value={editAgent.businessName || ''}
-                      onChange={(e) => setEditAgent({ ...editAgent, businessName: e.target.value })}
-                      className="h-14 bg-white border-slate-200 rounded-2xl shadow-sm"
-                      placeholder="LLC or Trade Name"
-                    />
-                  </div>
-                  <div className="space-y-3">
-                    <Label className="text-[11px] font-black text-slate-500 uppercase tracking-widest ml-1">Industry / Category</Label>
-                    <Input
-                      value={editAgent.businessType || ''}
-                      onChange={(e) => setEditAgent({ ...editAgent, businessType: e.target.value })}
-                      className="h-14 bg-white border-slate-200 rounded-2xl shadow-sm"
-                      placeholder="e.g. Distribution"
-                    />
-                  </div>
-                </div>
-
-                <div className="grid grid-cols-2 gap-8">
-                  <div className="space-y-3">
-                    <Label className="text-[11px] font-black text-slate-500 uppercase tracking-widest ml-1">TIN Identification</Label>
-                    <Input
-                      value={editAgent.tinNumber || ''}
-                      onChange={(e) => setEditAgent({ ...editAgent, tinNumber: e.target.value })}
-                      className="h-14 bg-white border-slate-200 rounded-2xl shadow-sm"
-                      placeholder="Tax Number"
-                    />
-                  </div>
-                  <div className="space-y-3">
-                    <Label className="text-[11px] font-black text-slate-500 uppercase tracking-widest ml-1">Working Capital (ETB)</Label>
-                    <Input
-                      value={editAgent.estimatedCapital || ''}
-                      onChange={(e) => setEditAgent({ ...editAgent, estimatedCapital: e.target.value })}
-                      className="h-14 bg-white border-slate-200 rounded-2xl shadow-sm"
-                      placeholder="e.g. 1,000,000"
-                    />
-                  </div>
-                </div>
-
-                <div className="grid grid-cols-2 gap-8">
-                  <div className="space-y-3">
-                    <Label className="text-[11px] font-black text-slate-500 uppercase tracking-widest ml-1">Banking Partner</Label>
-                    <Input
-                      value={editAgent.bankName || ''}
-                      onChange={(e) => setEditAgent({ ...editAgent, bankName: e.target.value })}
-                      className="h-14 bg-white border-slate-200 rounded-2xl shadow-sm"
-                    />
-                  </div>
-                  <div className="space-y-3">
-                    <Label className="text-[11px] font-black text-slate-500 uppercase tracking-widest ml-1">Settlement Account</Label>
-                    <Input
-                      value={editAgent.accountNumber || ''}
-                      onChange={(e) => setEditAgent({ ...editAgent, accountNumber: e.target.value })}
-                      className="h-14 bg-white border-slate-200 rounded-2xl shadow-sm"
-                    />
-                  </div>
-                </div>
-
-                <div className="p-8 bg-amber-50/50 rounded-[2rem] border border-amber-100 flex items-center justify-between group hover:bg-amber-50 transition-all duration-300">
+      {showEditDialog && editAgent && (
+        <Dialog open={showEditDialog} onOpenChange={setShowEditDialog}>
+          <DialogContent className="max-w-5xl p-0 overflow-hidden rounded-[3rem] shadow-2xl bg-white border-none max-h-[92vh] flex flex-col">
+            <Tabs defaultValue="personal" onValueChange={(v) => setCurrentTab(v as any)} value={currentTab} className="w-full h-full flex flex-col">
+              {/* Premium Header Section */}
+              <div className="pt-10 px-10 bg-slate-950 shrink-0">
+                <div className="flex items-center justify-between mb-8">
                   <div className="flex items-center gap-6">
-                    <div className="h-14 w-14 rounded-2xl bg-amber-500/10 flex items-center justify-center border border-amber-500/20 group-hover:scale-110 transition-transform">
-                      <FileText className="w-6 h-6 text-amber-600" />
+                    <div className="h-20 w-20 rounded-[2rem] bg-gradient-to-br from-amber-400 to-amber-600 flex items-center justify-center shadow-2xl shadow-amber-500/20 group-hover:scale-105 transition-transform duration-500">
+                      <UserCog className="w-10 h-10 text-slate-950" />
                     </div>
                     <div>
+                      <div className="flex items-center gap-3">
+                        <h2 className="text-3xl font-black text-white tracking-tighter uppercase">Edit Master Agent</h2>
+                        <span className={`px-4 py-1.5 rounded-full text-[10px] font-black uppercase tracking-widest ${
+                          editAgent.status === 'APPROVED' ? 'bg-emerald-500/10 text-emerald-400 border border-emerald-500/20' : 
+                          'bg-amber-500/10 text-amber-500 border border-amber-500/20'
+                        }`}>
+                          {editAgent.status}
+                        </span>
+                      </div>
+                      <p className="text-slate-400 font-bold uppercase tracking-[0.2em] text-xs mt-2 flex items-center gap-2">
+                        <Shield className="w-3 h-3 text-amber-500" />
+                        SECURE IDENTITY MANAGEMENT · SYSTEM ID: {editAgent.id.slice(0, 8)}
+                      </p>
+                    </div>
+                  </div>
+                  <Button 
+                    variant="ghost" 
+                    size="icon" 
+                    onClick={() => setShowEditDialog(false)}
+                    className="h-14 w-14 rounded-2xl hover:bg-white/10 text-slate-400 transition-all"
+                  >
+                    <X className="w-8 h-8" />
+                  </Button>
+                </div>
+
+                {/* Deluxe Tabs Navigation */}
+                <TabsList className="bg-transparent h-auto p-0 flex gap-10">
+                  {[
+                    { id: 'personal', label: 'Personal', icon: User },
+                    { id: 'business', label: 'Business', icon: Briefcase },
+                    { id: 'logistics', label: 'Logistics', icon: Truck },
+                    ...(editAgent.status === 'APPROVED' ? [{ id: 'portal', label: 'Security & Portal', icon: Lock }] : [])
+                  ].map((tab) => (
+                    <TabsTrigger
+                      key={tab.id}
+                      value={tab.id}
+                      className="group relative pb-6 px-0 bg-transparent data-[state=active]:bg-transparent transition-all border-none"
+                    >
+                      <div className="flex items-center gap-3">
+                        <div className="h-10 w-10 rounded-xl bg-slate-900 flex items-center justify-center group-hover:bg-slate-800 group-data-[state=active]:bg-amber-500 transition-all">
+                          <tab.icon className="w-5 h-5 text-slate-400 group-data-[state=active]:text-slate-950" />
+                        </div>
+                        <span className="text-sm font-black uppercase tracking-widest text-slate-500 group-data-[state=active]:text-white transition-colors">
+                          {tab.label}
+                        </span>
+                      </div>
+                      <div className="absolute bottom-0 left-0 right-0 h-1 rounded-full bg-amber-500 scale-x-0 group-data-[state=active]:scale-x-100 transition-transform duration-500 shadow-[0_0_15px_rgba(245,158,11,0.5)]" />
+                    </TabsTrigger>
+                  ))}
+                </TabsList>
+              </div>
+
+              <div className="flex-1 overflow-y-auto">
+                <TabsContent value="personal" className="p-10 m-0 animate-in fade-in slide-in-from-bottom-2 duration-500">
+                  <div className="space-y-8">
+                    <div className="grid grid-cols-2 gap-8">
+                      <div className="space-y-3">
+                        <Label className="text-[11px] font-black text-slate-500 uppercase tracking-widest ml-1">Legal First Name</Label>
+                        <Input
+                          value={editAgent.firstName}
+                          onChange={(e) => setEditAgent({ ...editAgent, firstName: e.target.value })}
+                          className="h-14 bg-white border-slate-200 rounded-2xl shadow-sm focus:ring-amber-500/20 focus:border-amber-500 transition-all text-slate-900 font-medium px-5"
+                          placeholder="First Name"
+                        />
+                      </div>
+                      <div className="space-y-3">
+                        <Label className="text-[11px] font-black text-slate-500 uppercase tracking-widest ml-1">Legal Last Name</Label>
+                        <Input
+                          value={editAgent.lastName}
+                          onChange={(e) => setEditAgent({ ...editAgent, lastName: e.target.value })}
+                          className="h-14 bg-white border-slate-200 rounded-2xl shadow-sm focus:ring-amber-500/20 focus:border-amber-500 transition-all text-slate-900 font-medium px-5"
+                          placeholder="Last Name"
+                        />
+                      </div>
+                    </div>
+
+                    <div className="space-y-3">
+                      <Label className="text-[11px] font-black text-slate-500 uppercase tracking-widest ml-1">Primary Email Communication</Label>
+                      <Input
+                        type="email"
+                        value={editAgent.email}
+                        onChange={(e) => setEditAgent({ ...editAgent, email: e.target.value })}
+                        className="h-14 bg-white border-slate-200 rounded-2xl shadow-sm focus:ring-amber-500/20 focus:border-amber-500 transition-all text-slate-900 font-medium px-5"
+                        placeholder="Email Address"
+                      />
+                    </div>
+
+                    <div className="grid grid-cols-2 gap-8">
+                      <div className="space-y-3">
+                        <Label className="text-[11px] font-black text-slate-500 uppercase tracking-widest ml-1">Verified Phone</Label>
+                        <Input
+                          value={editAgent.phone}
+                          onChange={(e) => setEditAgent({ ...editAgent, phone: e.target.value })}
+                          className="h-14 bg-white border-slate-200 rounded-2xl shadow-sm focus:ring-amber-500/20 focus:border-amber-500 transition-all text-slate-900 font-medium px-5 font-mono"
+                          placeholder="+251 ..."
+                        />
+                      </div>
+                      <div className="space-y-3">
+                        <Label className="text-[11px] font-black text-slate-500 uppercase tracking-widest ml-1">Secondary Contact</Label>
+                        <Input
+                          value={editAgent.alternativePhone || ''}
+                          onChange={(e) => setEditAgent({ ...editAgent, alternativePhone: e.target.value })}
+                          className="h-14 bg-white border-slate-200 rounded-2xl shadow-sm focus:ring-amber-500/20 focus:border-amber-500 transition-all text-slate-900 font-medium px-5 font-mono"
+                          placeholder="Optional"
+                        />
+                      </div>
+                    </div>
+
+                    <div className="space-y-3">
+                      <Label className="text-[11px] font-black text-slate-500 uppercase tracking-widest ml-1">Background & Experience</Label>
+                      <Textarea
+                        value={editAgent.experience || ''}
+                        onChange={(e) => setEditAgent({ ...editAgent, experience: e.target.value })}
+                        className="bg-white border-slate-200 rounded-2xl shadow-sm focus:ring-amber-500/20 focus:border-amber-500 transition-all text-slate-900 font-medium p-5 resize-none h-32 leading-relaxed"
+                        placeholder="Describe professional background..."
+                      />
+                    </div>
+                  </div>
+                </TabsContent>
+
+                <TabsContent value="business" className="p-10 m-0 space-y-8 animate-in fade-in slide-in-from-bottom-2 duration-500">
+                  <div className="grid grid-cols-2 gap-8">
+                    <div className="space-y-3">
+                      <Label className="text-[11px] font-black text-slate-500 uppercase tracking-widest ml-1">Registered Business Name</Label>
+                      <Input
+                        value={editAgent.businessName || ''}
+                        onChange={(e) => setEditAgent({ ...editAgent, businessName: e.target.value })}
+                        className="h-14 bg-white border-slate-200 rounded-2xl shadow-sm"
+                        placeholder="LLC or Trade Name"
+                      />
+                    </div>
+                    <div className="space-y-3">
+                      <Label className="text-[11px] font-black text-slate-500 uppercase tracking-widest ml-1">Industry / Category</Label>
+                      <Input
+                        value={editAgent.businessType || ''}
+                        onChange={(e) => setEditAgent({ ...editAgent, businessType: e.target.value })}
+                        className="h-14 bg-white border-slate-200 rounded-2xl shadow-sm"
+                        placeholder="e.g. Distribution"
+                      />
+                    </div>
+                  </div>
+
+                  <div className="grid grid-cols-2 gap-8">
+                    <div className="space-y-3">
+                      <Label className="text-[11px] font-black text-slate-500 uppercase tracking-widest ml-1">TIN Identification</Label>
+                      <Input
+                        value={editAgent.tinNumber || ''}
+                        onChange={(e) => setEditAgent({ ...editAgent, tinNumber: e.target.value })}
+                        className="h-14 bg-white border-slate-200 rounded-2xl shadow-sm"
+                        placeholder="Tax Number"
+                      />
+                    </div>
+                    <div className="space-y-3">
+                      <Label className="text-[11px] font-black text-slate-500 uppercase tracking-widest ml-1">Working Capital (ETB)</Label>
+                      <Input
+                        value={editAgent.estimatedCapital || ''}
+                        onChange={(e) => setEditAgent({ ...editAgent, estimatedCapital: e.target.value })}
+                        className="h-14 bg-white border-slate-200 rounded-2xl shadow-sm"
+                        placeholder="e.g. 1,000,000"
+                      />
+                    </div>
+                  </div>
+
+                  <div className="grid grid-cols-2 gap-8">
+                    <div className="space-y-3">
+                      <Label className="text-[11px] font-black text-slate-500 uppercase tracking-widest ml-1">Banking Partner</Label>
+                      <Input
+                        value={editAgent.bankName || ''}
+                        onChange={(e) => setEditAgent({ ...editAgent, bankName: e.target.value })}
+                        className="h-14 bg-white border-slate-200 rounded-2xl shadow-sm"
+                      />
+                    </div>
+                    <div className="space-y-3">
+                      <Label className="text-[11px] font-black text-slate-500 uppercase tracking-widest ml-1">Settlement Account</Label>
+                      <Input
+                        value={editAgent.accountNumber || ''}
+                        onChange={(e) => setEditAgent({ ...editAgent, accountNumber: e.target.value })}
+                        className="h-14 bg-white border-slate-200 rounded-2xl shadow-sm"
+                      />
+                    </div>
+                  </div>
+
+                  <div className="p-8 bg-amber-50/50 rounded-[2rem] border border-amber-100 flex items-center justify-between group hover:bg-amber-50 transition-all duration-300">
+                    <div className="flex items-center gap-6">
+                      <div className="h-14 w-14 rounded-2xl bg-amber-500/10 flex items-center justify-center border border-amber-500/20 group-hover:scale-110 transition-transform">
+                        <FileText className="w-6 h-6 text-amber-600" />
+                      </div>
+                      <div>
+                        <p className="text-sm font-black text-slate-900 leading-none">Business License Document</p>
+                        <p className="text-[10px] text-slate-500 font-bold uppercase tracking-wider mt-1.5 leading-none">Verification Status: Verified</p>
+                      </div>
+                    </div>
+                    {editAgent.tradeLicense ? (
+                      <Button 
+                        variant="outline" 
+                        size="sm" 
+                        className="h-11 px-6 rounded-xl border-amber-200 text-amber-700 font-bold hover:bg-amber-100 transition-all"
+                        onClick={() => window.open(editAgent.tradeLicense!, '_blank')}
+                      >
+                        Preview License
+                      </Button>
+                    ) : (
+                      <span className="text-xs font-bold text-slate-400 italic">No document uploaded</span>
+                    )}
+                  </div>
+                </TabsContent>
+
+                <TabsContent value="logistics" className="p-10 m-0 space-y-10 animate-in fade-in slide-in-from-bottom-2 duration-500">
+                  <div className="bg-slate-50 p-6 rounded-[2rem] border border-slate-100 flex items-center justify-between">
+                    <div className="space-y-1">
+                      <Label className="text-xs font-black text-slate-900 uppercase">Warehouse Facility</Label>
+                      <p className="text-[10px] text-slate-500 font-medium uppercase tracking-wider">Operational Storage Unit</p>
+                    </div>
+                    <div 
+                      onClick={() => setEditAgent({ ...editAgent, hasWarehouse: !editAgent.hasWarehouse })}
+                      className={`w-16 h-8 rounded-full p-1 cursor-pointer transition-all duration-300 ${editAgent.hasWarehouse ? 'bg-amber-500' : 'bg-slate-300'}`}
+                    >
+                      <div className={`w-6 h-6 bg-white rounded-full transition-all duration-300 transform ${editAgent.hasWarehouse ? 'translate-x-8' : 'translate-x-0'} shadow-sm`} />
+                    </div>
+                  </div>
+
+                  {editAgent.hasWarehouse && (
+                    <div className="grid grid-cols-2 gap-8 animate-in fade-in slide-in-from-top-4 duration-500">
+                      <div className="space-y-3">
+                        <Label className="text-[11px] font-black text-slate-500 uppercase tracking-widest ml-1">Warehouse Size (m²)</Label>
+                        <Input
+                          value={editAgent.warehouseSize || ''}
+                          onChange={(e) => setEditAgent({ ...editAgent, warehouseSize: e.target.value })}
+                          className="h-14 bg-white border-slate-200 rounded-2xl shadow-sm"
+                          placeholder="e.g. 100"
+                        />
+                      </div>
+                      <div className="space-y-3">
+                        <Label className="text-[11px] font-black text-slate-500 uppercase tracking-widest ml-1">On-site Staff Count</Label>
+                        <Input
+                          type="number"
+                          value={editAgent.staffCount || 0}
+                          onChange={(e) => setEditAgent({ ...editAgent, staffCount: parseInt(e.target.value) || 0 })}
+                          className="h-14 bg-white border-slate-200 rounded-2xl shadow-sm"
+                        />
+                      </div>
+                    </div>
+                  )}
+
+                  <div className="grid grid-cols-2 gap-8">
+                    <div className="space-y-3">
+                      <Label className="text-[11px] font-black text-slate-500 uppercase tracking-widest ml-1">Administrative Region</Label>
+                      <Select 
+                        value={editAgent.region} 
+                        onValueChange={(v) => setEditAgent({ ...editAgent, region: v, city: '' })}
+                      >
+                        <SelectTrigger className="h-14 bg-white border-slate-200 rounded-2xl shadow-sm">
+                          <SelectValue placeholder="Select" />
+                        </SelectTrigger>
+                        <SelectContent className="bg-white">
+                          {regions.map((reg) => (
+                            <SelectItem key={reg.id} value={reg.name}>{reg.name}</SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
+                    </div>
+                    <div className="space-y-3">
+                      <Label className="text-[11px] font-black text-slate-500 uppercase tracking-widest ml-1">Operational City</Label>
+                      <Select 
+                        value={editAgent.city} 
+                        onValueChange={(v) => setEditAgent({ ...editAgent, city: v })}
+                        disabled={!editAgent.region}
+                      >
+                        <SelectTrigger className="h-14 bg-white border-slate-200 rounded-2xl shadow-sm">
+                          <SelectValue placeholder="Select" />
+                        </SelectTrigger>
+                        <SelectContent className="bg-white">
+                          {regions
+                            .find((r) => r.name === editAgent.region)
+                            ?.cities?.map((city) => (
+                              <SelectItem key={city.id} value={city.name}>{city.name}</SelectItem>
+                            ))}
+                        </SelectContent>
+                      </Select>
+                    </div>
+                  </div>
+
+                  <div className="grid grid-cols-2 gap-8">
+                    <div className="space-y-3">
+                      <Label className="text-[11px] font-black text-slate-500 uppercase tracking-widest ml-1">Woreda / District</Label>
+                      <Input
+                        value={editAgent.woreda || ''}
+                        onChange={(e) => setEditAgent({ ...editAgent, woreda: e.target.value })}
+                        className="h-14 bg-white border-slate-200 rounded-2xl shadow-sm"
+                      />
+                    </div>
+                    <div className="space-y-3">
+                      <Label className="text-[11px] font-black text-slate-500 uppercase tracking-widest ml-1">Kebele / Locality</Label>
+                      <Input
+                        value={editAgent.kebele || ''}
+                        onChange={(e) => setEditAgent({ ...editAgent, kebele: e.target.value })}
+                        className="h-14 bg-white border-slate-200 rounded-2xl shadow-sm"
+                      />
+                    </div>
+                  </div>
+                  
+                  <div className="space-y-3">
+                    <Label className="text-[11px] font-black text-slate-500 uppercase tracking-widest ml-1">Logistics Center / Exact Address</Label>
+                    <Input
+                      value={editAgent.address || ''}
+                      onChange={(e) => setEditAgent({ ...editAgent, address: e.target.value })}
+                      className="h-14 bg-white border-slate-200 rounded-2xl shadow-sm"
+                    />
+                  </div>
+                </TabsContent>
+
+                <TabsContent value="portal" className="p-10 m-0 space-y-8 animate-in fade-in slide-in-from-bottom-2 duration-500">
+                  <div className="space-y-8">
+                    <div className="p-8 bg-slate-900 rounded-[2rem] border border-slate-800 shadow-2xl relative overflow-hidden group">
+                      <div className="absolute top-0 right-0 p-8 opacity-10 group-hover:opacity-20 transition-opacity">
+                        <Lock className="w-24 h-24 text-white" />
+                      </div>
+                      
+                      <div className="relative z-10 space-y-6">
+                        <div className="flex items-center gap-4">
+                          <div className="h-12 w-12 rounded-xl bg-blue-500/20 flex items-center justify-center border border-blue-500/30">
+                            <ShieldCheck className="w-6 h-6 text-blue-400" />
+                          </div>
+                          <div>
+                            <h3 className="text-lg font-black text-white">Security & Portal Control</h3>
+                            <p className="text-xs text-slate-400 font-bold uppercase tracking-wider">Manage access credentials & permissions</p>
                           </div>
                         </div>
 
-                        <div className="pt-4 space-y-4 border-t border-slate-200/60">
-                          <div className="space-y-2">
-                            <Label className="text-xs font-bold text-gray-700 uppercase tracking-wider">
-                              {editAgent.userId ? 'Reset Portal Password' : 'Set Initial Password'}
+                        <div className="pt-6 space-y-6 border-t border-slate-800">
+                          <div className="space-y-4">
+                            <Label className="text-[11px] font-black text-slate-500 uppercase tracking-widest ml-1">
+                              {editAgent.userId ? 'Reset System Password' : 'Initialize Portal Password'}
                             </Label>
-                            <div className="flex gap-3">
+                            <div className="flex gap-4">
                               <div className="relative flex-1">
-                                <ShieldCheck className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
+                                <Key className="absolute left-5 top-1/2 -translate-y-1/2 w-5 h-5 text-slate-500" />
                                 <Input
                                   type="password"
                                   value={portalPassword}
                                   onChange={(e) => setPortalPassword(e.target.value)}
-                                  placeholder="Minimum 6 characters"
-                                  className="h-11 bg-white border-gray-200 rounded-lg pl-10"
+                                  placeholder="Min. 8 characters highly recommended"
+                                  className="h-14 bg-slate-950 border-slate-800 rounded-2xl pl-14 text-white focus:ring-blue-500/20 focus:border-blue-500 transition-all font-mono"
                                 />
                               </div>
                               <Button
                                 onClick={handleUpdatePortalAccess}
-                            className="h-11 px-6 bg-gray-900 text-white hover:bg-black font-bold rounded-lg shadow-lg shadow-gray-200 transition-all"
+                                disabled={portalLoading}
+                                className="h-14 px-8 bg-blue-600 text-white hover:bg-blue-700 font-black rounded-2xl shadow-lg shadow-blue-900/20 transition-all active:scale-95"
                               >
                                 {portalLoading ? (
-                                  <Loader2 className="w-4 h-4 animate-spin" />
+                                  <Loader2 className="w-5 h-5 animate-spin" />
                                 ) : (
-                                  editAgent.userId ? 'Update Password' : 'Activate Portal'
+                                  editAgent.userId ? 'Update Password' : 'Grant Portal Access'
                                 )}
                               </Button>
                             </div>
-                            <p className="text-[10px] text-gray-400 font-medium italic">
-                                The agent will log in using: <span className="font-bold text-gray-600">{editAgent.email}</span>
+                            <p className="text-[10px] text-slate-500 font-bold uppercase tracking-widest italic ml-1">
+                              System Login ID: <span className="text-blue-400 underline lowercase">{editAgent.email}</span>
                             </p>
                           </div>
                         </div>
@@ -1741,203 +1975,174 @@ export default function AgentsPage() {
                         {editAgent.userId && (
                           <div className="pt-4 flex justify-end">
                             <Button
-                              variant="outline"
+                              variant="ghost"
                               onClick={handleDeactivatePortal}
                               disabled={portalLoading}
-                              className="text-red-600 border-red-100 hover:bg-red-50 hover:text-red-700 font-bold gap-2"
+                              className="text-red-400 hover:text-red-300 hover:bg-red-500/10 font-black text-xs uppercase tracking-widest rounded-xl px-6 h-12"
                             >
-                              <ShieldOff className="w-4 h-4" />
-                              Deactivate Portal Access
+                              <ShieldOff className="w-4 h-4 mr-2" />
+                              Revoke Portal Access
                             </Button>
                           </div>
                         )}
                       </div>
-
-                      {editAgent.userId && (
-                        <div className="p-4 bg-emerald-50/50 border border-emerald-100 rounded-xl flex items-start gap-3">
-                          <CheckCircle className="w-5 h-5 text-emerald-500 shrink-0 mt-0.5" />
-                          <div className="space-y-1">
-                            <p className="text-xs font-bold text-emerald-900">User Account Linked</p>
-                            <p className="text-[10px] text-emerald-700 font-medium leading-relaxed">
-                              This agent profile is correctly synchronized with a system user account. They can now access all agent-specific features.
-                            </p>
-                          </div>
-                        </div>
-                      )}
                     </div>
-                  </TabsContent>
-                </div>
 
-                <DialogFooter className="p-8 bg-gray-50 border-t border-gray-100 flex items-center justify-between">
-                  <div className="text-[10px] font-bold text-gray-400 uppercase tracking-[0.2em]">
-                    {currentTab === 'personal' ? 'Step 1 of 4: Identity' : 
-                     currentTab === 'business' ? 'Step 2 of 4: Profile' : 
-                     currentTab === 'logistics' ? 'Step 3 of 4: Location' : 
-                     'Step 4 of 4: Security'}
-                  </div>
-                  <div className="flex gap-3">
-                    <Button
-                      variant="ghost"
-                      onClick={() => {
-                        if (currentTab === 'personal') setShowEditDialog(false);
-                        else if (currentTab === 'business') setCurrentTab('personal');
-                        else if (currentTab === 'logistics') setCurrentTab('business');
-                        else setCurrentTab('logistics');
-                      }}
-                      className="h-12 font-bold text-gray-500 hover:bg-white"
-                    >
-                      {currentTab === 'personal' ? 'Cancel' : (
-                        <>
-                          <ArrowLeft className="w-4 h-4 mr-2" />
-                          Back
-                        </>
-                      )}
-                    </Button>
-                    
-                    {currentTab !== 'portal' ? (
-                      <Button
-                        onClick={() => {
-                          if (currentTab === 'personal') setCurrentTab('business');
-                          else if (currentTab === 'business') setCurrentTab('logistics');
-                          else setCurrentTab('portal');
-                        }}
-                        disabled={currentTab === 'personal' && (!editAgent.firstName || !editAgent.lastName || !editAgent.email || !editAgent.phone)}
-                        className="h-12 px-10 bg-deep-sky-blue text-white hover:bg-deep-sky-blue/90 font-bold rounded-xl shadow-lg shadow-blue-100 transition-all flex items-center gap-2"
-                      >
-                        Next Step
-                        <ArrowRight className="w-4 h-4" />
-                      </Button>
-                    ) : (
-                      <Button
-                        onClick={handleUpdateAgent}
-                        disabled={actionLoading || !editAgent.region || !editAgent.city}
-                        className="h-12 px-10 bg-gray-900 text-white hover:bg-black font-bold rounded-xl shadow-lg shadow-gray-200 transition-all flex items-center gap-2"
-                      >
-                        {actionLoading ? (
-                          <>
-                            <Loader2 className="w-4 h-4 animate-spin" />
-                            Updating...
-                          </>
-                        ) : (
-                          'Save Changes'
-                        )}
-                      </Button>
-                    )}
-                  </div>
-                </DialogFooter>
-              </Tabs>
-            </>
-          )}
-        </DialogContent>
-      </Dialog>
-
-      {/* Agent Inventory Dialog */}
-      <Dialog open={showInventoryDialog} onOpenChange={setShowInventoryDialog}>
-        <DialogContent className="max-w-3xl p-0 overflow-hidden rounded-2xl shadow-2xl bg-white border-none max-h-[90vh] flex flex-col">
-          {selectedAgent && (
-            <div className="flex flex-col h-full overflow-hidden">
-                    {item.product.isSerialized && productUnits.length > 0 && (
-                      <div className="pt-3 border-t border-gray-200/50">
-                        <p className="text-[9px] font-bold text-gray-400 uppercase tracking-widest mb-2 text-xs">Chassis Numbers</p>
-                        <div className="flex flex-wrap gap-1.5">
-                          {productUnits.map((unit) => (
-                            <span key={unit.id} className="px-2 py-1 bg-white border border-gray-200 rounded-md text-[9px] font-black tabular-nums text-gray-600 shadow-sm">
-                              {unit.chassisNumber}
-                            </span>
-                          ))}
+                    {editAgent.userId && (
+                      <div className="p-6 bg-emerald-500/5 border border-emerald-500/10 rounded-2xl flex items-start gap-4">
+                        <CheckCircle className="w-6 h-6 text-emerald-500 shrink-0" />
+                        <div className="space-y-1">
+                          <p className="text-xs font-black text-emerald-400 uppercase tracking-widest">Profile Synchronized</p>
+                          <p className="text-[11px] text-slate-400 font-medium leading-relaxed">
+                            This agent identity is correctly linked with a system user account. All permissions and inventory data are live.
+                          </p>
                         </div>
                       </div>
                     )}
                   </div>
-                );
-              })}
-            </div>
-          )}
-        </div>
+                </TabsContent>
+              </div>
 
-        <hr className="border-gray-100" />
+              <DialogFooter className="p-10 bg-slate-50/50 border-t border-slate-100 flex items-center justify-between">
+                <div className="flex flex-col">
+                  <span className="text-[10px] font-black text-slate-400 uppercase tracking-[0.3em]">Operational Step</span>
+                  <p className="text-sm font-black text-slate-900 uppercase tracking-tight mt-1">
+                    {currentTab === 'personal' ? '01 · Basic Profile' : 
+                     currentTab === 'business' ? '02 · Commercial Info' : 
+                     currentTab === 'logistics' ? '03 · Geo-Logistics' : 
+                     '04 · Cyber Security'}
+                  </p>
+                </div>
+                <div className="flex gap-4">
+                  <Button
+                    variant="outline"
+                    onClick={() => {
+                      if (currentTab === 'personal') setShowEditDialog(false);
+                      else if (currentTab === 'business') setCurrentTab('personal');
+                      else if (currentTab === 'logistics') setCurrentTab('business');
+                      else setCurrentTab('logistics');
+                    }}
+                    className="h-14 px-8 border-slate-200 text-slate-600 font-black rounded-2xl hover:bg-white hover:text-slate-900 transition-all active:scale-95 uppercase text-xs tracking-widest"
+                  >
+                    {currentTab === 'personal' ? 'Discard' : (
+                      <>
+                        <ArrowLeft className="w-4 h-4 mr-2" />
+                        Previous
+                      </>
+                    )}
+                  </Button>
+                  
+                  {currentTab !== 'portal' && (editAgent.status !== 'APPROVED' || currentTab !== 'logistics') ? (
+                    <Button
+                      onClick={() => {
+                        if (currentTab === 'personal') setCurrentTab('business');
+                        else if (currentTab === 'business') setCurrentTab('logistics');
+                        else if (currentTab === 'logistics' && editAgent.status === 'APPROVED') setCurrentTab('portal');
+                      }}
+                      className="h-14 px-10 bg-amber-500 text-slate-950 hover:bg-amber-400 font-black rounded-2xl shadow-lg shadow-amber-500/20 transition-all active:scale-95 uppercase text-xs tracking-widest border-none"
+                    >
+                      Continue
+                      <ArrowRight className="w-4 h-4 ml-2" />
+                    </Button>
+                  ) : (
+                    <Button
+                      onClick={handleUpdateAgent}
+                      disabled={actionLoading || !editAgent.region || !editAgent.city}
+                      className="h-14 px-12 bg-slate-900 text-white hover:bg-slate-800 font-black rounded-2xl shadow-xl shadow-slate-900/20 transition-all active:scale-95 uppercase text-xs tracking-widest border-none"
+                    >
+                      {actionLoading ? (
+                        <>
+                          <Loader2 className="w-5 h-5 mr-2 animate-spin" />
+                          Saving...
+                        </>
+                      ) : (
+                        'Commit Changes'
+                      )}
+                    </Button>
+                  )}
+                </div>
+              </DialogFooter>
+            </Tabs>
+          </DialogContent>
+        </Dialog>
+      )}
 
-        {/* Transfer Section */}
-        <div className="space-y-4">
-          <h4 className="text-sm font-bold text-gray-900 flex items-center gap-2">
-            <ArrowRightLeft className="w-4 h-4 text-gray-400" />
-            Assign New Units
-          </h4>
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-4 bg-blue-50/50 p-6 rounded-2xl border border-blue-100">
-            <div className="space-y-2">
-              <Label className="text-[10px] font-bold text-gray-500 uppercase">Product</Label>
-              <Select value={transferProductId} onValueChange={setTransferProductId}>
-                <SelectTrigger className="bg-white border-blue-200">
-                  <SelectValue placeholder="Select Product" />
-                </SelectTrigger>
-                <SelectContent>
-                  {products.map((p) => {
-                    const whItem = warehouseInventory.find(i => i.productId === p.id && i.agentId === null);
-                    const whStock = whItem ? whItem.quantity : 0;
-                    return (
-                      <SelectItem key={p.id} value={p.id} disabled={whStock <= 0}>
-                        {p.name} ({whStock} in WH)
-                      </SelectItem>
-                    );
-                  })}
-                </SelectContent>
-              </Select>
-            </div>
-            <div className="space-y-2">
-              <Label className="text-[10px] font-bold text-gray-500 uppercase">Quantity</Label>
-              <Input 
-                type="number" 
-                value={transferAmount || ''} 
-                onChange={(e) => setTransferAmount(parseInt(e.target.value) || 0)}
-                className="bg-white border-blue-200"
-                placeholder="0"
-              />
-            </div>
-            <div className="flex items-end">
-              <Button 
-                onClick={handleTransfer} 
-                disabled={transferLoading || !transferProductId || transferAmount <= 0 || (products.find(p => p.id === transferProductId)?.isSerialized && selectedUnitIds.length !== transferAmount)}
-                className="w-full bg-gray-900 text-white font-bold h-10 hover:bg-black"
-              >
-                {transferLoading ? <Loader2 className="w-4 h-4 animate-spin" /> : 'Assign Units'}
-              </Button>
-            </div>
+      {/* Agent Inventory Dialog */}
+      <Dialog open={showInventoryDialog} onOpenChange={setShowInventoryDialog}>
+        <DialogContent className="max-w-4xl p-0 overflow-hidden rounded-[2.5rem] shadow-2xl bg-white border-none max-h-[90vh] flex flex-col">
+          {selectedAgent && (
+            <div className="flex flex-col h-full overflow-hidden">
+              {/* Premium Header */}
+              <div className="p-8 bg-slate-900 flex items-center justify-between shrink-0">
+                <div className="flex items-center gap-6">
+                  <div className="h-16 w-16 rounded-[1.5rem] bg-amber-500/10 flex items-center justify-center border border-amber-500/20 shadow-inner">
+                    <Boxes className="w-8 h-8 text-amber-500" />
+                  </div>
+                  <div>
+                    <div className="flex items-center gap-3">
+                      <h2 className="text-2xl font-black text-white tracking-tight">Agent Inventory</h2>
+                      <div className="px-3 py-1 bg-amber-500 rounded-full">
+                        <span className="text-[10px] font-black text-slate-950 uppercase tracking-widest">Live Asset Tracking</span>
+                      </div>
+                    </div>
+                    <p className="text-sm font-bold text-slate-400 mt-1 uppercase tracking-wider">
+                      {selectedAgent.firstName} {selectedAgent.lastName} · {selectedAgent.city} Hub
+                    </p>
+                  </div>
+                </div>
+                <Button 
+                  variant="ghost" 
+                  size="icon" 
+                  onClick={() => setShowInventoryDialog(false)}
+                  className="rounded-full hover:bg-white/10 text-slate-400"
+                >
+                  <X className="w-6 h-6" />
+                </Button>
+              </div>
 
-            {/* Chassis Selection for Serialized Products */}
-            {availableUnits.length > 0 && (
-              <div className="md:col-span-3 space-y-3 pt-4 border-t border-blue-100 mt-2">
-                <div className="flex items-center justify-between">
-                <div className="space-y-4">
-                  <h4 className="text-sm font-bold text-gray-900 flex items-center gap-2">
-                    <Boxes className="w-4 h-4 text-gray-400" />
-                    Current Units
-                  </h4>
+              <div className="flex-1 overflow-y-auto p-10 space-y-12">
+                {/* Current Assets Grid */}
+                <div className="space-y-6">
+                  <div className="flex items-center justify-between">
+                    <h4 className="text-xs font-black text-slate-900 uppercase tracking-[0.2em] flex items-center gap-3">
+                      <Package className="w-4 h-4 text-amber-500" />
+                      Assigned Assets
+                    </h4>
+                    <span className="text-[10px] font-bold text-slate-400 uppercase">Last updated: Just now</span>
+                  </div>
+
                   {agentInventory.length === 0 ? (
-                    <div className="p-8 border-2 border-dashed border-gray-100 rounded-xl text-center">
-                      <p className="text-sm text-gray-400">No units currently assigned.</p>
+                    <div className="p-12 border-2 border-dashed border-slate-100 rounded-[2rem] text-center bg-slate-50/50">
+                      <div className="inline-flex h-16 w-16 items-center justify-center rounded-2xl bg-white shadow-sm mb-4">
+                        <Inbox className="w-8 h-8 text-slate-200" />
+                      </div>
+                      <p className="text-sm font-black text-slate-400 uppercase tracking-widest">No assets currently assigned</p>
                     </div>
                   ) : (
-                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                       {agentInventory.map((item) => {
                         const productUnits = currentAgentUnits.filter(u => u.product.id === item.product.id);
                         return (
-                          <div key={item.id} className="p-4 bg-gray-50 border border-gray-100 rounded-xl space-y-3">
-                            <div className="flex items-center justify-between">
-                              <div>
-                                <p className="text-sm font-bold text-gray-900">{item.product.name}</p>
-                                <p className="text-[10px] text-gray-500 font-bold uppercase">{item.product.category}</p>
+                          <div key={item.id} className="group p-6 bg-white border border-slate-100 rounded-[2rem] hover:border-amber-200 hover:shadow-xl hover:shadow-slate-200/50 transition-all duration-300">
+                            <div className="flex items-start justify-between mb-4">
+                              <div className="space-y-1">
+                                <p className="text-sm font-black text-slate-900 group-hover:text-amber-600 transition-colors uppercase tracking-tight">{item.product.name}</p>
+                                <p className="text-[10px] text-slate-400 font-bold uppercase tracking-widest">{item.product.category}</p>
                               </div>
-                              <div className="text-right">
-                                <p className="text-lg font-black text-deep-sky-blue">{item.quantity}</p>
+                              <div className="h-12 w-12 rounded-2xl bg-slate-50 flex items-center justify-center border border-slate-100 group-hover:bg-amber-50 group-hover:border-amber-200">
+                                <span className="text-lg font-black text-slate-900">{item.quantity}</span>
                               </div>
                             </div>
                             
                             {item.product.isSerialized && productUnits.length > 0 && (
-                              <div className="pt-3 border-t border-gray-200/50">
-                                <p className="text-[9px] font-bold text-gray-400 uppercase tracking-widest mb-2 text-xs">Chassis Numbers</p>
-                                <div className="flex flex-wrap gap-1.5">
+                              <div className="pt-4 border-t border-slate-50">
+                                <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-3 flex items-center gap-2">
+                                  <ShieldCheck className="w-3 h-3" />
+                                  Chassis Authentication
+                                </p>
+                                <div className="flex flex-wrap gap-2">
                                   {productUnits.map((unit) => (
-                                    <span key={unit.id} className="px-2 py-1 bg-white border border-gray-200 rounded-md text-[9px] font-black tabular-nums text-gray-600 shadow-sm">
+                                    <span key={unit.id} className="px-3 py-1.5 bg-slate-50 border border-slate-100 rounded-xl text-[10px] font-black tabular-nums text-slate-600 shadow-sm hover:border-amber-500 hover:bg-white transition-all cursor-default">
                                       {unit.chassisNumber}
                                     </span>
                                   ))}
@@ -1951,69 +2156,74 @@ export default function AgentsPage() {
                   )}
                 </div>
 
-                <hr className="border-gray-100" />
+                <div className="h-px bg-slate-100" />
 
                 {/* Transfer Section */}
-                <div className="space-y-4">
-                  <h4 className="text-sm font-bold text-gray-900 flex items-center gap-2">
-                    <ArrowRightLeft className="w-4 h-4 text-gray-400" />
-                    Assign New Units
+                <div className="space-y-6">
+                  <h4 className="text-xs font-black text-slate-900 uppercase tracking-[0.2em] flex items-center gap-3">
+                    <ArrowRightLeft className="w-4 h-4 text-amber-500" />
+                    Asset Allocation
                   </h4>
-                  <div className="grid grid-cols-1 md:grid-cols-3 gap-4 bg-blue-50/50 p-6 rounded-2xl border border-blue-100">
-                    <div className="space-y-2">
-                      <Label className="text-[10px] font-bold text-gray-500 uppercase">Product</Label>
+                  
+                  <div className="grid grid-cols-1 md:grid-cols-3 gap-6 p-8 bg-slate-50/50 rounded-[2.5rem] border border-slate-100">
+                    <div className="space-y-3">
+                      <Label className="text-[10px] font-black text-slate-500 uppercase tracking-widest ml-1">Stock Portfolio</Label>
                       <Select value={transferProductId} onValueChange={setTransferProductId}>
-                        <SelectTrigger className="bg-white border-blue-200">
-                          <SelectValue placeholder="Select Product" />
+                        <SelectTrigger className="h-14 bg-white border-slate-200 rounded-2xl shadow-sm">
+                          <SelectValue placeholder="Select Asset" />
                         </SelectTrigger>
-                        <SelectContent>
+                        <SelectContent className="bg-white">
                           {products.map((p) => {
                             const whItem = warehouseInventory.find(i => i.productId === p.id && i.agentId === null);
                             const whStock = whItem ? whItem.quantity : 0;
                             return (
-                              <SelectItem key={p.id} value={p.id} disabled={whStock <= 0}>
-                                {p.name} ({whStock} in WH)
+                              <SelectItem key={p.id} value={p.id} disabled={whStock <= 0} className="font-bold">
+                                {p.name} <span className="text-slate-400 ml-2">({whStock} Fixed)</span>
                               </SelectItem>
                             );
                           })}
                         </SelectContent>
                       </Select>
                     </div>
-                    <div className="space-y-2">
-                      <Label className="text-[10px] font-bold text-gray-500 uppercase">Quantity</Label>
+
+                    <div className="space-y-3">
+                      <Label className="text-[10px] font-black text-slate-500 uppercase tracking-widest ml-1">Allocation Quantity</Label>
                       <Input 
                         type="number" 
                         value={transferAmount || ''} 
                         onChange={(e) => setTransferAmount(parseInt(e.target.value) || 0)}
-                        className="bg-white border-blue-200"
+                        className="h-14 bg-white border-slate-200 rounded-2xl shadow-sm text-center font-black"
                         placeholder="0"
                       />
                     </div>
+
                     <div className="flex items-end">
                       <Button 
                         onClick={handleTransfer} 
                         disabled={transferLoading || !transferProductId || transferAmount <= 0 || (products.find(p => p.id === transferProductId)?.isSerialized && selectedUnitIds.length !== transferAmount)}
-                        className="w-full bg-gray-900 text-white font-bold h-10 hover:bg-black"
+                        className="w-full h-14 bg-slate-900 text-white font-black rounded-2xl hover:bg-amber-500 hover:text-slate-950 transition-all shadow-xl shadow-slate-900/10 uppercase text-xs tracking-widest"
                       >
-                        {transferLoading ? <Loader2 className="w-4 h-4 animate-spin" /> : 'Assign Units'}
+                        {transferLoading ? <Loader2 className="w-5 h-5 animate-spin" /> : 'Commit Assignment'}
                       </Button>
                     </div>
 
-                    {/* Chassis Selection for Serialized Products */}
+                    {/* Serialization Control */}
                     {availableUnits.length > 0 && (
-                      <div className="md:col-span-3 space-y-3 pt-4 border-t border-blue-100 mt-2">
-                        <div className="flex items-center justify-between">
-                          <Label className="text-[10px] font-bold text-gray-500 uppercase">Select Chassis Numbers ({selectedUnitIds.length} / {transferAmount} selected)</Label>
-                          {unitsLoading && <Loader2 className="w-3 h-3 animate-spin text-deep-sky-blue" />}
+                      <div className="md:col-span-3 space-y-4 pt-6 border-t border-slate-200 animate-in fade-in slide-in-from-top-4 duration-500">
+                        <div className="flex items-center justify-between px-1">
+                          <Label className="text-[10px] font-black text-slate-500 uppercase tracking-widest">
+                            Chassis Selection Required ({selectedUnitIds.length} / {transferAmount})
+                          </Label>
+                          {unitsLoading && <Loader2 className="w-3 h-3 animate-spin text-amber-500" />}
                         </div>
-                        <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-2 max-h-48 overflow-y-auto p-4 bg-white rounded-xl border border-blue-100 shadow-inner">
+                        <div className="grid grid-cols-2 sm:grid-cols-4 md:grid-cols-5 gap-3 max-h-48 overflow-y-auto p-4 bg-white rounded-2xl border border-slate-200 shadow-inner">
                           {availableUnits.map((unit) => (
                             <div 
                               key={unit.id} 
-                              className={`flex items-center gap-2 p-2 rounded-lg border cursor-pointer transition-all ${
+                              className={`flex items-center gap-3 p-3 rounded-xl border transition-all cursor-pointer ${
                                 selectedUnitIds.includes(unit.id) 
-                                  ? 'bg-blue-50 border-deep-sky-blue shadow-sm' 
-                                  : 'bg-white border-gray-100 hover:border-blue-200'
+                                  ? 'bg-amber-50 border-amber-500 shadow-sm' 
+                                  : 'bg-white border-slate-100 hover:border-amber-200'
                               }`}
                               onClick={() => {
                                 if (selectedUnitIds.includes(unit.id)) {
@@ -2023,65 +2233,61 @@ export default function AgentsPage() {
                                 }
                               }}
                             >
-                              <Checkbox 
-                                id={unit.id} 
-                                checked={selectedUnitIds.includes(unit.id)}
-                                onCheckedChange={(checked) => {
-                                  if (checked) {
-                                    if (selectedUnitIds.length < transferAmount) {
-                                      setSelectedUnitIds([...selectedUnitIds, unit.id]);
-                                    }
-                                  } else {
-                                    setSelectedUnitIds(selectedUnitIds.filter(id => id !== unit.id));
-                                  }
-                                }}
-                              />
-                              <Label 
-                                htmlFor={unit.id} 
-                                className="text-[10px] font-black cursor-pointer truncate"
-                                title={unit.chassisNumber}
-                              >
-                                {unit.chassisNumber}
-                              </Label>
+                              <div className={`h-4 w-4 rounded-md border flex items-center justify-center transition-all ${selectedUnitIds.includes(unit.id) ? 'bg-amber-500 border-amber-500' : 'bg-white border-slate-300'}`}>
+                                {selectedUnitIds.includes(unit.id) && <CheckSquare className="w-3 h-3 text-white" />}
+                              </div>
+                              <span className="text-[11px] font-black tabular-nums text-slate-900 truncate">{unit.chassisNumber}</span>
                             </div>
                           ))}
                         </div>
                         {selectedUnitIds.length > 0 && selectedUnitIds.length !== transferAmount && (
-                          <p className="text-[10px] text-amber-600 font-bold italic">
-                            * Please select exactly {transferAmount} units to match the quantity.
-                          </p>
+                          <div className="flex items-center gap-2 px-2">
+                            <AlertCircle className="w-4 h-4 text-amber-500" />
+                            <p className="text-[10px] text-amber-600 font-black italic uppercase tracking-wider">
+                              Selection mismatch: Please select {transferAmount} chassis numbers
+                            </p>
+                          </div>
                         )}
                       </div>
                     )}
                   </div>
                 </div>
 
-                <hr className="border-gray-100" />
-
-                {/* Transaction History */}
-                <div className="space-y-4">
-                  <h4 className="text-sm font-bold text-gray-900 flex items-center gap-2">
-                    <History className="w-4 h-4 text-gray-400" />
-                    Recent Activity
+                {/* Audit Trail */}
+                <div className="space-y-6">
+                  <h4 className="text-xs font-black text-slate-900 uppercase tracking-[0.2em] flex items-center gap-3">
+                    <History className="w-4 h-4 text-amber-500" />
+                    Transaction Ledger
                   </h4>
                   <div className="space-y-3">
                     {inventoryHistory.length === 0 ? (
-                      <p className="text-xs text-center py-8 text-gray-400">No recent transactions.</p>
+                      <div className="py-12 text-center">
+                        <p className="text-xs font-bold text-slate-400 uppercase tracking-[0.2em]">No historical data found</p>
+                      </div>
                     ) : (
                       inventoryHistory.map((tx) => (
-                        <div key={tx.id} className="flex items-center justify-between p-4 bg-white border border-gray-100 rounded-xl hover:shadow-sm transition-shadow">
-                          <div className="flex items-center gap-3">
-                            <div className={`p-2 rounded-lg ${tx.toAgentId === selectedAgent.id ? 'bg-green-50 text-green-600' : 'bg-red-50 text-red-600'}`}>
-                              {tx.toAgentId === selectedAgent.id ? <TrendingUp className="w-4 h-4" /> : <TrendingDown className="w-4 h-4" />}
+                        <div key={tx.id} className="flex items-center justify-between p-6 bg-white border border-slate-100 rounded-2xl hover:bg-slate-50 transition-colors group">
+                          <div className="flex items-center gap-5">
+                            <div className={`h-12 w-12 rounded-2xl flex items-center justify-center border ${tx.toAgentId === selectedAgent.id ? 'bg-emerald-50 border-emerald-100 text-emerald-600' : 'bg-red-50 border-red-100 text-red-600'}`}>
+                              {tx.toAgentId === selectedAgent.id ? <TrendingUp className="w-6 h-6" /> : <TrendingDown className="w-6 h-6" />}
                             </div>
                             <div>
-                              <p className="text-sm font-bold text-gray-900">{tx.product.name}</p>
-                              <p className="text-[10px] text-gray-400 font-medium uppercase">{tx.type} • {new Date(tx.createdAt).toLocaleDateString()}</p>
+                              <p className="text-sm font-black text-slate-900 uppercase tracking-tight">{tx.product.name}</p>
+                              <div className="flex items-center gap-2 mt-1">
+                                <span className={`text-[9px] font-black px-2 py-0.5 rounded-full uppercase tracking-widest ${tx.type === 'TRANSFER' ? 'bg-blue-50 text-blue-600' : 'bg-slate-100 text-slate-500'}`}>
+                                  {tx.type}
+                                </span>
+                                <span className="text-[9px] text-slate-400 font-black uppercase tracking-widest">
+                                  {new Date(tx.createdAt).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })}
+                                </span>
+                              </div>
                             </div>
                           </div>
-                          <p className={`font-black ${tx.toAgentId === selectedAgent.id ? 'text-green-600' : 'text-red-600'}`}>
-                            {tx.toAgentId === selectedAgent.id ? '+' : '-'}{tx.quantity}
-                          </p>
+                          <div className="text-right">
+                            <p className={`text-lg font-black ${tx.toAgentId === selectedAgent.id ? 'text-emerald-600' : 'text-red-600'}`}>
+                              {tx.toAgentId === selectedAgent.id ? '+' : '-'}{tx.quantity}
+                            </p>
+                          </div>
                         </div>
                       ))
                     )}
@@ -2093,77 +2299,86 @@ export default function AgentsPage() {
         </DialogContent>
       </Dialog>
 
-      {/* SMS Quick-Send Dialog */}
+      {/* SMS Communications Dialog */}
       <Dialog open={showSmsDialog} onOpenChange={(open) => { if (!open) { setShowSmsDialog(false); setSmsAgent(null); setSmsMessage(''); } }}>
-        <DialogContent className="max-w-md rounded-2xl">
-          <DialogHeader>
-            <div className="flex items-center gap-2 mb-1">
-              <MessageSquare className="w-4 h-4 text-purple-500" />
-              <span className="text-xs font-bold text-purple-500 uppercase tracking-widest">Quick SMS</span>
+        <DialogContent className="max-w-md p-0 overflow-hidden rounded-[2.5rem] shadow-2xl bg-white border-none">
+          <div className="p-8 bg-slate-900">
+            <div className="flex items-center gap-4 mb-4">
+              <div className="h-12 w-12 rounded-xl bg-purple-500/20 flex items-center justify-center border border-purple-500/30">
+                <MessageSquare className="w-6 h-6 text-purple-400" />
+              </div>
+              <h3 className="text-xl font-black text-white tracking-tight">Direct Messaging</h3>
             </div>
-            <DialogTitle className="text-xl font-bold">
-              Notify {smsAgent?.firstName} {smsAgent?.lastName}
-            </DialogTitle>
-            <DialogDescription className="text-gray-500 text-sm">
-              <span className="font-medium text-gray-700">{smsAgent?.phone}</span> · {smsAgent?.city}, {smsAgent?.region}
-            </DialogDescription>
-          </DialogHeader>
-          <div className="space-y-4 py-2">
-            <div className="space-y-2">
-              <div className="flex justify-between items-center">
-                <Label className="text-xs font-bold text-gray-600 uppercase tracking-widest">Message</Label>
-                <span className={`text-xs font-bold tabular-nums ${smsMessage.length > 150 ? 'text-red-500' : smsMessage.length > 120 ? 'text-amber-500' : 'text-gray-400'}`}>
-                  {smsMessage.length}/160
+            <div className="p-4 bg-white/5 rounded-2xl border border-white/10">
+              <p className="text-xs font-black text-slate-300 uppercase tracking-[0.2em]">{smsAgent?.firstName} {smsAgent?.lastName}</p>
+              <p className="text-[10px] text-purple-400 font-bold mt-1 tracking-widest">{smsAgent?.phone} · Verified Contact</p>
+            </div>
+          </div>
+          
+          <div className="p-8 space-y-6">
+            <div className="space-y-3">
+              <div className="flex justify-between items-center px-1">
+                <Label className="text-[10px] font-black text-slate-500 uppercase tracking-widest">Global SMS Dispatch</Label>
+                <span className={`text-[10px] font-black tabular-nums transition-colors ${smsMessage.length > 150 ? 'text-red-500' : 'text-slate-400'}`}>
+                  {smsMessage.length} / 160
                 </span>
               </div>
               <Textarea
                 value={smsMessage}
                 onChange={(e) => setSmsMessage(e.target.value.slice(0, 160))}
-                placeholder="Type your message..."
-                className="bg-gray-50 border-gray-200 rounded-lg resize-none min-h-[100px] text-sm focus:border-purple-300"
+                placeholder="Type operational notice..."
+                className="bg-slate-50 border-slate-200 rounded-[1.5rem] p-5 resize-none h-32 text-sm font-medium focus:ring-purple-500/20 focus:border-purple-300 transition-all leading-relaxed"
                 autoFocus
               />
             </div>
-          </div>
-          <DialogFooter className="gap-2">
-            <Button variant="outline" onClick={() => setShowSmsDialog(false)} className="border-gray-200">
-              Cancel
-            </Button>
-            <Button
-              onClick={async () => {
-                if (!smsAgent || !smsMessage.trim()) return;
-                setSmsSending(true);
-                try {
-                  const res = await fetch('/api/sms/send', {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ agentIds: [smsAgent.id], message: smsMessage }),
-                  });
-                  const data = await res.json();
-                  if (!res.ok) throw new Error(data.error);
-                  if (data.successCount > 0) {
-                    toast({ title: '✅ SMS Sent', description: `Message delivered to ${smsAgent.firstName}.` });
-                    setShowSmsDialog(false);
-                    setSmsMessage('');
-                  } else {
-                    toast({ title: 'Delivery failed', description: data.results?.[0]?.error || 'Unknown reason', variant: 'destructive' });
+            
+            <div className="flex gap-4">
+              <Button 
+                variant="outline" 
+                onClick={() => setShowSmsDialog(false)} 
+                className="h-14 flex-1 border-slate-200 text-slate-600 font-black rounded-2xl hover:bg-slate-50 uppercase text-xs tracking-widest transition-all"
+              >
+                Discard
+              </Button>
+              <Button
+                onClick={async () => {
+                  if (!smsAgent || !smsMessage.trim()) return;
+                  setSmsSending(true);
+                  try {
+                    const res = await fetch('/api/sms/send', {
+                      method: 'POST',
+                      headers: { 'Content-Type': 'application/json' },
+                      body: JSON.stringify({ agentIds: [smsAgent.id], message: smsMessage }),
+                    });
+                    const data = await res.json();
+                    if (!res.ok) throw new Error(data.error);
+                    if (data.successCount > 0) {
+                      toast({ title: '✅ SMS DISPATCHED', description: 'Message has been securely delivered.' });
+                      setShowSmsDialog(false);
+                      setSmsMessage('');
+                    } else {
+                      toast({ title: 'Dispatch Failed', description: data.results?.[0]?.error || 'Carrier rejection', variant: 'destructive' });
+                    }
+                  } catch (e: any) {
+                    toast({ title: 'Security Error', description: e.message, variant: 'destructive' });
+                  } finally {
+                    setSmsSending(false);
                   }
-                } catch (e: any) {
-                  toast({ title: 'Error', description: e.message, variant: 'destructive' });
-                } finally {
-                  setSmsSending(false);
-                }
-              }}
-              disabled={!smsMessage.trim() || smsSending}
-              className="bg-purple-600 hover:bg-purple-700 text-white font-bold flex items-center gap-2"
-            >
-              {smsSending ? (
-                <><Loader2 className="w-4 h-4 animate-spin" /> Sending...</>
-              ) : (
-                <><Send className="w-4 h-4" /> Send SMS</>
-              )}
-            </Button>
-          </DialogFooter>
+                }}
+                disabled={!smsMessage.trim() || smsSending}
+                className="h-14 flex-1 bg-purple-600 text-white font-black rounded-2xl hover:bg-purple-700 shadow-lg shadow-purple-900/20 uppercase text-xs tracking-widest transition-all active:scale-95"
+              >
+                {smsSending ? (
+                  <Loader2 className="w-5 h-5 animate-spin" />
+                ) : (
+                  <>
+                    Send Message
+                    <Send className="w-4 h-4 ml-2" />
+                  </>
+                )}
+              </Button>
+            </div>
+          </div>
         </DialogContent>
       </Dialog>
     </>
@@ -2173,10 +2388,10 @@ export default function AgentsPage() {
 function DataPoint({ icon, label, value }: { icon?: any, label: string, value: string }) {
   return (
     <div className="space-y-0.5">
-      <p className="text-[10px] font-bold text-gray-600 uppercase tracking-wider">{label}</p>
-      <div className="flex items-center gap-2">
-        {icon && <div className="text-deep-sky-blue">{icon}</div>}
-        <p className="text-sm font-bold text-gray-900">{value}</p>
+      <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest">{label}</p>
+      <div className="flex items-center gap-1.5">
+        {icon && <div className="text-amber-500">{icon}</div>}
+        <p className="text-sm font-black text-slate-950 uppercase tracking-tight">{value}</p>
       </div>
     </div>
   );

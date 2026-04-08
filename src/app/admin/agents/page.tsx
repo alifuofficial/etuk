@@ -1604,141 +1604,97 @@ export default function AgentsPage() {
         </Dialog>
 
       {/* Agent Edit Dialog */}
-
       {showEditDialog && editAgent && (
         <Dialog open={showEditDialog} onOpenChange={setShowEditDialog}>
-          <DialogContent className="max-w-2xl p-0 overflow-hidden rounded-2xl shadow-2xl max-h-[92vh] flex flex-col border-none bg-white">
-            <Tabs defaultValue="personal" onValueChange={(v) => setCurrentTab(v as any)} value={currentTab} className="w-full h-full flex flex-col min-h-0">
-              {/* Premium Header Section - Review Style */}
-              <div className="bg-gray-900 p-8 text-white shrink-0">
-                <DialogHeader className="p-0 border-none space-y-0 text-left">
+          <DialogContent className="max-w-2xl p-0 overflow-hidden rounded-2xl shadow-2xl max-h-[95vh] flex flex-col">
+            <div className="flex flex-col flex-1 min-h-0">
+              {/* Header - Similar to Review Dialog */}
+              <div className="bg-gray-900 p-8 text-white">
+                <DialogHeader>
                   <div className="flex items-center gap-2 mb-2">
-                    <span className="text-[10px] font-black text-deep-sky-blue uppercase tracking-[0.3em]">Identity Realignment</span>
+                    <span className="text-xs font-bold text-deep-sky-blue uppercase tracking-[0.2em]">Edit Agent</span>
                   </div>
-                  <div className="flex items-center justify-between">
-                    <div className="flex items-center gap-6">
-                      <div className="h-16 w-16 rounded-[1.25rem] bg-gradient-to-br from-deep-sky-blue to-blue-600 flex items-center justify-center shadow-xl shadow-deep-sky-blue/20">
-                        <UserCog className="w-8 h-8 text-slate-900" />
-                      </div>
-                      <div className="text-left flex flex-col items-start">
-                        <div className="flex items-center gap-3">
-                          <DialogTitle className="text-2xl font-black text-white tracking-tight uppercase p-0 leading-none">
-                            {editAgent.firstName} {editAgent.lastName}
-                          </DialogTitle>
-                          <span className={`px-3 py-1 rounded-full text-[9px] font-black uppercase tracking-widest ${
-                            editAgent.status === 'APPROVED' ? 'bg-emerald-500/10 text-emerald-400 border border-emerald-500/20' : 
-                            'bg-deep-sky-blue/10 text-deep-sky-blue border border-deep-sky-blue/20'
-                          }`}>
-                            {editAgent.status}
-                          </span>
-                        </div>
-                        <DialogDescription className="text-gray-400 font-bold uppercase tracking-widest text-[10px] mt-1.5 flex items-center gap-2">
-                          <Shield className="w-3 h-3 text-deep-sky-blue" />
-                          SYSTEM ID · {editAgent.id.slice(0, 8)}
-                        </DialogDescription>
-                      </div>
-                    </div>
-                  </div>
+                  <DialogTitle className="text-3xl font-bold leading-none mb-1">
+                    {editAgent.firstName} {editAgent.lastName}
+                  </DialogTitle>
+                  <DialogDescription className="text-gray-300 text-sm font-medium">
+                    Review and update agent information.
+                  </DialogDescription>
                 </DialogHeader>
-
-                {/* Deluxe Tabs Navigation - Now Scrollable */}
-                <div className="overflow-x-auto scrollbar-hide mt-8">
-                  <TabsList className="bg-transparent h-auto p-0 flex gap-10 min-w-max pb-1">
-                    {[
-                      { id: 'personal', label: 'Personal', icon: User },
-                      { id: 'business', label: 'Business', icon: Briefcase },
-                      { id: 'logistics', label: 'Logistics', icon: Truck },
-                      ...(editAgent.status === 'APPROVED' ? [{ id: 'portal', label: 'Security & Portal', icon: Lock }] : [])
-                    ].map((tab) => (
-                      <TabsTrigger
-                        key={tab.id}
-                        value={tab.id}
-                        className="group relative pb-6 px-0 bg-transparent data-[state=active]:bg-transparent transition-all border-none"
-                      >
-                        <div className="flex items-center gap-3">
-                          <div className="h-10 w-10 rounded-xl bg-slate-800 flex items-center justify-center group-hover:bg-slate-700 group-data-[state=active]:bg-deep-sky-blue transition-all">
-                            <tab.icon className="w-5 h-5 text-slate-400 group-data-[state=active]:text-slate-950" />
-                          </div>
-                          <span className="text-sm font-black uppercase tracking-widest text-slate-500 group-data-[state=active]:text-white transition-colors">
-                            {tab.label}
-                          </span>
-                        </div>
-                        <div className="absolute bottom-0 left-0 right-0 h-1 rounded-full bg-deep-sky-blue scale-x-0 group-data-[state=active]:scale-x-100 transition-transform duration-500 shadow-[0_0_15px_rgba(0,191,255,0.5)]" />
-                      </TabsTrigger>
-                    ))}
-                  </TabsList>
-                </div>
               </div>
 
-              <div className="flex-1 overflow-y-auto">
-                <TabsContent value="personal" className="p-8 m-0 animate-in fade-in slide-in-from-bottom-2 duration-500">
-                  <div className="space-y-6">
-                    <div className="grid grid-cols-2 gap-6">
-                      <div className="space-y-2">
-                        <Label className="text-[10px] font-black text-slate-500 uppercase tracking-widest ml-1">Legal First Name</Label>
-                        <Input
-                          value={editAgent.firstName}
-                          onChange={(e) => setEditAgent({ ...editAgent, firstName: e.target.value })}
-                          className="h-12 bg-white border-slate-200 rounded-xl shadow-sm focus:ring-deep-sky-blue/20 focus:border-deep-sky-blue transition-all text-slate-900 font-medium px-4"
-                          placeholder="First Name"
-                        />
-                      </div>
-                      <div className="space-y-2">
-                        <Label className="text-[10px] font-black text-slate-500 uppercase tracking-widest ml-1">Legal Last Name</Label>
-                        <Input
-                          value={editAgent.lastName}
-                          onChange={(e) => setEditAgent({ ...editAgent, lastName: e.target.value })}
-                          className="h-12 bg-white border-slate-200 rounded-xl shadow-sm focus:ring-deep-sky-blue/20 focus:border-deep-sky-blue transition-all text-slate-900 font-medium px-4"
-                          placeholder="Last Name"
-                        />
-                      </div>
-                    </div>
-
+{/* Content */}
+              <div className="p-8 overflow-y-auto flex-1 space-y-6">
+                {/* Personal Information Section */}
+                <div className="space-y-4">
+                  <h3 className="text-[10px] font-black text-slate-900 uppercase tracking-widest">Personal Information</h3>
+                  <div className="grid grid-cols-2 gap-6">
                     <div className="space-y-2">
-                      <Label className="text-[10px] font-black text-slate-500 uppercase tracking-widest ml-1">Primary Email Communication</Label>
+                      <Label className="text-[10px] font-black text-slate-500 uppercase tracking-widest ml-1">Legal First Name</Label>
                       <Input
-                        type="email"
-                        value={editAgent.email}
-                        onChange={(e) => setEditAgent({ ...editAgent, email: e.target.value })}
+                        value={editAgent.firstName}
+                        onChange={(e) => setEditAgent({ ...editAgent, firstName: e.target.value })}
                         className="h-12 bg-white border-slate-200 rounded-xl shadow-sm focus:ring-deep-sky-blue/20 focus:border-deep-sky-blue transition-all text-slate-900 font-medium px-4"
-                        placeholder="Email Address"
+                        placeholder="First Name"
                       />
                     </div>
-
-                    <div className="grid grid-cols-2 gap-6">
-                      <div className="space-y-2">
-                        <Label className="text-[10px] font-black text-slate-500 uppercase tracking-widest ml-1">Verified Phone</Label>
-                        <Input
-                          value={editAgent.phone}
-                          onChange={(e) => setEditAgent({ ...editAgent, phone: e.target.value })}
-                          className="h-12 bg-white border-slate-200 rounded-xl shadow-sm focus:ring-deep-sky-blue/20 focus:border-deep-sky-blue transition-all text-slate-900 font-medium px-4 font-mono"
-                          placeholder="+251 ..."
-                        />
-                      </div>
-                      <div className="space-y-2">
-                        <Label className="text-[10px] font-black text-slate-500 uppercase tracking-widest ml-1">Secondary Contact</Label>
-                        <Input
-                          value={editAgent.alternativePhone || ''}
-                          onChange={(e) => setEditAgent({ ...editAgent, alternativePhone: e.target.value })}
-                          className="h-12 bg-white border-slate-200 rounded-xl shadow-sm focus:ring-deep-sky-blue/20 focus:border-deep-sky-blue transition-all text-slate-900 font-medium px-4 font-mono"
-                          placeholder="Optional"
-                        />
-                      </div>
-                    </div>
-
                     <div className="space-y-2">
-                      <Label className="text-[10px] font-black text-slate-500 uppercase tracking-widest ml-1">Background & Experience</Label>
-                      <Textarea
-                        value={editAgent.experience || ''}
-                        onChange={(e) => setEditAgent({ ...editAgent, experience: e.target.value })}
-                        className="bg-white border-slate-200 rounded-xl shadow-sm focus:ring-deep-sky-blue/20 focus:border-deep-sky-blue transition-all text-slate-900 font-medium p-4 resize-none h-24 leading-relaxed"
-                        placeholder="Describe professional background..."
+                      <Label className="text-[10px] font-black text-slate-500 uppercase tracking-widest ml-1">Legal Last Name</Label>
+                      <Input
+                        value={editAgent.lastName}
+                        onChange={(e) => setEditAgent({ ...editAgent, lastName: e.target.value })}
+                        className="h-12 bg-white border-slate-200 rounded-xl shadow-sm focus:ring-deep-sky-blue/20 focus:border-deep-sky-blue transition-all text-slate-900 font-medium px-4"
+                        placeholder="Last Name"
                       />
                     </div>
                   </div>
-                </TabsContent>
 
-                <TabsContent value="business" className="p-8 m-0 space-y-6 animate-in fade-in slide-in-from-bottom-2 duration-500">
+                  <div className="space-y-2">
+                    <Label className="text-[10px] font-black text-slate-500 uppercase tracking-widest ml-1">Primary Email Communication</Label>
+                    <Input
+                      type="email"
+                      value={editAgent.email}
+                      onChange={(e) => setEditAgent({ ...editAgent, email: e.target.value })}
+                      className="h-12 bg-white border-slate-200 rounded-xl shadow-sm focus:ring-deep-sky-blue/20 focus:border-deep-sky-blue transition-all text-slate-900 font-medium px-4"
+                      placeholder="Email Address"
+                    />
+                  </div>
+
+                  <div className="grid grid-cols-2 gap-6">
+                    <div className="space-y-2">
+                      <Label className="text-[10px] font-black text-slate-500 uppercase tracking-widest ml-1">Verified Phone</Label>
+                      <Input
+                        value={editAgent.phone}
+                        onChange={(e) => setEditAgent({ ...editAgent, phone: e.target.value })}
+                        className="h-12 bg-white border-slate-200 rounded-xl shadow-sm focus:ring-deep-sky-blue/20 focus:border-deep-sky-blue transition-all text-slate-900 font-medium px-4 font-mono"
+                        placeholder="+251 ..."
+                      />
+                    </div>
+                    <div className="space-y-2">
+                      <Label className="text-[10px] font-black text-slate-500 uppercase tracking-widest ml-1">Secondary Contact</Label>
+                      <Input
+                        value={editAgent.alternativePhone || ''}
+                        onChange={(e) => setEditAgent({ ...editAgent, alternativePhone: e.target.value })}
+                        className="h-12 bg-white border-slate-200 rounded-xl shadow-sm focus:ring-deep-sky-blue/20 focus:border-deep-sky-blue transition-all text-slate-900 font-medium px-4 font-mono"
+                        placeholder="Optional"
+                      />
+                    </div>
+                  </div>
+
+                  <div className="space-y-2">
+                    <Label className="text-[10px] font-black text-slate-500 uppercase tracking-widest ml-1">Background & Experience</Label>
+                    <Textarea
+                      value={editAgent.experience || ''}
+                      onChange={(e) => setEditAgent({ ...editAgent, experience: e.target.value })}
+                      className="bg-white border-slate-200 rounded-xl shadow-sm focus:ring-deep-sky-blue/20 focus:border-deep-sky-blue transition-all text-slate-900 font-medium p-4 resize-none h-24 leading-relaxed"
+                      placeholder="Describe professional background..."
+                    />
+                  </div>
+                </div>
+
+                {/* Business Information Section */}
+                <div className="space-y-4">
+                  <h3 className="text-[10px] font-black text-slate-900 uppercase tracking-widest">Business Information</h3>
                   <div className="grid grid-cols-2 gap-6">
                     <div className="space-y-2">
                       <Label className="text-[10px] font-black text-slate-500 uppercase tracking-widest ml-1">Registered Business Name</Label>
@@ -1823,9 +1779,11 @@ export default function AgentsPage() {
                       <span className="text-[10px] font-bold text-slate-400 italic font-black uppercase tracking-widest">No Upload</span>
                     )}
                   </div>
-                </TabsContent>
+                </div>
 
-                <TabsContent value="logistics" className="p-8 m-0 space-y-8 animate-in fade-in slide-in-from-bottom-2 duration-500">
+                {/* Location & Logistics Section */}
+                <div className="space-y-4">
+                  <h3 className="text-[10px] font-black text-slate-900 uppercase tracking-widest">Location & Logistics</h3>
                   <div className="bg-slate-50 p-6 rounded-2xl border border-slate-100 flex items-center justify-between">
                     <div className="space-y-1">
                       <Label className="text-[10px] font-black text-slate-900 uppercase tracking-widest">Warehouse Facility</Label>
@@ -1927,9 +1885,11 @@ export default function AgentsPage() {
                       className="h-12 bg-white border-slate-200 rounded-xl shadow-sm"
                     />
                   </div>
-                </TabsContent>
+                </div>
 
-                <TabsContent value="portal" className="p-8 m-0 space-y-6 animate-in fade-in slide-in-from-bottom-2 duration-500">
+                {/* Portal Access Section */}
+                <div className="space-y-4">
+                  <h3 className="text-[10px] font-black text-slate-900 uppercase tracking-widest">Portal Access</h3>
                   <div className="p-8 bg-slate-900 rounded-2xl border border-slate-800 shadow-xl relative overflow-hidden group">
                     <div className="absolute top-0 right-0 p-8 opacity-10 group-hover:opacity-20 transition-opacity">
                       <Lock className="w-16 h-16 text-white" />
@@ -2006,60 +1966,31 @@ export default function AgentsPage() {
                       </div>
                     </div>
                   )}
-                </TabsContent>
+                </div>
               </div>
 
-              <DialogFooter className="p-8 bg-gray-50 border-t border-gray-100 flex items-center justify-between shrink-0">
-                <div className="flex flex-col text-left">
-                  <span className="text-[10px] font-black text-gray-400 uppercase tracking-[0.3em]">Operational Phase</span>
-                  <p className="text-xs font-black text-gray-900 uppercase tracking-tight mt-1">
-                    {currentTab === 'personal' ? 'Phase 01 · Identity' : 
-                     currentTab === 'business' ? 'Phase 02 · Commerce' : 
-                     currentTab === 'logistics' ? 'Phase 03 · Logistics' : 
-                     'Phase 04 · Security'}
-                  </p>
-                </div>
-                <div className="flex gap-3">
-                  <Button
-                    variant="outline"
-                    onClick={() => {
-                      if (currentTab === 'personal') setShowEditDialog(false);
-                      else if (currentTab === 'business') setCurrentTab('personal');
-                      else if (currentTab === 'logistics') setCurrentTab('business');
-                      else setCurrentTab('logistics');
-                    }}
-                    className="h-12 px-6 border-gray-200 text-gray-600 font-black rounded-xl hover:bg-white hover:text-gray-900 transition-all active:scale-95 uppercase text-[10px] tracking-widest"
-                  >
-                    {currentTab === 'personal' ? 'Close' : 'Previous'}
-                  </Button>
-                  
-                  {currentTab !== 'portal' && (editAgent.status !== 'APPROVED' || currentTab !== 'logistics') ? (
-                    <Button
-                      onClick={() => {
-                        if (currentTab === 'personal') setCurrentTab('business');
-                        else if (currentTab === 'business') setCurrentTab('logistics');
-                        else if (currentTab === 'logistics' && editAgent.status === 'APPROVED') setCurrentTab('portal');
-                      }}
-                      className="h-12 px-8 bg-deep-sky-blue text-slate-900 hover:bg-deep-sky-blue-dark font-black rounded-xl shadow-lg shadow-deep-sky-blue/10 transition-all active:scale-95 uppercase text-[10px] tracking-widest border-none"
-                    >
-                      Continue
-                    </Button>
+              {/* Footer */}
+              <div className="p-6 bg-gray-50 border-t border-gray-100 flex items-center justify-end gap-3 shrink-0">
+                <Button
+                  variant="outline"
+                  onClick={() => setShowEditDialog(false)}
+                  className="h-12 px-6 border-gray-200 text-gray-600 font-black rounded-xl hover:bg-white hover:text-gray-900 transition-all active:scale-95 uppercase text-[10px] tracking-widest"
+                >
+                  Cancel
+                </Button>
+                <Button
+                  onClick={handleUpdateAgent}
+                  disabled={actionLoading || !editAgent.region || !editAgent.city}
+                  className="h-12 px-10 bg-gray-900 text-white hover:bg-gray-800 font-black rounded-xl shadow-xl shadow-gray-900/10 transition-all active:scale-95 uppercase text-[10px] tracking-widest border-none"
+                >
+                  {actionLoading ? (
+                    <Loader2 className="w-4 h-4 animate-spin" />
                   ) : (
-                    <Button
-                      onClick={handleUpdateAgent}
-                      disabled={actionLoading || !editAgent.region || !editAgent.city}
-                      className="h-12 px-10 bg-gray-900 text-white hover:bg-gray-800 font-black rounded-xl shadow-xl shadow-gray-900/10 transition-all active:scale-95 uppercase text-[10px] tracking-widest border-none"
-                    >
-                      {actionLoading ? (
-                        <Loader2 className="w-4 h-4 animate-spin" />
-                      ) : (
-                        'Commit Changes'
-                      )}
-                    </Button>
+                    'Save Changes'
                   )}
-                </div>
-              </DialogFooter>
-            </Tabs>
+                </Button>
+              </div>
+            </div>
           </DialogContent>
         </Dialog>
       )}

@@ -1,5 +1,6 @@
 import { NextResponse } from 'next/server';
 import { db as prisma } from '@/lib/db';
+import { sendSms } from '@/lib/sms';
 
 // In-memory OTP store (in production, use Redis or database)
 const otpStore = new Map<string, { otp: string; expiresAt: number; attempts: number }>();
@@ -43,26 +44,16 @@ export async function POST(req: Request) {
     });
 
     // Send SMS
-    try {
-      const message = `Your Soreti verification code is ${otp}. Valid for 10 minutes. Do not share this code.`;
-      
-      // Use the SMS sending logic
-      const smsResponse = await fetch(`${process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3000'}/api/sms/send`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          to: phone,
-          message
-        })
-      });
+    const message = `Your Soreti verification code is ${otp}. Valid for 10 minutes. Do not share this code.`;
+    
+    const { success, error: smsError } = await sendSms({
+      to: phone,
+      message,
+      userId: user.id
+    });
 
-      if (!smsResponse.ok) {
-        console.error('Failed to send SMS');
-        // For development, log the OTP
-        console.log(`[DEV] OTP for ${phone}: ${otp}`);
-      }
-    } catch (smsError) {
-      console.error('SMS Error:', smsError);
+    if (!success) {
+      console.error('Failed to send SMS:', smsError);
       // For development, log the OTP
       console.log(`[DEV] OTP for ${phone}: ${otp}`);
     }

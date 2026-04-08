@@ -1109,8 +1109,8 @@ export default function AgentsPage() {
           </div>
 
           <Tabs value={currentTab} onValueChange={setCurrentTab} className="w-full flex-1 flex flex-col min-h-0">
-            <div className="px-8 bg-gray-50 border-b border-gray-100">
-              <TabsList className="bg-transparent gap-8 h-14 p-0">
+            <div className="px-8 bg-gray-50 border-b border-gray-100 overflow-x-auto custom-scrollbar-h">
+              <TabsList className="bg-transparent gap-8 h-14 p-0 flex-nowrap w-max min-w-full">
                 <TabsTrigger value="personal" className="data-[state=active]:bg-transparent data-[state=active]:text-deep-sky-blue data-[state=active]:shadow-none data-[state=active]:border-b-2 data-[state=active]:border-deep-sky-blue rounded-none h-full px-0 text-xs font-bold uppercase tracking-widest text-gray-400">
                   <UserIcon className="w-3.5 h-3.5 mr-2" />
                   Personal & Contact
@@ -1483,8 +1483,8 @@ export default function AgentsPage() {
               </div>
 
               <Tabs value={currentTab} onValueChange={setCurrentTab} className="w-full flex-1 flex flex-col min-h-0">
-                <div className="px-8 bg-gray-50 border-b border-gray-100">
-                  <TabsList className="bg-transparent gap-8 h-14 p-0">
+                <div className="px-8 bg-gray-50 border-b border-gray-100 overflow-x-auto custom-scrollbar-h">
+                  <TabsList className="bg-transparent gap-8 h-14 p-0 flex-nowrap w-max min-w-full">
                     <TabsTrigger value="personal" className="data-[state=active]:bg-transparent data-[state=active]:text-deep-sky-blue data-[state=active]:shadow-none data-[state=active]:border-b-2 data-[state=active]:border-deep-sky-blue rounded-none h-full px-0 text-xs font-bold uppercase tracking-widest text-gray-400">
                       <UserIcon className="w-3.5 h-3.5 mr-2" />
                       Personal & Contact

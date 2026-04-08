@@ -47,39 +47,54 @@ export default function LeafletMap({ data, geoCoordinates }: LeafletMapProps) {
           attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors &copy; <a href="https://carto.com/attributions">CARTO</a>'
           url="https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png"
         />
-        {data.map((cityData) => {
-          const normalizedCity = cityData.city.toLowerCase().trim();
-          const coords = geoCoordinates[normalizedCity];
+        {(() => {
+          // Merge data by normalized city name to handle mixed casing from DB
+          const mergedData: Record<string, { city: string, count: number }> = {};
           
-          if (!coords) {
-            console.warn(`Map: No coordinates found for city "${cityData.city}" (Normalized: "${normalizedCity}")`);
-            return null;
-          }
+          data.forEach(item => {
+            const normalized = item.city.toLowerCase().trim();
+            if (mergedData[normalized]) {
+              mergedData[normalized].count += item._count.id;
+            } else {
+              mergedData[normalized] = {
+                city: item.city, // Keep the first original name for display
+                count: item._count.id
+              };
+            }
+          });
 
-          console.log(`Map: Pinned ${cityData.city} with ${cityData._count.id} approved agents.`);
+          return Object.entries(mergedData).map(([normalizedCity, cityInfo]) => {
+            const coords = geoCoordinates[normalizedCity];
+            
+            if (!coords) {
+              console.warn(`Map: No coordinates found for city "${cityInfo.city}" (Normalized: "${normalizedCity}")`);
+              return null;
+            }
 
-          const count = cityData._count.id;
-          return (
-            <Marker 
-              key={cityData.city} 
-              position={coords}
-            >
-              <Tooltip direction="top" offset={[0, -20]} opacity={1} permanent={false}>
-                <div className="flex items-center gap-3 p-1">
-                  <div className="flex flex-col">
-                    <span className="text-[10px] font-black uppercase tracking-widest text-blue-500">Hub Location</span>
-                    <span className="text-sm font-bold tracking-tight text-slate-900">{cityData.city}</span>
+            console.log(`Map: Pinned ${cityInfo.city} with ${cityInfo.count} approved agents.`);
+
+            return (
+              <Marker 
+                key={normalizedCity} 
+                position={coords}
+              >
+                <Tooltip direction="top" offset={[0, -20]} opacity={1} permanent={false}>
+                  <div className="flex items-center gap-3 p-1">
+                    <div className="flex flex-col">
+                      <span className="text-[10px] font-black uppercase tracking-widest text-blue-500">Hub Location</span>
+                      <span className="text-sm font-bold tracking-tight text-slate-900">{cityInfo.city}</span>
+                    </div>
+                    <div className="h-8 w-[1px] bg-slate-200" />
+                    <div className="flex flex-col items-center justify-center">
+                      <span className="text-[10px] font-black uppercase tracking-widest text-slate-400">Total</span>
+                      <span className="text-lg font-black text-slate-900">{cityInfo.count}</span>
+                    </div>
                   </div>
-                  <div className="h-8 w-[1px] bg-slate-200" />
-                  <div className="flex flex-col items-center justify-center">
-                    <span className="text-[10px] font-black uppercase tracking-widest text-slate-400">Total</span>
-                    <span className="text-lg font-black text-slate-900">{count}</span>
-                  </div>
-                </div>
-              </Tooltip>
-            </Marker>
-          );
-        })}
+                </Tooltip>
+              </Marker>
+            );
+          });
+        })()}
       </MapContainer>
     </div>
   );

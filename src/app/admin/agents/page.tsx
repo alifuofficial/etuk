@@ -1571,341 +1571,137 @@ export default function AgentsPage() {
                     )}
                   </Button>
                 )}
-              </div>
-            </DialogFooter>
-          </Tabs>
-        </DialogContent>
-      </Dialog>
-
-      {/* Edit Agent Dialog */}
-      <Dialog open={showEditDialog} onOpenChange={setShowEditDialog}>
-        <DialogContent className="max-w-4xl p-0 overflow-hidden rounded-2xl shadow-2xl bg-white border-none max-h-[95vh] flex flex-col">
-          {editAgent && (
-            <>
-              <div className="bg-gray-900 p-8 text-white relative z-10 flex justify-between items-end">
-                <div>
-                  <div className="flex items-center gap-2 mb-2">
-                    <Edit className="w-4 h-4 text-amber-400" />
-                    <span className="text-xs font-bold text-gray-400 uppercase tracking-[0.2em]">Update Agent</span>
+                  <div className="space-y-3">
+                    <Label className="text-[11px] font-black text-slate-500 uppercase tracking-widest ml-1">Legal First Name</Label>
+                    <Input
+                      value={editAgent.firstName}
+                      onChange={(e) => setEditAgent({ ...editAgent, firstName: e.target.value })}
+                      className="h-14 bg-white border-slate-200 rounded-2xl shadow-sm focus:ring-amber-500/20 focus:border-amber-500 transition-all text-slate-900 font-medium px-5"
+                      placeholder="First Name"
+                    />
                   </div>
-                  <DialogTitle className="text-3xl font-black leading-none mb-1 text-white">
-                    Edit {editAgent.firstName}'s Details
-                  </DialogTitle>
-                  <DialogDescription className="text-gray-400 text-sm font-medium">
-                    Modify existing agent information.
-                  </DialogDescription>
-                </div>
-                <div className="flex flex-col items-end gap-2">
-                  <Label className="text-[10px] font-bold text-gray-500 uppercase tracking-widest">Application Status</Label>
-                  <Select 
-                    value={editAgent.status} 
-                    onValueChange={(v) => setEditAgent({ ...editAgent, status: v })}
-                  >
-                    <SelectTrigger className="h-9 w-32 bg-gray-800 border-gray-700 text-xs font-bold text-white rounded-lg">
-                      <SelectValue placeholder="Status" />
-                    </SelectTrigger>
-                    <SelectContent className="bg-white border-gray-100">
-                      <SelectItem value="PENDING">Pending Review</SelectItem>
-                      <SelectItem value="APPROVED">Approved (Active)</SelectItem>
-                      <SelectItem value="REJECTED">Rejected</SelectItem>
-                    </SelectContent>
-                  </Select>
-                </div>
-              </div>
-
-              <Tabs value={currentTab} onValueChange={setCurrentTab} className="w-full flex-1 flex flex-col min-h-0">
-                <div className="px-8 bg-gray-50 border-b border-gray-100 overflow-x-auto custom-scrollbar-h">
-                  <TabsList className="bg-transparent gap-8 h-14 p-0 flex-nowrap w-max min-w-full">
-                    <TabsTrigger value="personal" className="data-[state=active]:bg-transparent data-[state=active]:text-deep-sky-blue data-[state=active]:shadow-none data-[state=active]:border-b-2 data-[state=active]:border-deep-sky-blue rounded-none h-full px-0 text-xs font-bold uppercase tracking-widest text-gray-400">
-                      <UserIcon className="w-3.5 h-3.5 mr-2" />
-                      Personal & Contact
-                    </TabsTrigger>
-                    <TabsTrigger value="business" className="data-[state=active]:bg-transparent data-[state=active]:text-deep-sky-blue data-[state=active]:shadow-none data-[state=active]:border-b-2 data-[state=active]:border-deep-sky-blue rounded-none h-full px-0 text-xs font-bold uppercase tracking-widest text-gray-400">
-                      <Building2 className="w-3.5 h-3.5 mr-2" />
-                      Business & Finance
-                    </TabsTrigger>
-                    <TabsTrigger value="logistics" className="data-[state=active]:bg-transparent data-[state=active]:text-deep-sky-blue data-[state=active]:shadow-none data-[state=active]:border-b-2 data-[state=active]:border-deep-sky-blue rounded-none h-full px-0 text-xs font-bold uppercase tracking-widest text-gray-400">
-                      <Warehouse className="w-3.5 h-3.5 mr-2" />
-                      Logistics & Location
-                    </TabsTrigger>
-                    {editAgent.status === 'APPROVED' && (
-                      <TabsTrigger value="portal" className="data-[state=active]:bg-transparent data-[state=active]:text-deep-sky-blue data-[state=active]:shadow-none data-[state=active]:border-b-2 data-[state=active]:border-deep-sky-blue rounded-none h-full px-0 text-xs font-bold uppercase tracking-widest text-gray-400">
-                        <ShieldCheck className="w-3.5 h-3.5 mr-2" />
-                        Security & Portal
-                      </TabsTrigger>
-                    )}
-                  </TabsList>
+                  <div className="space-y-3">
+                    <Label className="text-[11px] font-black text-slate-500 uppercase tracking-widest ml-1">Legal Last Name</Label>
+                    <Input
+                      value={editAgent.lastName}
+                      onChange={(e) => setEditAgent({ ...editAgent, lastName: e.target.value })}
+                      className="h-14 bg-white border-slate-200 rounded-2xl shadow-sm focus:ring-amber-500/20 focus:border-amber-500 transition-all text-slate-900 font-medium px-5"
+                      placeholder="Last Name"
+                    />
+                  </div>
                 </div>
 
-                <div className="overflow-y-auto custom-scrollbar flex-1">
-                  <TabsContent value="personal" className="p-8 m-0 space-y-6">
-                    <div className="grid grid-cols-2 gap-6">
-                      <div className="space-y-2">
-                        <Label className="text-xs font-bold text-gray-700 uppercase tracking-wider">First Name *</Label>
-                        <Input
-                          value={editAgent.firstName}
-                          onChange={(e) => setEditAgent({ ...editAgent, firstName: e.target.value })}
-                          className="h-11 bg-white border-gray-200 rounded-lg"
-                        />
-                      </div>
-                      <div className="space-y-2">
-                        <Label className="text-xs font-bold text-gray-700 uppercase tracking-wider">Last Name *</Label>
-                        <Input
-                          value={editAgent.lastName}
-                          onChange={(e) => setEditAgent({ ...editAgent, lastName: e.target.value })}
-                          className="h-11 bg-white border-gray-200 rounded-lg"
-                        />
-                      </div>
+                <div className="space-y-3">
+                  <Label className="text-[11px] font-black text-slate-500 uppercase tracking-widest ml-1">Primary Email Communication</Label>
+                  <Input
+                    type="email"
+                    value={editAgent.email}
+                    onChange={(e) => setEditAgent({ ...editAgent, email: e.target.value })}
+                    className="h-14 bg-white border-slate-200 rounded-2xl shadow-sm focus:ring-amber-500/20 focus:border-amber-500 transition-all text-slate-900 font-medium px-5"
+                    placeholder="Email Address"
+                  />
+                </div>
+
+                <div className="grid grid-cols-2 gap-8">
+                  <div className="space-y-3">
+                    <Label className="text-[11px] font-black text-slate-500 uppercase tracking-widest ml-1">Verified Phone</Label>
+                    <Input
+                      value={editAgent.phone}
+                      onChange={(e) => setEditAgent({ ...editAgent, phone: e.target.value })}
+                      className="h-14 bg-white border-slate-200 rounded-2xl shadow-sm focus:ring-amber-500/20 focus:border-amber-500 transition-all text-slate-900 font-medium px-5 font-mono"
+                      placeholder="+251 ..."
+                    />
+                  </div>
+                  <div className="space-y-3">
+                    <Label className="text-[11px] font-black text-slate-500 uppercase tracking-widest ml-1">Secondary Contact</Label>
+                    <Input
+                      value={editAgent.alternativePhone || ''}
+                      onChange={(e) => setEditAgent({ ...editAgent, alternativePhone: e.target.value })}
+                      className="h-14 bg-white border-slate-200 rounded-2xl shadow-sm focus:ring-amber-500/20 focus:border-amber-500 transition-all text-slate-900 font-medium px-5 font-mono"
+                      placeholder="Optional"
+                    />
+                  </div>
+                </div>
+
+                <div className="space-y-3">
+                  <Label className="text-[11px] font-black text-slate-500 uppercase tracking-widest ml-1">Background & Experience</Label>
+                  <Textarea
+                    value={editAgent.experience || ''}
+                    onChange={(e) => setEditAgent({ ...editAgent, experience: e.target.value })}
+                    className="bg-white border-slate-200 rounded-2xl shadow-sm focus:ring-amber-500/20 focus:border-amber-500 transition-all text-slate-900 font-medium p-5 resize-none h-32 leading-relaxed"
+                    placeholder="Describe professional background..."
+                  />
+                </div>
+              </TabsContent>
+
+              <TabsContent value="business" className="p-10 m-0 space-y-8 animate-in fade-in slide-in-from-bottom-2 duration-500">
+                <div className="grid grid-cols-2 gap-8">
+                  <div className="space-y-3">
+                    <Label className="text-[11px] font-black text-slate-500 uppercase tracking-widest ml-1">Registered Business Name</Label>
+                    <Input
+                      value={editAgent.businessName || ''}
+                      onChange={(e) => setEditAgent({ ...editAgent, businessName: e.target.value })}
+                      className="h-14 bg-white border-slate-200 rounded-2xl shadow-sm"
+                      placeholder="LLC or Trade Name"
+                    />
+                  </div>
+                  <div className="space-y-3">
+                    <Label className="text-[11px] font-black text-slate-500 uppercase tracking-widest ml-1">Industry / Category</Label>
+                    <Input
+                      value={editAgent.businessType || ''}
+                      onChange={(e) => setEditAgent({ ...editAgent, businessType: e.target.value })}
+                      className="h-14 bg-white border-slate-200 rounded-2xl shadow-sm"
+                      placeholder="e.g. Distribution"
+                    />
+                  </div>
+                </div>
+
+                <div className="grid grid-cols-2 gap-8">
+                  <div className="space-y-3">
+                    <Label className="text-[11px] font-black text-slate-500 uppercase tracking-widest ml-1">TIN Identification</Label>
+                    <Input
+                      value={editAgent.tinNumber || ''}
+                      onChange={(e) => setEditAgent({ ...editAgent, tinNumber: e.target.value })}
+                      className="h-14 bg-white border-slate-200 rounded-2xl shadow-sm"
+                      placeholder="Tax Number"
+                    />
+                  </div>
+                  <div className="space-y-3">
+                    <Label className="text-[11px] font-black text-slate-500 uppercase tracking-widest ml-1">Working Capital (ETB)</Label>
+                    <Input
+                      value={editAgent.estimatedCapital || ''}
+                      onChange={(e) => setEditAgent({ ...editAgent, estimatedCapital: e.target.value })}
+                      className="h-14 bg-white border-slate-200 rounded-2xl shadow-sm"
+                      placeholder="e.g. 1,000,000"
+                    />
+                  </div>
+                </div>
+
+                <div className="grid grid-cols-2 gap-8">
+                  <div className="space-y-3">
+                    <Label className="text-[11px] font-black text-slate-500 uppercase tracking-widest ml-1">Banking Partner</Label>
+                    <Input
+                      value={editAgent.bankName || ''}
+                      onChange={(e) => setEditAgent({ ...editAgent, bankName: e.target.value })}
+                      className="h-14 bg-white border-slate-200 rounded-2xl shadow-sm"
+                    />
+                  </div>
+                  <div className="space-y-3">
+                    <Label className="text-[11px] font-black text-slate-500 uppercase tracking-widest ml-1">Settlement Account</Label>
+                    <Input
+                      value={editAgent.accountNumber || ''}
+                      onChange={(e) => setEditAgent({ ...editAgent, accountNumber: e.target.value })}
+                      className="h-14 bg-white border-slate-200 rounded-2xl shadow-sm"
+                    />
+                  </div>
+                </div>
+
+                <div className="p-8 bg-amber-50/50 rounded-[2rem] border border-amber-100 flex items-center justify-between group hover:bg-amber-50 transition-all duration-300">
+                  <div className="flex items-center gap-6">
+                    <div className="h-14 w-14 rounded-2xl bg-amber-500/10 flex items-center justify-center border border-amber-500/20 group-hover:scale-110 transition-transform">
+                      <FileText className="w-6 h-6 text-amber-600" />
                     </div>
-
-                    <div className="space-y-2">
-                      <Label className="text-xs font-bold text-gray-700 uppercase tracking-wider">Email Address *</Label>
-                      <Input
-                        type="email"
-                        value={editAgent.email}
-                        onChange={(e) => setEditAgent({ ...editAgent, email: e.target.value })}
-                        className="h-11 bg-white border-gray-200 rounded-lg"
-                      />
-                    </div>
-
-                    <div className="grid grid-cols-2 gap-6">
-                      <div className="space-y-2">
-                        <Label className="text-xs font-bold text-gray-700 uppercase tracking-wider">Primary Phone *</Label>
-                        <Input
-                          value={editAgent.phone}
-                          onChange={(e) => setEditAgent({ ...editAgent, phone: e.target.value })}
-                          className="h-11 bg-white border-gray-200 rounded-lg"
-                        />
-                      </div>
-                      <div className="space-y-2">
-                        <Label className="text-xs font-bold text-gray-700 uppercase tracking-wider">Alt Phone</Label>
-                        <Input
-                          value={editAgent.alternativePhone || ''}
-                          onChange={(e) => setEditAgent({ ...editAgent, alternativePhone: e.target.value })}
-                          className="h-11 bg-white border-gray-200 rounded-lg"
-                        />
-                      </div>
-                    </div>
-
-                    <div className="space-y-2">
-                      <Label className="text-xs font-bold text-gray-700 uppercase tracking-wider">Professional Experience</Label>
-                      <Textarea
-                        value={editAgent.experience || ''}
-                        onChange={(e) => setEditAgent({ ...editAgent, experience: e.target.value })}
-                        className="bg-white border-gray-200 rounded-lg focus:ring-0 focus:border-deep-sky-blue resize-none h-24"
-                      />
-                    </div>
-                  </TabsContent>
-
-                  <TabsContent value="business" className="p-8 m-0 space-y-6">
-                    <div className="space-y-6">
-                      <div className="grid grid-cols-2 gap-6">
-                        <div className="space-y-2">
-                          <Label className="text-xs font-bold text-gray-700 uppercase tracking-wider">Business Name</Label>
-                          <Input
-                            value={editAgent.businessName || ''}
-                            onChange={(e) => setEditAgent({ ...editAgent, businessName: e.target.value })}
-                            className="h-11 bg-white border-gray-200 rounded-lg"
-                          />
-                        </div>
-                        <div className="space-y-2">
-                          <Label className="text-xs font-bold text-gray-700 uppercase tracking-wider">Business Type</Label>
-                          <Input
-                            value={editAgent.businessType || ''}
-                            onChange={(e) => setEditAgent({ ...editAgent, businessType: e.target.value })}
-                            className="h-11 bg-white border-gray-200 rounded-lg"
-                          />
-                        </div>
-                      </div>
-
-                      <div className="grid grid-cols-2 gap-6">
-                        <div className="space-y-2">
-                          <Label className="text-xs font-bold text-gray-700 uppercase tracking-wider">TIN Number</Label>
-                          <Input
-                            value={editAgent.tinNumber || ''}
-                            onChange={(e) => setEditAgent({ ...editAgent, tinNumber: e.target.value })}
-                            className="h-11 bg-white border-gray-200 rounded-lg"
-                          />
-                        </div>
-                        <div className="space-y-2">
-                          <Label className="text-xs font-bold text-gray-700 uppercase tracking-wider">Estimated Capital</Label>
-                          <Input
-                            value={editAgent.estimatedCapital || ''}
-                            onChange={(e) => setEditAgent({ ...editAgent, estimatedCapital: e.target.value })}
-                            className="h-11 bg-white border-gray-200 rounded-lg"
-                          />
-                        </div>
-                      </div>
-
-                      <div className="grid grid-cols-2 gap-6">
-                        <div className="space-y-2">
-                          <Label className="text-xs font-bold text-gray-700 uppercase tracking-wider">Bank Name</Label>
-                          <Input
-                            value={editAgent.bankName || ''}
-                            onChange={(e) => setEditAgent({ ...editAgent, bankName: e.target.value })}
-                            className="h-11 bg-white border-gray-200 rounded-lg"
-                          />
-                        </div>
-                        <div className="space-y-2">
-                          <Label className="text-xs font-bold text-gray-700 uppercase tracking-wider">Account Number</Label>
-                          <Input
-                            value={editAgent.accountNumber || ''}
-                            onChange={(e) => setEditAgent({ ...editAgent, accountNumber: e.target.value })}
-                            className="h-11 bg-white border-gray-200 rounded-lg"
-                          />
-                        </div>
-                      </div>
-
-                      <div className="space-y-3 p-5 bg-blue-50/50 rounded-xl border border-blue-100">
-                        <Label className="text-xs font-bold text-blue-700 uppercase tracking-wider flex items-center gap-2">
-                          <FileText className="w-3.5 h-3.5" />
-                          Update Trade License / Business ID
-                        </Label>
-                        <div className="flex items-center gap-4">
-                          <Input
-                            type="file"
-                            onChange={(e) => {
-                              const file = e.target.files?.[0] || null;
-                              setEditAgent({ ...editAgent, newTradeLicense: file });
-                            }}
-                            className="cursor-pointer bg-white h-11 border-blue-200"
-                            accept=".pdf,.jpg,.jpeg,.png,.webp"
-                          />
-                          {editAgent.newTradeLicense && (
-                            <Badge variant="secondary" className="h-11 px-4 bg-blue-600 text-white hover:bg-blue-700 border-none">
-                              <Upload className="w-4 h-4 mr-2" />
-                              Selected
-                            </Badge>
-                          )}
-                        </div>
-                        {editAgent.tradeLicense && !editAgent.newTradeLicense && (
-                          <p className="text-[10px] text-blue-600 font-medium">Current file: {editAgent.tradeLicense.split('/').pop()}</p>
-                        )}
-                        <p className="text-[10px] text-blue-500 font-medium">Leave empty to keep current file. Supporting PDF and Images (Max 5MB)</p>
-                      </div>
-                    </div>
-                  </TabsContent>
-
-                  <TabsContent value="logistics" className="p-8 m-0 space-y-8">
-                    <div className="space-y-6">
-                      <div className="bg-gray-50 p-5 rounded-2xl border border-gray-100 flex items-center justify-between">
-                        <div className="space-y-0.5">
-                          <Label className="text-xs font-bold text-gray-900 uppercase">Warehouse Facility</Label>
-                        </div>
-                        <div 
-                          onClick={() => setEditAgent({ ...editAgent, hasWarehouse: !editAgent.hasWarehouse })}
-                          className={`w-14 h-7 rounded-full p-1 cursor-pointer transition-all duration-300 ${editAgent.hasWarehouse ? 'bg-deep-sky-blue' : 'bg-gray-300'}`}
-                        >
-                          <div className={`w-5 h-5 bg-white rounded-full transition-all duration-300 transform ${editAgent.hasWarehouse ? 'translate-x-7' : 'translate-x-0'}`} />
-                        </div>
-                      </div>
-
-                      {editAgent.hasWarehouse && (
-                        <div className="grid grid-cols-2 gap-6 animate-in fade-in slide-in-from-top-2 duration-300">
-                          <div className="space-y-2">
-                            <Label className="text-xs font-bold text-gray-700 uppercase tracking-wider">Warehouse Size (m²)</Label>
-                            <Input
-                              value={editAgent.warehouseSize || ''}
-                              onChange={(e) => setEditAgent({ ...editAgent, warehouseSize: e.target.value })}
-                              className="h-11 bg-white"
-                            />
-                          </div>
-                          <div className="space-y-2">
-                            <Label className="text-xs font-bold text-gray-700 uppercase tracking-wider">Staff Count</Label>
-                            <Input
-                              type="number"
-                              value={editAgent.staffCount || 0}
-                              onChange={(e) => setEditAgent({ ...editAgent, staffCount: parseInt(e.target.value) || 0 })}
-                              className="h-11 bg-white"
-                            />
-                          </div>
-                        </div>
-                      )}
-
-                      <div className="grid grid-cols-2 gap-6">
-                        <div className="space-y-2">
-                          <Label className="text-xs font-bold text-gray-700 uppercase tracking-wider">Region *</Label>
-                          <Select 
-                            value={editAgent.region} 
-                            onValueChange={(v) => setEditAgent({ ...editAgent, region: v, city: '' })}
-                          >
-                            <SelectTrigger className="h-11 bg-white border-gray-200">
-                              <SelectValue placeholder="Select" />
-                            </SelectTrigger>
-                            <SelectContent className="bg-white">
-                              {regions.map((reg) => (
-                                <SelectItem key={reg.id} value={reg.name}>{reg.name}</SelectItem>
-                              ))}
-                            </SelectContent>
-                          </Select>
-                        </div>
-                        <div className="space-y-2">
-                          <Label className="text-xs font-bold text-gray-700 uppercase tracking-wider">City *</Label>
-                          <Select 
-                            value={editAgent.city} 
-                            onValueChange={(v) => setEditAgent({ ...editAgent, city: v })}
-                            disabled={!editAgent.region}
-                          >
-                            <SelectTrigger className="h-11 bg-white border-gray-200">
-                              <SelectValue placeholder={editAgent.region ? "Select City" : "Choose Region"} />
-                            </SelectTrigger>
-                            <SelectContent className="bg-white">
-                              {regions
-                                .find((r) => r.name === editAgent.region)
-                                ?.cities?.map((city) => (
-                                  <SelectItem key={city.id} value={city.name}>{city.name}</SelectItem>
-                                ))}
-                            </SelectContent>
-                          </Select>
-                        </div>
-                      </div>
-
-                      <div className="grid grid-cols-2 gap-6">
-                        <div className="space-y-2">
-                          <Label className="text-xs font-bold text-gray-700 uppercase tracking-wider">Woreda</Label>
-                          <Input
-                            value={editAgent.woreda || ''}
-                            onChange={(e) => setEditAgent({ ...editAgent, woreda: e.target.value })}
-                            className="h-11 bg-white"
-                          />
-                        </div>
-                        <div className="space-y-2">
-                          <Label className="text-xs font-bold text-gray-700 uppercase tracking-wider">Kebele</Label>
-                          <Input
-                            value={editAgent.kebele || ''}
-                            onChange={(e) => setEditAgent({ ...editAgent, kebele: e.target.value })}
-                            className="h-11 bg-white"
-                          />
-                        </div>
-                      </div>
-                      
-                      <div className="space-y-2">
-                        <Label className="text-xs font-bold text-gray-700 uppercase tracking-wider">Exact Address / Office</Label>
-                        <Input
-                          value={editAgent.address || ''}
-                          onChange={(e) => setEditAgent({ ...editAgent, address: e.target.value })}
-                          className="h-11 bg-white"
-                        />
-                      </div>
-                    </div>
-                  </TabsContent>
-
-                  <TabsContent value="portal" className="p-8 m-0 space-y-6">
-                    <div className="space-y-6">
-                      <div className="p-6 bg-slate-50 rounded-2xl border border-slate-100 space-y-4">
-                        <div className="flex items-center gap-3">
-                          <div className={`w-12 h-12 rounded-xl flex items-center justify-center border shadow-sm ${editAgent.userId ? 'bg-emerald-50 border-emerald-100 text-emerald-600' : 'bg-amber-50 border-amber-100 text-amber-600'}`}>
-                            <ShieldCheck className="w-6 h-6" />
-                          </div>
-                          <div>
-                            <h4 className="text-sm font-bold text-gray-900">
-                              {editAgent.userId ? 'Portal Access Active' : 'Portal Access Inactive'}
-                            </h4>
-                            <p className="text-xs text-gray-500 font-medium">
-                              {editAgent.userId 
-                                ? 'This agent can log in to their dashboard using their email.' 
-                                : 'Activate portal access to allow this agent to manage their inventory.'}
-                            </p>
+                    <div>
                           </div>
                         </div>
 
@@ -2040,31 +1836,77 @@ export default function AgentsPage() {
         <DialogContent className="max-w-3xl p-0 overflow-hidden rounded-2xl shadow-2xl bg-white border-none max-h-[90vh] flex flex-col">
           {selectedAgent && (
             <div className="flex flex-col h-full overflow-hidden">
-              <div className="bg-gray-900 p-8 text-white">
-                <div className="flex items-center justify-between">
-                  <div>
-                    <div className="flex items-center gap-2 mb-2">
-                      <Boxes className="w-4 h-4 text-blue-400" />
-                      <span className="text-xs font-bold text-gray-400 uppercase tracking-[0.2em]">Unit Management</span>
-                    </div>
-                    <DialogTitle className="text-3xl font-black leading-none mb-1 text-white">
-                      {selectedAgent.firstName}'s Inventory
-                    </DialogTitle>
-                    <DialogDescription className="text-gray-400 text-sm font-medium">
-                      Track and assign units for this agent.
-                    </DialogDescription>
+                    {item.product.isSerialized && productUnits.length > 0 && (
+                      <div className="pt-3 border-t border-gray-200/50">
+                        <p className="text-[9px] font-bold text-gray-400 uppercase tracking-widest mb-2 text-xs">Chassis Numbers</p>
+                        <div className="flex flex-wrap gap-1.5">
+                          {productUnits.map((unit) => (
+                            <span key={unit.id} className="px-2 py-1 bg-white border border-gray-200 rounded-md text-[9px] font-black tabular-nums text-gray-600 shadow-sm">
+                              {unit.chassisNumber}
+                            </span>
+                          ))}
+                        </div>
+                      </div>
+                    )}
                   </div>
-                  <div className="text-right">
-                    <p className="text-[10px] font-bold text-gray-500 uppercase tracking-widest mb-1">Total Held</p>
-                    <p className="text-3xl font-black text-white">
-                      {agentInventory.reduce((acc, item) => acc + item.quantity, 0)}
-                    </p>
-                  </div>
-                </div>
-              </div>
+                );
+              })}
+            </div>
+          )}
+        </div>
 
-              <div className="flex-1 overflow-y-auto p-8 space-y-8 custom-scrollbar">
-                {/* Current Holding Table */}
+        <hr className="border-gray-100" />
+
+        {/* Transfer Section */}
+        <div className="space-y-4">
+          <h4 className="text-sm font-bold text-gray-900 flex items-center gap-2">
+            <ArrowRightLeft className="w-4 h-4 text-gray-400" />
+            Assign New Units
+          </h4>
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-4 bg-blue-50/50 p-6 rounded-2xl border border-blue-100">
+            <div className="space-y-2">
+              <Label className="text-[10px] font-bold text-gray-500 uppercase">Product</Label>
+              <Select value={transferProductId} onValueChange={setTransferProductId}>
+                <SelectTrigger className="bg-white border-blue-200">
+                  <SelectValue placeholder="Select Product" />
+                </SelectTrigger>
+                <SelectContent>
+                  {products.map((p) => {
+                    const whItem = warehouseInventory.find(i => i.productId === p.id && i.agentId === null);
+                    const whStock = whItem ? whItem.quantity : 0;
+                    return (
+                      <SelectItem key={p.id} value={p.id} disabled={whStock <= 0}>
+                        {p.name} ({whStock} in WH)
+                      </SelectItem>
+                    );
+                  })}
+                </SelectContent>
+              </Select>
+            </div>
+            <div className="space-y-2">
+              <Label className="text-[10px] font-bold text-gray-500 uppercase">Quantity</Label>
+              <Input 
+                type="number" 
+                value={transferAmount || ''} 
+                onChange={(e) => setTransferAmount(parseInt(e.target.value) || 0)}
+                className="bg-white border-blue-200"
+                placeholder="0"
+              />
+            </div>
+            <div className="flex items-end">
+              <Button 
+                onClick={handleTransfer} 
+                disabled={transferLoading || !transferProductId || transferAmount <= 0 || (products.find(p => p.id === transferProductId)?.isSerialized && selectedUnitIds.length !== transferAmount)}
+                className="w-full bg-gray-900 text-white font-bold h-10 hover:bg-black"
+              >
+                {transferLoading ? <Loader2 className="w-4 h-4 animate-spin" /> : 'Assign Units'}
+              </Button>
+            </div>
+
+            {/* Chassis Selection for Serialized Products */}
+            {availableUnits.length > 0 && (
+              <div className="md:col-span-3 space-y-3 pt-4 border-t border-blue-100 mt-2">
+                <div className="flex items-center justify-between">
                 <div className="space-y-4">
                   <h4 className="text-sm font-bold text-gray-900 flex items-center gap-2">
                     <Boxes className="w-4 h-4 text-gray-400" />

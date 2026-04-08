@@ -16,8 +16,9 @@ model User {
   phone     String?
   isActive  Boolean  @default(true)
   createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
-  agents    Agent[]
+  updatedAt     DateTime @updatedAt
+  reviewedAgents Agent[]  @relation("AgentReviewer")
+  agentProfile   Agent?   @relation("AgentUser")
 }
 
 model Agent {
@@ -55,7 +56,9 @@ model Agent {
   updatedAt        DateTime  @updatedAt
   contactPerson    String?
   contactPhone     String?
-  reviewer         User?     @relation(fields: [reviewedBy], references: [id])
+  reviewer         User?     @relation("AgentReviewer", fields: [reviewedBy], references: [id])
+  userId           String?   @unique
+  user             User?     @relation("AgentUser", fields: [userId], references: [id])
   inventory        Inventory[]
   units            ProductUnit[]
   sales            Sale[]

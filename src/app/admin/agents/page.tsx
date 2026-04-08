@@ -71,6 +71,7 @@ import {
   Edit,
   MessageSquare,
   Send,
+  ShieldCheck,
 } from 'lucide-react';
 import * as XLSX from 'xlsx';
 import { jsPDF } from 'jspdf';
@@ -106,6 +107,7 @@ interface Agent {
   reviewNotes: string | null;
   createdAt: string;
   reviewedAt: string | null;
+  userId?: string | null;
   reviewer?: { name: string } | null;
 }
 
@@ -169,6 +171,10 @@ export default function AgentsPage() {
   const [smsAgent, setSmsAgent] = useState<Agent | null>(null);
   const [smsMessage, setSmsMessage] = useState('');
   const [smsSending, setSmsSending] = useState(false);
+  
+  // Portal Access state
+  const [portalPassword, setPortalPassword] = useState('');
+  const [portalLoading, setPortalLoading] = useState(false);
 
   useEffect(() => {
     if (transferProductId) {
@@ -515,6 +521,48 @@ export default function AgentsPage() {
       });
     } finally {
       setActionLoading(false);
+    }
+  };
+
+  const handleUpdatePortalAccess = async () => {
+    if (!editAgent || !portalPassword) return;
+    if (portalPassword.length < 6) {
+      toast({
+        title: 'Weak Password',
+        description: 'Password must be at least 6 characters long.',
+        variant: 'destructive',
+      });
+      return;
+    }
+    
+    setPortalLoading(true);
+    try {
+      const res = await fetch(`/api/admin/agents/${editAgent.id}/portal-access`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ password: portalPassword }),
+      });
+
+      if (res.ok) {
+        const data = await res.json();
+        toast({
+          title: 'Success',
+          description: data.message,
+        });
+        setPortalPassword('');
+        fetchAgents();
+      } else {
+        const error = await res.json();
+        throw new Error(error.error || 'Failed to update portal access');
+      }
+    } catch (error: any) {
+      toast({
+        title: 'Error',
+        description: error.message,
+        variant: 'destructive',
+      });
+    } finally {
+      setPortalLoading(false);
     }
   };
 
@@ -879,6 +927,7 @@ export default function AgentsPage() {
           )}
         </CardContent>
       </Card>
+      </div>
 
       {/* Review Dialog */}
       <Dialog open={showDialog} onOpenChange={setShowDialog}>
@@ -1448,6 +1497,12 @@ export default function AgentsPage() {
                       <Warehouse className="w-3.5 h-3.5 mr-2" />
                       Logistics & Location
                     </TabsTrigger>
+                    {editAgent.status === 'APPROVED' && (
+                      <TabsTrigger value="portal" className="data-[state=active]:bg-transparent data-[state=active]:text-deep-sky-blue data-[state=active]:shadow-none data-[state=active]:border-b-2 data-[state=active]:border-deep-sky-blue rounded-none h-full px-0 text-xs font-bold uppercase tracking-widest text-gray-400">
+                        <ShieldCheck className="w-3.5 h-3.5 mr-2" />
+                        Security & Portal
+                      </TabsTrigger>
+                    )}
                   </TabsList>
                 </div>
 
@@ -1703,11 +1758,82 @@ export default function AgentsPage() {
                       </div>
                     </div>
                   </TabsContent>
+
+                  <TabsContent value="portal" className="p-8 m-0 space-y-6">
+                    <div className="space-y-6">
+                      <div className="p-6 bg-slate-50 rounded-2xl border border-slate-100 space-y-4">
+                        <div className="flex items-center gap-3">
+                          <div className={`w-12 h-12 rounded-xl flex items-center justify-center border shadow-sm ${editAgent.userId ? 'bg-emerald-50 border-emerald-100 text-emerald-600' : 'bg-amber-50 border-amber-100 text-amber-600'}`}>
+                            <ShieldCheck className="w-6 h-6" />
+                          </div>
+                          <div>
+                            <h4 className="text-sm font-bold text-gray-900">
+                              {editAgent.userId ? 'Portal Access Active' : 'Portal Access Inactive'}
+                            </h4>
+                            <p className="text-xs text-gray-500 font-medium">
+                              {editAgent.userId 
+                                ? 'This agent can log in to their dashboard using their email.' 
+                                : 'Activate portal access to allow this agent to manage their inventory.'}
+                            </p>
+                          </div>
+                        </div>
+
+                        <div className="pt-4 space-y-4 border-t border-slate-200/60">
+                          <div className="space-y-2">
+                            <Label className="text-xs font-bold text-gray-700 uppercase tracking-wider">
+                              {editAgent.userId ? 'Reset Portal Password' : 'Set Initial Password'}
+                            </Label>
+                            <div className="flex gap-3">
+                              <div className="relative flex-1">
+                                <ShieldCheck className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
+                                <Input
+                                  type="password"
+                                  value={portalPassword}
+                                  onChange={(e) => setPortalPassword(e.target.value)}
+                                  placeholder="Minimum 6 characters"
+                                  className="h-11 bg-white border-gray-200 rounded-lg pl-10"
+                                />
+                              </div>
+                              <Button
+                                onClick={handleUpdatePortalAccess}
+                                disabled={portalLoading || !portalPassword}
+                                className="h-11 px-6 bg-gray-900 text-white hover:bg-black font-bold rounded-lg shadow-lg shadow-gray-200 transition-all"
+                              >
+                                {portalLoading ? (
+                                  <Loader2 className="w-4 h-4 animate-spin" />
+                                ) : (
+                                  editAgent.userId ? 'Update' : 'Activate'
+                                )}
+                              </Button>
+                            </div>
+                            <p className="text-[10px] text-gray-400 font-medium italic">
+                                The agent will log in using: <span className="font-bold text-gray-600">{editAgent.email}</span>
+                            </p>
+                          </div>
+                        </div>
+                      </div>
+
+                      {editAgent.userId && (
+                        <div className="p-4 bg-emerald-50/50 border border-emerald-100 rounded-xl flex items-start gap-3">
+                          <CheckCircle className="w-5 h-5 text-emerald-500 shrink-0 mt-0.5" />
+                          <div className="space-y-1">
+                            <p className="text-xs font-bold text-emerald-900">User Account Linked</p>
+                            <p className="text-[10px] text-emerald-700 font-medium leading-relaxed">
+                              This agent profile is correctly synchronized with a system user account. They can now access all agent-specific features.
+                            </p>
+                          </div>
+                        </div>
+                      )}
+                    </div>
+                  </TabsContent>
                 </div>
 
                 <DialogFooter className="p-8 bg-gray-50 border-t border-gray-100 flex items-center justify-between">
                   <div className="text-[10px] font-bold text-gray-400 uppercase tracking-[0.2em]">
-                    {currentTab === 'personal' ? 'Step 1 of 3: Identity' : currentTab === 'business' ? 'Step 2 of 3: Profile' : 'Step 3 of 3: Fulfillment'}
+                    {currentTab === 'personal' ? 'Step 1 of 4: Identity' : 
+                     currentTab === 'business' ? 'Step 2 of 4: Profile' : 
+                     currentTab === 'logistics' ? 'Step 3 of 4: Location' : 
+                     'Step 4 of 4: Security'}
                   </div>
                   <div className="flex gap-3">
                     <Button
@@ -1715,7 +1841,8 @@ export default function AgentsPage() {
                       onClick={() => {
                         if (currentTab === 'personal') setShowEditDialog(false);
                         else if (currentTab === 'business') setCurrentTab('personal');
-                        else setCurrentTab('business');
+                        else if (currentTab === 'logistics') setCurrentTab('business');
+                        else setCurrentTab('logistics');
                       }}
                       className="h-12 font-bold text-gray-500 hover:bg-white"
                     >
@@ -1727,11 +1854,12 @@ export default function AgentsPage() {
                       )}
                     </Button>
                     
-                    {currentTab !== 'logistics' ? (
+                    {currentTab !== 'portal' && (currentTab !== 'logistics' || editAgent.status !== 'APPROVED') ? (
                       <Button
                         onClick={() => {
                           if (currentTab === 'personal') setCurrentTab('business');
-                          else setCurrentTab('logistics');
+                          else if (currentTab === 'business') setCurrentTab('logistics');
+                          else setCurrentTab('portal');
                         }}
                         disabled={currentTab === 'personal' && (!editAgent.firstName || !editAgent.lastName || !editAgent.email || !editAgent.phone)}
                         className="h-12 px-10 bg-deep-sky-blue text-white hover:bg-deep-sky-blue/90 font-bold rounded-xl shadow-lg shadow-blue-100 transition-all flex items-center gap-2"
@@ -1978,7 +2106,6 @@ export default function AgentsPage() {
           )}
         </DialogContent>
       </Dialog>
-      </div>
 
       {/* SMS Quick-Send Dialog */}
       <Dialog open={showSmsDialog} onOpenChange={(open) => { if (!open) { setShowSmsDialog(false); setSmsAgent(null); setSmsMessage(''); } }}>

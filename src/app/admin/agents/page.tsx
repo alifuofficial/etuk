@@ -1219,7 +1219,7 @@ export default function AgentsPage() {
 
       {/* Add Agent Dialog */}
       <Dialog open={showAddDialog} onOpenChange={setShowAddDialog}>
-        <DialogContent className="max-w-4xl p-0 overflow-hidden rounded-2xl shadow-2xl bg-white border-none max-h-[95vh] flex flex-col">
+        <DialogContent className="max-w-4xl w-[95vw] p-0 overflow-hidden rounded-2xl shadow-2xl bg-white border-none max-h-[95vh] flex flex-col">
           <div className="bg-gray-900 p-8 text-white relative z-10 flex justify-between items-end">
             <div>
               <div className="flex items-center gap-2 mb-2">
@@ -1568,7 +1568,7 @@ export default function AgentsPage() {
                         else setCurrentTab('logistics');
                       }}
                       disabled={currentTab === 'personal' && (!newAgent.firstName || !newAgent.lastName || !newAgent.email || !newAgent.phone)}
-                      className="h-14 px-10 bg-amber-500 text-slate-950 hover:bg-amber-400 font-black rounded-2xl shadow-lg shadow-amber-500/20 transition-all active:scale-95 uppercase text-xs tracking-widest border-none"
+                      className="h-14 px-10 bg-deep-sky-blue text-slate-950 hover:bg-deep-sky-blue/90 font-black rounded-2xl shadow-lg shadow-deep-sky-blue/20 transition-all active:scale-95 uppercase text-xs tracking-widest border-none"
                     >
                       Continue
                       <ArrowRight className="w-4 h-4 ml-2" />
@@ -1599,13 +1599,13 @@ export default function AgentsPage() {
 
       {showEditDialog && editAgent && (
         <Dialog open={showEditDialog} onOpenChange={setShowEditDialog}>
-          <DialogContent className="max-w-5xl p-0 overflow-hidden rounded-[3rem] shadow-2xl bg-white border-none max-h-[92vh] flex flex-col">
+          <DialogContent className="max-w-5xl w-[95vw] p-0 overflow-hidden rounded-[3rem] shadow-2xl bg-white border-none max-h-[92vh] flex flex-col">
             <Tabs defaultValue="personal" onValueChange={(v) => setCurrentTab(v as any)} value={currentTab} className="w-full h-full flex flex-col">
               {/* Premium Header Section */}
               <div className="pt-10 px-10 bg-slate-950 shrink-0">
                 <div className="flex items-center justify-between mb-8">
                   <div className="flex items-center gap-6">
-                    <div className="h-20 w-20 rounded-[2rem] bg-gradient-to-br from-amber-400 to-amber-600 flex items-center justify-center shadow-2xl shadow-amber-500/20 group-hover:scale-105 transition-transform duration-500">
+                    <div className="h-20 w-20 rounded-[2rem] bg-gradient-to-br from-deep-sky-blue to-blue-600 flex items-center justify-center shadow-2xl shadow-deep-sky-blue/20 group-hover:scale-105 transition-transform duration-500">
                       <UserCog className="w-10 h-10 text-slate-950" />
                     </div>
                     <div>
@@ -1613,13 +1613,13 @@ export default function AgentsPage() {
                         <h2 className="text-3xl font-black text-white tracking-tighter uppercase">Edit Master Agent</h2>
                         <span className={`px-4 py-1.5 rounded-full text-[10px] font-black uppercase tracking-widest ${
                           editAgent.status === 'APPROVED' ? 'bg-emerald-500/10 text-emerald-400 border border-emerald-500/20' : 
-                          'bg-amber-500/10 text-amber-500 border border-amber-500/20'
+                          'bg-deep-sky-blue/10 text-deep-sky-blue border border-deep-sky-blue/20'
                         }`}>
                           {editAgent.status}
                         </span>
                       </div>
                       <p className="text-slate-400 font-bold uppercase tracking-[0.2em] text-xs mt-2 flex items-center gap-2">
-                        <Shield className="w-3 h-3 text-amber-500" />
+                        <Shield className="w-3 h-3 text-deep-sky-blue" />
                         SECURE IDENTITY MANAGEMENT · SYSTEM ID: {editAgent.id.slice(0, 8)}
                       </p>
                     </div>
@@ -1634,31 +1634,33 @@ export default function AgentsPage() {
                   </Button>
                 </div>
 
-                {/* Deluxe Tabs Navigation */}
-                <TabsList className="bg-transparent h-auto p-0 flex gap-10">
-                  {[
-                    { id: 'personal', label: 'Personal', icon: User },
-                    { id: 'business', label: 'Business', icon: Briefcase },
-                    { id: 'logistics', label: 'Logistics', icon: Truck },
-                    ...(editAgent.status === 'APPROVED' ? [{ id: 'portal', label: 'Security & Portal', icon: Lock }] : [])
-                  ].map((tab) => (
-                    <TabsTrigger
-                      key={tab.id}
-                      value={tab.id}
-                      className="group relative pb-6 px-0 bg-transparent data-[state=active]:bg-transparent transition-all border-none"
-                    >
-                      <div className="flex items-center gap-3">
-                        <div className="h-10 w-10 rounded-xl bg-slate-900 flex items-center justify-center group-hover:bg-slate-800 group-data-[state=active]:bg-amber-500 transition-all">
-                          <tab.icon className="w-5 h-5 text-slate-400 group-data-[state=active]:text-slate-950" />
+                {/* Deluxe Tabs Navigation - Now Scrollable */}
+                <div className="overflow-x-auto scrollbar-hide">
+                  <TabsList className="bg-transparent h-auto p-0 flex gap-10 min-w-max pb-1">
+                    {[
+                      { id: 'personal', label: 'Personal', icon: User },
+                      { id: 'business', label: 'Business', icon: Briefcase },
+                      { id: 'logistics', label: 'Logistics', icon: Truck },
+                      ...(editAgent.status === 'APPROVED' ? [{ id: 'portal', label: 'Security & Portal', icon: Lock }] : [])
+                    ].map((tab) => (
+                      <TabsTrigger
+                        key={tab.id}
+                        value={tab.id}
+                        className="group relative pb-6 px-0 bg-transparent data-[state=active]:bg-transparent transition-all border-none"
+                      >
+                        <div className="flex items-center gap-3">
+                          <div className="h-10 w-10 rounded-xl bg-slate-900 flex items-center justify-center group-hover:bg-slate-800 group-data-[state=active]:bg-deep-sky-blue transition-all">
+                            <tab.icon className="w-5 h-5 text-slate-400 group-data-[state=active]:text-slate-950" />
+                          </div>
+                          <span className="text-sm font-black uppercase tracking-widest text-slate-500 group-data-[state=active]:text-white transition-colors">
+                            {tab.label}
+                          </span>
                         </div>
-                        <span className="text-sm font-black uppercase tracking-widest text-slate-500 group-data-[state=active]:text-white transition-colors">
-                          {tab.label}
-                        </span>
-                      </div>
-                      <div className="absolute bottom-0 left-0 right-0 h-1 rounded-full bg-amber-500 scale-x-0 group-data-[state=active]:scale-x-100 transition-transform duration-500 shadow-[0_0_15px_rgba(245,158,11,0.5)]" />
-                    </TabsTrigger>
-                  ))}
-                </TabsList>
+                        <div className="absolute bottom-0 left-0 right-0 h-1 rounded-full bg-deep-sky-blue scale-x-0 group-data-[state=active]:scale-x-100 transition-transform duration-500 shadow-[0_0_15px_rgba(0,191,255,0.5)]" />
+                      </TabsTrigger>
+                    ))}
+                  </TabsList>
+                </div>
               </div>
 
               <div className="flex-1 overflow-y-auto">
@@ -1670,7 +1672,7 @@ export default function AgentsPage() {
                         <Input
                           value={editAgent.firstName}
                           onChange={(e) => setEditAgent({ ...editAgent, firstName: e.target.value })}
-                          className="h-14 bg-white border-slate-200 rounded-2xl shadow-sm focus:ring-amber-500/20 focus:border-amber-500 transition-all text-slate-900 font-medium px-5"
+                          className="h-14 bg-white border-slate-200 rounded-2xl shadow-sm focus:ring-deep-sky-blue/20 focus:border-deep-sky-blue transition-all text-slate-900 font-medium px-5"
                           placeholder="First Name"
                         />
                       </div>
@@ -1691,7 +1693,7 @@ export default function AgentsPage() {
                         type="email"
                         value={editAgent.email}
                         onChange={(e) => setEditAgent({ ...editAgent, email: e.target.value })}
-                        className="h-14 bg-white border-slate-200 rounded-2xl shadow-sm focus:ring-amber-500/20 focus:border-amber-500 transition-all text-slate-900 font-medium px-5"
+                        className="h-14 bg-white border-slate-200 rounded-2xl shadow-sm focus:ring-deep-sky-blue/20 focus:border-deep-sky-blue transition-all text-slate-900 font-medium px-5"
                         placeholder="Email Address"
                       />
                     </div>
@@ -2039,7 +2041,7 @@ export default function AgentsPage() {
                         else if (currentTab === 'business') setCurrentTab('logistics');
                         else if (currentTab === 'logistics' && editAgent.status === 'APPROVED') setCurrentTab('portal');
                       }}
-                      className="h-14 px-10 bg-amber-500 text-slate-950 hover:bg-amber-400 font-black rounded-2xl shadow-lg shadow-amber-500/20 transition-all active:scale-95 uppercase text-xs tracking-widest border-none"
+                      className="h-14 px-10 bg-deep-sky-blue text-slate-950 hover:bg-deep-sky-blue-dark font-black rounded-2xl shadow-lg shadow-deep-sky-blue/20 transition-all active:scale-95 uppercase text-xs tracking-widest border-none"
                     >
                       Continue
                       <ArrowRight className="w-4 h-4 ml-2" />

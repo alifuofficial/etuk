@@ -8,6 +8,7 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { Switch } from '@/components/ui/switch';
 import { useToast } from '@/hooks/use-toast';
 import { 
   User, 
@@ -71,6 +72,7 @@ export default function SettingsPage() {
     factoryName: 'Modjo Factory',
     factoryDesc: 'Our main assembly hub ensuring rapid delivery and local parts support.',
     footerContactTitle: 'Performance',
+    isAgentRegistrationEnabled: 'true',
   });
 
   // Load settings on mount
@@ -453,6 +455,37 @@ export default function SettingsPage() {
                       value={siteData.factoryDesc}
                       onChange={(e) => setSiteData({...siteData, factoryDesc: e.target.value})}
                       className="bg-gray-50 border-gray-200 rounded-lg px-4 focus:bg-white focus:border-deep-sky-blue transition-all font-medium min-h-[80px]"
+                    />
+                  </div>
+                </CardContent>
+              </Card>
+            </div>
+
+            {/* Section 4: Feature Controls */}
+            <div className="grid md:grid-cols-3 gap-8">
+              <div className="md:col-span-1">
+                <h3 className="text-lg font-bold text-gray-900">Feature Controls</h3>
+                <p className="text-sm text-gray-500 mt-2 leading-relaxed">
+                  Enable or disable specific system features for the public website.
+                </p>
+              </div>
+
+              <Card className="md:col-span-2 border-gray-200 shadow-sm rounded-xl overflow-hidden">
+                <CardHeader className="border-b border-gray-50 pb-6 px-8 pt-8">
+                  <CardTitle className="text-lg font-bold">Registration & Portal</CardTitle>
+                </CardHeader>
+                <CardContent className="p-8">
+                  <div className="flex items-center justify-between p-4 bg-gray-50 rounded-xl border border-gray-100">
+                    <div className="space-y-1">
+                      <Label className="text-sm font-bold flex items-center gap-2">
+                        <User className="w-4 h-4 text-deep-sky-blue" />
+                        Enable Agent Registration
+                      </Label>
+                      <p className="text-xs text-gray-500">Allow public users to access the /become-agent registration form.</p>
+                    </div>
+                    <Switch 
+                      checked={siteData.isAgentRegistrationEnabled === 'true'} 
+                      onCheckedChange={(checked) => setSiteData({...siteData, isAgentRegistrationEnabled: String(checked)})}
                     />
                   </div>
                 </CardContent>

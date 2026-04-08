@@ -36,6 +36,7 @@ import {
 } from 'lucide-react';
 import LanguageManager from '@/components/admin/settings/LanguageManager';
 import TranslationManager from '@/components/admin/settings/TranslationManager';
+import { cn } from '@/lib/utils';
 
 export default function SettingsPage() {
   const { data: session } = useSession();
@@ -200,9 +201,9 @@ export default function SettingsPage() {
               <p className="text-sm text-gray-500 mt-2 leading-relaxed">
                 Update your administrative password regularly to maintain system integrity. Ensure your new password is at least 8 characters long.
               </p>
-              <div className="mt-6 p-4 bg-blue-50 rounded-xl border border-blue-100 flex items-start gap-3">
+              <div className="mt-6 p-4 bg-deep-sky-blue/[0.03] rounded-xl border border-deep-sky-blue/10 flex items-start gap-3">
                  <ShieldCheck className="w-5 h-5 text-deep-sky-blue shrink-0 mt-0.5" />
-                 <p className="text-xs text-blue-700 font-medium leading-relaxed">
+                 <p className="text-xs text-deep-sky-blue-dark font-medium leading-relaxed">
                     Your account is currently protected by standard JWT encryption.
                  </p>
               </div>
@@ -285,61 +286,64 @@ export default function SettingsPage() {
               </div>
 
               <Card className="md:col-span-2 border-gray-200 shadow-sm rounded-xl overflow-hidden">
-                <CardHeader className="border-b border-gray-50 pb-6 px-8 pt-8">
+                <CardHeader className="border-b border-gray-100 pb-6 px-8 pt-8 bg-slate-50/50">
                   <CardTitle className="text-lg font-bold">General Information & Footer Header</CardTitle>
                 </CardHeader>
                 <CardContent className="p-8 space-y-6">
                     <div className="space-y-2">
-                      <Label className="text-xs font-bold text-gray-600 uppercase tracking-widest pl-1">Footer Contact Section Title (e.g. Performance)</Label>
+                      <Label className="text-xs font-bold text-gray-500 uppercase tracking-widest pl-1">Footer Contact Section Title (e.g. Performance)</Label>
                       <Input 
                         value={siteData.footerContactTitle}
                         onChange={(e) => setSiteData({...siteData, footerContactTitle: e.target.value})}
-                        className="h-11 bg-gray-50 border-gray-200 rounded-lg px-4 focus:bg-white focus:border-deep-sky-blue transition-all font-medium"
+                        className="h-12 bg-gray-50/50 border-gray-200 rounded-lg px-4 focus:bg-white focus:border-deep-sky-blue focus:ring-4 focus:ring-deep-sky-blue/5 transition-all font-medium"
                       />
                     </div>
 
                     <div className="space-y-2">
-                      <Label className="text-xs font-bold text-gray-600 uppercase tracking-widest pl-1">Platform Name</Label>
-                      <Input 
-                        value={siteData.siteName}
-                        onChange={(e) => setSiteData({...siteData, siteName: e.target.value})}
-                        className="h-11 bg-gray-50 border-gray-200 rounded-lg px-4 focus:bg-white focus:border-deep-sky-blue transition-all font-medium"
-                      />
+                      <Label className="text-xs font-bold text-gray-500 uppercase tracking-widest pl-1">Platform Name</Label>
+                      <div className="relative">
+                        <Globe className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
+                        <Input 
+                          value={siteData.siteName}
+                          onChange={(e) => setSiteData({...siteData, siteName: e.target.value})}
+                          className="h-12 bg-gray-50/50 border-gray-200 rounded-lg pl-10 px-4 focus:bg-white focus:border-deep-sky-blue focus:ring-4 focus:ring-deep-sky-blue/5 transition-all font-medium"
+                        />
+                      </div>
                     </div>
                     
                     <div className="grid grid-cols-2 gap-6">
                       <div className="space-y-2">
-                        <Label className="text-xs font-bold text-gray-600 uppercase tracking-widest pl-1">Support Email</Label>
+                        <Label className="text-xs font-bold text-gray-500 uppercase tracking-widest pl-1">Support Email</Label>
                         <div className="relative">
                           <Mail className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
                           <Input 
                             value={siteData.supportEmail}
                             onChange={(e) => setSiteData({...siteData, supportEmail: e.target.value})}
-                            className="h-11 bg-gray-50 border-gray-200 rounded-lg pl-10 px-4 focus:bg-white focus:border-deep-sky-blue transition-all font-medium"
+                            className="h-12 bg-gray-50/50 border-gray-200 rounded-lg pl-10 px-4 focus:bg-white focus:border-deep-sky-blue focus:ring-4 focus:ring-deep-sky-blue/5 transition-all font-medium"
                           />
                         </div>
                       </div>
                       <div className="space-y-2">
-                        <Label className="text-xs font-bold text-gray-600 uppercase tracking-widest pl-1">Public Phone</Label>
+                        <Label className="text-xs font-bold text-gray-500 uppercase tracking-widest pl-1">Public Phone</Label>
                         <div className="relative">
                           <Phone className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
                           <Input 
                             value={siteData.phone}
                             onChange={(e) => setSiteData({...siteData, phone: e.target.value})}
-                            className="h-11 bg-gray-50 border-gray-200 rounded-lg pl-10 px-4 focus:bg-white focus:border-deep-sky-blue transition-all font-medium"
+                            className="h-12 bg-gray-50/50 border-gray-200 rounded-lg pl-10 px-4 focus:bg-white focus:border-deep-sky-blue focus:ring-4 focus:ring-deep-sky-blue/5 transition-all font-medium"
                           />
                         </div>
                       </div>
                     </div>
 
                     <div className="space-y-2">
-                      <Label className="text-xs font-bold text-gray-600 uppercase tracking-widest pl-1">Head Office Address</Label>
+                      <Label className="text-xs font-bold text-gray-500 uppercase tracking-widest pl-1">Head Office Address</Label>
                       <div className="relative">
                         <MapPin className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
                         <Input 
                           value={siteData.address}
                           onChange={(e) => setSiteData({...siteData, address: e.target.value})}
-                          className="h-11 bg-gray-50 border-gray-200 rounded-lg pl-10 px-4 focus:bg-white focus:border-deep-sky-blue transition-all font-medium"
+                          className="h-12 bg-gray-50/50 border-gray-200 rounded-lg pl-10 px-4 focus:bg-white focus:border-deep-sky-blue focus:ring-4 focus:ring-deep-sky-blue/5 transition-all font-medium"
                         />
                       </div>
                     </div>
@@ -357,64 +361,64 @@ export default function SettingsPage() {
               </div>
 
               <Card className="md:col-span-2 border-gray-200 shadow-sm rounded-xl overflow-hidden">
-                <CardHeader className="border-b border-gray-50 pb-6 px-8 pt-8">
+                <CardHeader className="border-b border-gray-100 pb-6 px-8 pt-8 bg-slate-50/50">
                   <CardTitle className="text-lg font-bold">Public Footer Content</CardTitle>
                 </CardHeader>
                 <CardContent className="p-8 space-y-6">
                   <div className="space-y-2">
-                    <Label className="text-xs font-bold text-gray-600 uppercase tracking-widest pl-1">Footer About Text</Label>
+                    <Label className="text-xs font-bold text-gray-500 uppercase tracking-widest pl-1">Footer About Text</Label>
                     <Textarea 
                       value={siteData.footerAbout}
                       onChange={(e) => setSiteData({...siteData, footerAbout: e.target.value})}
-                      className="bg-gray-50 border-gray-200 rounded-lg px-4 focus:bg-white focus:border-deep-sky-blue transition-all font-medium min-h-[100px]"
+                      className="bg-gray-50/50 border-gray-200 rounded-lg px-4 focus:bg-white focus:border-deep-sky-blue focus:ring-4 focus:ring-deep-sky-blue/5 transition-all font-medium min-h-[100px]"
                     />
                   </div>
 
                   <div className="grid grid-cols-2 gap-6">
                     <div className="space-y-2">
-                      <Label className="text-xs font-bold text-gray-600 uppercase tracking-widest pl-1">Facebook URL</Label>
+                      <Label className="text-xs font-bold text-gray-500 uppercase tracking-widest pl-1">Facebook URL</Label>
                       <div className="relative">
                         <Facebook className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
                         <Input 
                           value={siteData.facebook}
                           onChange={(e) => setSiteData({...siteData, facebook: e.target.value})}
-                          className="h-11 bg-gray-50 border-gray-200 rounded-lg pl-10 px-4 focus:bg-white focus:border-deep-sky-blue transition-all font-medium"
+                          className="h-12 bg-gray-50/50 border-gray-200 rounded-lg pl-10 px-4 focus:bg-white focus:border-deep-sky-blue focus:ring-4 focus:ring-deep-sky-blue/5 transition-all font-medium"
                           placeholder="https://facebook.com/..."
                         />
                       </div>
                     </div>
                     <div className="space-y-2">
-                      <Label className="text-xs font-bold text-gray-600 uppercase tracking-widest pl-1">Twitter URL</Label>
+                      <Label className="text-xs font-bold text-gray-500 uppercase tracking-widest pl-1">Twitter URL</Label>
                       <div className="relative">
                         <Twitter className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
                         <Input 
                           value={siteData.twitter}
                           onChange={(e) => setSiteData({...siteData, twitter: e.target.value})}
-                          className="h-11 bg-gray-50 border-gray-200 rounded-lg pl-10 px-4 focus:bg-white focus:border-deep-sky-blue transition-all font-medium"
+                          className="h-12 bg-gray-50/50 border-gray-200 rounded-lg pl-10 px-4 focus:bg-white focus:border-deep-sky-blue focus:ring-4 focus:ring-deep-sky-blue/5 transition-all font-medium"
                           placeholder="https://twitter.com/..."
                         />
                       </div>
                     </div>
                     <div className="space-y-2">
-                      <Label className="text-xs font-bold text-gray-600 uppercase tracking-widest pl-1">Instagram URL</Label>
+                      <Label className="text-xs font-bold text-gray-500 uppercase tracking-widest pl-1">Instagram URL</Label>
                       <div className="relative">
                         <Instagram className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
                         <Input 
                           value={siteData.instagram}
                           onChange={(e) => setSiteData({...siteData, instagram: e.target.value})}
-                          className="h-11 bg-gray-50 border-gray-200 rounded-lg pl-10 px-4 focus:bg-white focus:border-deep-sky-blue transition-all font-medium"
+                          className="h-12 bg-gray-50/50 border-gray-200 rounded-lg pl-10 px-4 focus:bg-white focus:border-deep-sky-blue focus:ring-4 focus:ring-deep-sky-blue/5 transition-all font-medium"
                           placeholder="https://instagram.com/..."
                         />
                       </div>
                     </div>
                     <div className="space-y-2">
-                      <Label className="text-xs font-bold text-gray-600 uppercase tracking-widest pl-1">Youtube URL</Label>
+                      <Label className="text-xs font-bold text-gray-500 uppercase tracking-widest pl-1">Youtube URL</Label>
                       <div className="relative">
                         <Youtube className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
                         <Input 
                           value={siteData.youtube}
                           onChange={(e) => setSiteData({...siteData, youtube: e.target.value})}
-                          className="h-11 bg-gray-50 border-gray-200 rounded-lg pl-10 px-4 focus:bg-white focus:border-deep-sky-blue transition-all font-medium"
+                          className="h-12 bg-gray-50/50 border-gray-200 rounded-lg pl-10 px-4 focus:bg-white focus:border-deep-sky-blue focus:ring-4 focus:ring-deep-sky-blue/5 transition-all font-medium"
                           placeholder="https://youtube.com/..."
                         />
                       </div>
@@ -434,27 +438,27 @@ export default function SettingsPage() {
               </div>
 
               <Card className="md:col-span-2 border-gray-200 shadow-sm rounded-xl overflow-hidden">
-                <CardHeader className="border-b border-gray-50 pb-6 px-8 pt-8">
+                <CardHeader className="border-b border-gray-100 pb-6 px-8 pt-8 bg-slate-50/50">
                   <CardTitle className="text-lg font-bold">Assembly Hub</CardTitle>
                 </CardHeader>
                 <CardContent className="p-8 space-y-6">
                   <div className="space-y-2">
-                    <Label className="text-xs font-bold text-gray-600 uppercase tracking-widest pl-1">Factory Name</Label>
+                    <Label className="text-xs font-bold text-gray-500 uppercase tracking-widest pl-1">Factory Name</Label>
                     <div className="relative">
                       <Factory className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
                       <Input 
                         value={siteData.factoryName}
                         onChange={(e) => setSiteData({...siteData, factoryName: e.target.value})}
-                        className="h-11 bg-gray-50 border-gray-200 rounded-lg pl-10 px-4 focus:bg-white focus:border-deep-sky-blue transition-all font-medium"
+                        className="h-12 bg-gray-50/50 border-gray-200 rounded-lg pl-10 px-4 focus:bg-white focus:border-deep-sky-blue focus:ring-4 focus:ring-deep-sky-blue/5 transition-all font-medium"
                       />
                     </div>
                   </div>
                   <div className="space-y-2">
-                    <Label className="text-xs font-bold text-gray-600 uppercase tracking-widest pl-1">Factory Description</Label>
+                    <Label className="text-xs font-bold text-gray-500 uppercase tracking-widest pl-1">Factory Description</Label>
                     <Textarea 
                       value={siteData.factoryDesc}
                       onChange={(e) => setSiteData({...siteData, factoryDesc: e.target.value})}
-                      className="bg-gray-50 border-gray-200 rounded-lg px-4 focus:bg-white focus:border-deep-sky-blue transition-all font-medium min-h-[80px]"
+                      className="bg-gray-50/50 border-gray-200 rounded-lg px-4 focus:bg-white focus:border-deep-sky-blue focus:ring-4 focus:ring-deep-sky-blue/5 transition-all font-medium min-h-[80px]"
                     />
                   </div>
                 </CardContent>
@@ -471,17 +475,17 @@ export default function SettingsPage() {
               </div>
 
               <Card className="md:col-span-2 border-gray-200 shadow-sm rounded-xl overflow-hidden">
-                <CardHeader className="border-b border-gray-50 pb-6 px-8 pt-8">
+                <CardHeader className="border-b border-gray-100 pb-6 px-8 pt-8 bg-slate-50/50">
                   <CardTitle className="text-lg font-bold">Registration & Portal</CardTitle>
                 </CardHeader>
                 <CardContent className="p-8">
-                  <div className="flex items-center justify-between p-4 bg-gray-50 rounded-xl border border-gray-100">
+                  <div className="flex items-center justify-between p-6 bg-deep-sky-blue/[0.03] rounded-2xl border border-deep-sky-blue/10">
                     <div className="space-y-1">
-                      <Label className="text-sm font-bold flex items-center gap-2">
+                      <Label className="text-sm font-bold flex items-center gap-2 text-gray-900">
                         <User className="w-4 h-4 text-deep-sky-blue" />
                         Enable Agent Registration
                       </Label>
-                      <p className="text-xs text-gray-500">Allow public users to access the /become-agent registration form.</p>
+                      <p className="text-xs text-gray-500 font-medium">Allow public users to access the /become-agent registration form.</p>
                     </div>
                     <Switch 
                       checked={siteData.isAgentRegistrationEnabled === 'true'} 
@@ -495,11 +499,16 @@ export default function SettingsPage() {
             <div className="flex justify-end sticky bottom-6 z-20">
               <Button 
                 type="submit" 
-                className="bg-gray-900 hover:bg-black font-bold h-14 px-10 rounded-xl shadow-[0_20px_40px_-15px_rgba(0,0,0,0.3)] transition-all flex items-center gap-3 transform hover:-translate-y-1 active:scale-[0.98]"
+                className="bg-slate-900 hover:bg-black font-bold h-14 px-10 rounded-xl shadow-[0_20px_40px_-15px_rgba(0,0,0,0.5)] border-b-2 border-deep-sky-blue/30 transition-all flex items-center gap-3 transform hover:-translate-y-1 active:scale-[0.98] group overflow-hidden relative"
                 disabled={loading}
               >
-                <Save className="w-5 h-5" />
-                {loading ? 'Propagating Changes...' : 'Save All Settings'}
+                {loading && (
+                    <div className="absolute inset-0 bg-deep-sky-blue/20 animate-pulse" />
+                )}
+                <Save className={cn("w-5 h-5 transition-transform group-hover:rotate-12", loading ? "animate-spin" : "")} />
+                <span className="relative z-10">
+                    {loading ? 'Propagating Infrastructure Changes...' : 'Save Global Settings'}
+                </span>
               </Button>
             </div>
           </form>
@@ -522,7 +531,7 @@ export default function SettingsPage() {
                     <code className="text-xs bg-gray-100 px-1 py-0.5 rounded font-mono">SMS_ETHIOPIA_API_KEY</code>.
                     Updating it here saves it to the settings store for reference only — restart the server to apply new env values.
                   </p>
-                  <div className="mt-6 p-4 bg-amber-50 rounded-xl border border-amber-100 flex items-start gap-3">
+                  <div className="mt-6 p-4 bg-amber-500/[0.03] rounded-xl border border-amber-500/10 flex items-start gap-3">
                     <ShieldCheck className="w-5 h-5 text-amber-500 shrink-0 mt-0.5" />
                     <p className="text-xs text-amber-700 font-medium leading-relaxed">
                       Never share your API key. Set it as an environment variable for maximum security.

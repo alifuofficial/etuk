@@ -198,6 +198,11 @@ export default function AgentsPage() {
   const [portalPassword, setPortalPassword] = useState('');
   const [portalLoading, setPortalLoading] = useState(false);
   
+  // License preview state
+  const [licensePreviewOpen, setLicensePreviewOpen] = useState(false);
+  const [licensePreviewUrl, setLicensePreviewUrl] = useState('');
+  const [licenseUploading, setLicenseUploading] = useState(false);
+  
   // Bulk selection
   const [selectedAgentIds, setSelectedAgentIds] = useState<string[]>([]);
 
@@ -1625,6 +1630,47 @@ export default function AgentsPage() {
 
 {/* Content */}
               <div className="p-8 overflow-y-auto flex-1 space-y-6">
+                {/* Status Section */}
+                <div className="p-4 bg-slate-50 rounded-xl border border-slate-200">
+                  <div className="flex items-center gap-3">
+                    <div className="h-10 w-10 rounded-lg bg-gray-900 flex items-center justify-center">
+                      <ShieldCheck className="w-5 h-5 text-white" />
+                    </div>
+                    <div className="flex-1">
+                      <Label className="text-[10px] font-black text-slate-900 uppercase tracking-widest">Agent Status</Label>
+                      <p className="text-[9px] text-slate-500 font-medium uppercase tracking-wider mt-0.5">Review and update status</p>
+                    </div>
+                    <Select 
+                      value={editAgent.status} 
+                      onValueChange={(v) => setEditAgent({ ...editAgent, status: v })}
+                    >
+                      <SelectTrigger className="w-40 h-10 bg-white border-slate-200 rounded-lg">
+                        <SelectValue placeholder="Select status" />
+                      </SelectTrigger>
+                      <SelectContent className="bg-white">
+                        <SelectItem value="PENDING">
+                          <div className="flex items-center gap-2">
+                            <Clock className="w-4 h-4 text-amber-500" />
+                            <span>Pending</span>
+                          </div>
+                        </SelectItem>
+                        <SelectItem value="APPROVED">
+                          <div className="flex items-center gap-2">
+                            <CheckCircle className="w-4 h-4 text-emerald-500" />
+                            <span>Approved</span>
+                          </div>
+                        </SelectItem>
+                        <SelectItem value="REJECTED">
+                          <div className="flex items-center gap-2">
+                            <XCircle className="w-4 h-4 text-red-500" />
+                            <span>Rejected</span>
+                          </div>
+                        </SelectItem>
+                      </SelectContent>
+                    </Select>
+                  </div>
+                </div>
+
                 {/* Personal Information Section */}
                 <div className="space-y-4">
                   <h3 className="text-[10px] font-black text-slate-900 uppercase tracking-widest">Personal Information</h3>
@@ -1756,30 +1802,60 @@ export default function AgentsPage() {
                     </div>
                   </div>
 
-                  <div className="p-6 bg-slate-50 rounded-2xl border border-slate-100 flex items-center justify-between group hover:bg-white transition-all duration-300">
-                    <div className="flex items-center gap-4">
-                      <div className="h-12 w-12 rounded-xl bg-slate-200 flex items-center justify-center group-hover:bg-deep-sky-blue group-hover:text-slate-900 transition-all">
-                        <FileText className="w-5 h-5 text-slate-500 group-hover:text-inherit" />
-                      </div>
-                      <div>
-                        <p className="text-xs font-black text-slate-900 leading-none">Business License</p>
-                        <p className="text-[9px] text-slate-500 font-bold uppercase tracking-wider mt-1.5">Verification Document</p>
+<div className="space-y-3">
+                      <Label className="text-[10px] font-black text-slate-500 uppercase tracking-widest ml-1">Business License</Label>
+                      <div className="p-4 bg-slate-50 rounded-xl border border-slate-200">
+                        <div className="flex items-center justify-between gap-3">
+                          <div className="flex items-center gap-3 flex-1 min-w-0">
+                            <div className="h-10 w-10 rounded-lg bg-slate-200 flex items-center justify-center shrink-0">
+                              <FileText className="w-5 h-5 text-slate-600" />
+                            </div>
+                            <div className="min-w-0 flex-1">
+                              <p className="text-xs font-black text-slate-900 leading-none truncate">
+                                {editAgent.tradeLicense ? 'License Uploaded' : 'No License Uploaded'}
+                              </p>
+                              <p className="text-[9px] text-slate-500 font-medium uppercase tracking-wider mt-1">
+                                {editAgent.tradeLicense ? 'Click preview to view' : 'Upload verification document'}
+                              </p>
+                            </div>
+                          </div>
+                          <div className="flex items-center gap-2 shrink-0">
+                            {editAgent.tradeLicense && (
+                              <Button 
+                                variant="outline" 
+                                size="sm" 
+                                className="h-9 px-3 rounded-lg border-slate-200 text-slate-600 font-bold hover:bg-white transition-all text-[10px]"
+                                onClick={() => {
+                                  setLicensePreviewUrl(editAgent.tradeLicense);
+                                  setLicensePreviewOpen(true);
+                                }}
+                              >
+                                <Eye className="w-4 h-4 mr-1" />
+                                Preview
+                              </Button>
+                            )}
+                            <label className="cursor-pointer">
+                              <input
+                                type="file"
+                                accept="image/*,.pdf"
+                                className="hidden"
+                                onChange={(e) => {
+                                  const file = e.target.files?.[0];
+                                  if (file) {
+                                    setEditAgent({ ...editAgent, newTradeLicense: file, tradeLicense: URL.createObjectURL(file) });
+                                  }
+                                }}
+                              />
+                              <div className="h-9 px-3 bg-deep-sky-blue text-slate-900 rounded-lg flex items-center gap-1.5 font-bold text-[10px] hover:bg-deep-sky-blue/90 transition-all cursor-pointer">
+                                <Upload className="w-4 h-4" />
+                                {editAgent.tradeLicense ? 'Update' : 'Upload'}
+                              </div>
+                            </label>
+                          </div>
+                        </div>
                       </div>
                     </div>
-                    {editAgent.tradeLicense ? (
-                      <Button 
-                        variant="outline" 
-                        size="sm" 
-                        className="h-10 px-4 rounded-lg border-slate-200 text-slate-600 font-bold hover:bg-slate-50 transition-all"
-                        onClick={() => window.open(editAgent.tradeLicense!, '_blank')}
-                      >
-                        Preview
-                      </Button>
-                    ) : (
-                      <span className="text-[10px] font-bold text-slate-400 italic font-black uppercase tracking-widest">No Upload</span>
-                    )}
                   </div>
-                </div>
 
                 {/* Location & Logistics Section */}
                 <div className="space-y-4">
@@ -1887,7 +1963,8 @@ export default function AgentsPage() {
                   </div>
                 </div>
 
-                {/* Portal Access Section */}
+                {/* Portal Access Section - Only for Approved Agents */}
+                {editAgent.status === 'APPROVED' && (
                 <div className="space-y-4">
                   <h3 className="text-[10px] font-black text-slate-900 uppercase tracking-widest">Portal Access</h3>
                   <div className="p-8 bg-slate-900 rounded-2xl border border-slate-800 shadow-xl relative overflow-hidden group">
@@ -1967,6 +2044,7 @@ export default function AgentsPage() {
                     </div>
                   )}
                 </div>
+                )}
               </div>
 
               {/* Footer */}
@@ -1994,6 +2072,67 @@ export default function AgentsPage() {
           </DialogContent>
         </Dialog>
       )}
+
+      {/* License Preview Dialog */}
+      <Dialog open={licensePreviewOpen} onOpenChange={setLicensePreviewOpen}>
+        <DialogContent className="max-w-4xl p-0 overflow-hidden rounded-2xl shadow-2xl bg-white border-none max-h-[90vh] flex flex-col">
+          <div className="flex flex-col h-full">
+            <div className="p-6 bg-slate-900 flex items-center justify-between">
+              <div>
+                <h2 className="text-xl font-black text-white">Business License</h2>
+                <p className="text-sm text-slate-400 mt-1">Verification Document</p>
+              </div>
+              <Button
+                variant="ghost"
+                size="icon"
+                onClick={() => setLicensePreviewOpen(false)}
+                className="text-slate-400 hover:text-white hover:bg-white/10 rounded-lg"
+              >
+                <X className="w-5 h-5" />
+              </Button>
+            </div>
+            
+            <div className="flex-1 p-6 overflow-auto">
+              {licensePreviewUrl && (
+                <div className="w-full h-full min-h-[400px] flex items-center justify-center bg-slate-50 rounded-xl">
+                  {licensePreviewUrl.endsWith('.pdf') ? (
+                    <iframe
+                      src={licensePreviewUrl}
+                      className="w-full h-[70vh] rounded-xl border border-slate-200"
+                      title="License Preview"
+                    />
+                  ) : (
+                    <img
+                      src={licensePreviewUrl}
+                      alt="Business License"
+                      className="max-w-full max-h-[70vh] object-contain rounded-xl border border-slate-200"
+                    />
+                  )}
+                </div>
+              )}
+            </div>
+            
+            <div className="p-4 bg-gray-50 border-t border-gray-100 flex items-center justify-end gap-3">
+              <Button
+                variant="outline"
+                onClick={() => setLicensePreviewOpen(false)}
+                className="h-10 px-6 border-gray-200 text-gray-600 font-bold rounded-xl hover:bg-white"
+              >
+                Close
+              </Button>
+              {licensePreviewUrl && (
+                <Button
+                  onClick={() => window.open(licensePreviewUrl, '_blank')}
+                  className="h-10 px-6 bg-gray-900 text-white font-bold rounded-xl hover:bg-gray-800"
+                >
+                  <ExternalLink className="w-4 h-4 mr-2" />
+                  Open in New Tab
+                </Button>
+              )}
+            </div>
+          </div>
+        </DialogContent>
+      </Dialog>
 
       {/* Agent Inventory Dialog */}
       <Dialog open={showInventoryDialog} onOpenChange={setShowInventoryDialog}>

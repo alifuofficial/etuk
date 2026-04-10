@@ -1,6 +1,23 @@
 import { NextResponse } from 'next/server';
 import { otpStore } from '../forgot-password/route';
 
+// Normalize phone number to 251X format
+function normalizePhone(phone: string): string {
+  let cleaned = phone.replace(/[\s\-]/g, '').replace(/^\+/, '');
+  
+  if (cleaned.startsWith('09')) {
+    cleaned = '2519' + cleaned.slice(2);
+  } else if (cleaned.startsWith('07')) {
+    cleaned = '2517' + cleaned.slice(2);
+  } else if (cleaned.startsWith('0')) {
+    cleaned = '251' + cleaned.slice(1);
+  } else if (cleaned.startsWith('9') || cleaned.startsWith('7')) {
+    cleaned = '251' + cleaned;
+  }
+  
+  return cleaned;
+}
+
 export async function POST(req: Request) {
   try {
     const { phone, otp } = await req.json();
@@ -9,7 +26,8 @@ export async function POST(req: Request) {
       return NextResponse.json({ error: 'Phone number and OTP are required' }, { status: 400 });
     }
 
-    const storedData = otpStore.get(phone);
+    const normalizedPhone = normalizePhone(phone);
+    const storedData = otpStore.get(normalizedPhone);
 
     if (!storedData) {
       return NextResponse.json({ error: 'No OTP found. Please request a new one.' }, { status: 400 });
@@ -17,13 +35,13 @@ export async function POST(req: Request) {
 
     // Check if OTP expired
     if (Date.now() > storedData.expiresAt) {
-      otpStore.delete(phone);
+      otpStore.delete(normalizedPhone);
       return NextResponse.json({ error: 'OTP has expired. Please request a new one.' }, { status: 400 });
     }
 
     // Check attempts
     if (storedData.attempts >= 5) {
-      otpStore.delete(phone);
+      otpStore.delete(normalizedPhone);
       return NextResponse.json({ error: 'Too many attempts. Please request a new OTP.' }, { status: 429 });
     }
 
@@ -37,10 +55,10 @@ export async function POST(req: Request) {
     }
 
     // OTP is valid - generate a reset token
-    const resetToken = Buffer.from(`${phone}:${Date.now()}`).toString('base64');
+    const resetToken = Buffer.from(`${normalizedPhone}:${Date.now()}`).toString('base64');
     
     // Update the store with reset token
-    otpStore.set(phone, {
+    otpStore.set(normalizedPhone, {
       otp: storedData.otp,
       expiresAt: Date.now() + 30 * 60 * 1000, // 30 minutes for password reset
       attempts: 0
@@ -48,7 +66,8 @@ export async function POST(req: Request) {
 
     return NextResponse.json({ 
       message: 'OTP verified successfully',
-      resetToken
+      resetToken,
+      phone: normalizedPhone
     });
   } catch (error: any) {
     console.error('Verify OTP error:', error);

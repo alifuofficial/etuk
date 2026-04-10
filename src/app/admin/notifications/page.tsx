@@ -68,6 +68,7 @@ interface Agent {
   region: string;
   city: string;
   status: string;
+  tradeLicense: string | null;
 }
 
 interface SmsLog {
@@ -108,6 +109,7 @@ export default function NotificationsPage() {
   const [loadingAgents, setLoadingAgents] = useState(true);
   const [regions, setRegions] = useState<string[]>([]);
   const [agentStatusFilter, setAgentStatusFilter] = useState<string>('all');
+  const [licenseFilter, setLicenseFilter] = useState<'all' | 'with_license' | 'no_license'>('all');
 
   // Logs state
   const [logs, setLogs] = useState<SmsLog[]>([]);
@@ -216,6 +218,8 @@ export default function NotificationsPage() {
     const q = agentSearch.toLowerCase();
     if (recipientMode === 'region' && selectedRegion && a.region !== selectedRegion) return false;
     if (agentStatusFilter !== 'all' && a.status !== agentStatusFilter) return false;
+    if (licenseFilter === 'with_license' && !a.tradeLicense) return false;
+    if (licenseFilter === 'no_license' && a.tradeLicense) return false;
     return (
       `${a.firstName} ${a.lastName}`.toLowerCase().includes(q) ||
       a.phone.includes(q) ||
@@ -225,11 +229,19 @@ export default function NotificationsPage() {
 
   const effectiveRecipients = (): Agent[] => {
     if (recipientMode === 'all') {
-      return agentStatusFilter === 'all' ? agents : agents.filter(a => a.status === agentStatusFilter);
+      const byStatus = agentStatusFilter === 'all' ? agents : agents.filter(a => a.status === agentStatusFilter);
+      const byLicense = licenseFilter === 'all' ? byStatus : byStatus.filter(a => 
+        licenseFilter === 'with_license' ? !!a.tradeLicense : !a.tradeLicense
+      );
+      return byLicense;
     }
     if (recipientMode === 'region') {
       const byReg = agents.filter((a) => a.region === selectedRegion);
-      return agentStatusFilter === 'all' ? byReg : byReg.filter(a => a.status === agentStatusFilter);
+      const byStatus = agentStatusFilter === 'all' ? byReg : byReg.filter(a => a.status === agentStatusFilter);
+      const byLicense = licenseFilter === 'all' ? byStatus : byStatus.filter(a => 
+        licenseFilter === 'with_license' ? !!a.tradeLicense : !a.tradeLicense
+      );
+      return byLicense;
     }
     return agents.filter((a) => selectedAgentIds.has(a.id));
   };
@@ -369,6 +381,20 @@ export default function NotificationsPage() {
                         <SelectItem value="APPROVED">Approved Only</SelectItem>
                         <SelectItem value="PENDING">Pending Only</SelectItem>
                         <SelectItem value="REJECTED">Rejected Only</SelectItem>
+                      </SelectContent>
+                    </Select>
+                  </div>
+
+                  <div className="space-y-2">
+                    <label className="text-xs font-bold text-gray-600 uppercase tracking-widest">Business License</label>
+                    <Select value={licenseFilter} onValueChange={(v: any) => { setLicenseFilter(v); setSelectedAgentIds(new Set()); }}>
+                      <SelectTrigger className="h-10 bg-gray-50 border-gray-200 rounded-lg text-sm font-medium">
+                        <SelectValue />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="all">All Agents</SelectItem>
+                        <SelectItem value="with_license">With License</SelectItem>
+                        <SelectItem value="no_license">No License Uploaded</SelectItem>
                       </SelectContent>
                     </Select>
                   </div>

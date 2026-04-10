@@ -120,6 +120,36 @@ export async function PUT(
       data = await request.json();
     }
     
+    // Validate uniqueness of email, phone, and TIN if being updated
+    const normalizedEmail = data.email ? data.email.toLowerCase().trim() : null;
+    const normalizedPhone = data.phone ? normalizePhone(data.phone) : null;
+    const tinNumber = data.tinNumber ? data.tinNumber.toString().trim() : null;
+    
+    if (normalizedEmail || normalizedPhone || tinNumber) {
+      const existingAgent = await db.agent.findFirst({
+        where: {
+          NOT: { id },
+          OR: [
+            ...(normalizedEmail ? [{ email: normalizedEmail }] : []),
+            ...(normalizedPhone ? [{ phone: normalizedPhone }] : []),
+            ...(tinNumber ? [{ tinNumber }] : [])
+          ]
+        }
+      });
+      
+      if (existingAgent) {
+        let conflictField = 'information';
+        if (existingAgent.email === normalizedEmail) conflictField = 'email address';
+        else if (existingAgent.phone === normalizedPhone) conflictField = 'phone number';
+        else if (existingAgent.tinNumber === tinNumber) conflictField = 'TIN number';
+
+        return NextResponse.json(
+          { error: `This ${conflictField} is already registered. Please use a different one.` },
+          { status: 400 }
+        );
+      }
+    }
+    
     // Define all possible fields that can be updated
     const updateData: any = {};
     const allowedFields = [
@@ -140,6 +170,8 @@ export async function PUT(
           updateData[field] = parseInt(data[field].toString());
         } else if (field === 'phone' || field === 'alternativePhone') {
           updateData[field] = normalizePhone(data[field]);
+        } else if (field === 'email' && data[field]) {
+          updateData[field] = data[field].toLowerCase().trim();
         } else {
           updateData[field] = data[field];
         }

@@ -3,6 +3,23 @@ import { db as prisma } from '@/lib/db';
 import bcrypt from 'bcryptjs';
 import { otpStore } from '../forgot-password/route';
 
+// Normalize phone number to 251X format
+function normalizePhone(phone: string): string {
+  let cleaned = phone.replace(/[\s\-]/g, '').replace(/^\+/, '');
+  
+  if (cleaned.startsWith('09')) {
+    cleaned = '2519' + cleaned.slice(2);
+  } else if (cleaned.startsWith('07')) {
+    cleaned = '2517' + cleaned.slice(2);
+  } else if (cleaned.startsWith('0')) {
+    cleaned = '251' + cleaned.slice(1);
+  } else if (cleaned.startsWith('9') || cleaned.startsWith('7')) {
+    cleaned = '251' + cleaned;
+  }
+  
+  return cleaned;
+}
+
 export async function POST(req: Request) {
   try {
     const { phone, newPassword } = await req.json();
@@ -16,21 +33,29 @@ export async function POST(req: Request) {
       return NextResponse.json({ error: 'Password must be at least 8 characters long' }, { status: 400 });
     }
 
+    const normalizedPhone = normalizePhone(phone);
+
     // Check if OTP was verified (exists in store and not expired)
-    const storedData = otpStore.get(phone);
+    const storedData = otpStore.get(normalizedPhone);
     if (!storedData) {
       return NextResponse.json({ error: 'Session expired. Please start over.' }, { status: 400 });
     }
 
     if (Date.now() > storedData.expiresAt) {
-      otpStore.delete(phone);
+      otpStore.delete(normalizedPhone);
       return NextResponse.json({ error: 'Session expired. Please start over.' }, { status: 400 });
     }
 
-    // Find user
-    const user = await prisma.user.findFirst({
-      where: { phone }
+    // Find user by normalized phone or original phone
+    let user = await prisma.user.findFirst({
+      where: { phone: normalizedPhone }
     });
+
+    if (!user) {
+      user = await prisma.user.findFirst({
+        where: { phone: phone }
+      });
+    }
 
     if (!user) {
       return NextResponse.json({ error: 'User not found' }, { status: 404 });
@@ -46,7 +71,7 @@ export async function POST(req: Request) {
     });
 
     // Clear OTP from store
-    otpStore.delete(phone);
+    otpStore.delete(normalizedPhone);
 
     return NextResponse.json({ message: 'Password reset successfully' });
   } catch (error: any) {

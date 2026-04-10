@@ -71,11 +71,49 @@ export async function PUT(
     const { id } = await params;
     const data = await request.json();
     
+    // Normalize email
+    const normalizedEmail = data.email ? data.email.toLowerCase().trim() : undefined;
+    const normalizedPhone = normalizePhone(data.phone);
+    
+    // Check for existing user with same email (excluding current user)
+    if (normalizedEmail) {
+      const existingEmail = await db.user.findFirst({
+        where: {
+          email: normalizedEmail,
+          NOT: { id },
+        },
+      });
+      
+      if (existingEmail) {
+        return NextResponse.json(
+          { error: 'This email address is already registered. Please use a different email.' },
+          { status: 400 }
+        );
+      }
+    }
+    
+    // Check for existing user with same phone (if phone provided, excluding current user)
+    if (normalizedPhone) {
+      const existingPhone = await db.user.findFirst({
+        where: {
+          phone: normalizedPhone,
+          NOT: { id },
+        },
+      });
+      
+      if (existingPhone) {
+        return NextResponse.json(
+          { error: 'This phone number is already registered. Please use a different phone number.' },
+          { status: 400 }
+        );
+      }
+    }
+    
     const updateData: Record<string, unknown> = {
       name: data.name,
-      email: data.email,
+      email: normalizedEmail,
       role: data.role,
-      phone: normalizePhone(data.phone),
+      phone: normalizedPhone,
       isActive: data.isActive,
     };
     

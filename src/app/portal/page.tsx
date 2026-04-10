@@ -43,8 +43,11 @@ import {
   Mail,
   MapPin,
   BarChart3,
-  ChevronRight,
-  X,
+  TrendingDown,
+  Clock,
+  Building2,
+  Truck,
+  Eye,
 } from 'lucide-react';
 import {
   Select,
@@ -109,6 +112,8 @@ interface AgentData {
   firstName: string;
   lastName: string;
   businessName: string | null;
+  city: string;
+  region: string;
 }
 
 interface Stats {
@@ -118,11 +123,11 @@ interface Stats {
   totalCustomers: number;
   recentSales: number;
   monthlyRevenue: number;
+  lastMonthRevenue: number;
 }
 
 function PortalContent() {
   const router = useRouter();
-  const searchParams = useSearchParams();
   const { data: session, status } = useSession();
 
   const [agent, setAgent] = useState<AgentData | null>(null);
@@ -135,11 +140,13 @@ function PortalContent() {
     totalSold: 0,
     totalCustomers: 0,
     recentSales: 0,
-    monthlyRevenue: 0
+    monthlyRevenue: 0,
+    lastMonthRevenue: 0
   });
   const [loading, setLoading] = useState(true);
   const [search, setSearch] = useState('');
   const [customerSearch, setCustomerSearch] = useState('');
+  const [activeTab, setActiveTab] = useState('overview');
   
   // Sale dialog state
   const [showSaleDialog, setShowSaleDialog] = useState(false);
@@ -206,20 +213,38 @@ function PortalContent() {
       setSales(salesData.sales || []);
       setCustomers(customersData || []);
 
-      // Calculate monthly revenue
+      // Calculate analytics
       const now = new Date();
       const monthStart = new Date(now.getFullYear(), now.getMonth(), 1);
+      const lastMonthStart = new Date(now.getFullYear(), now.getMonth() - 1, 1);
+      const lastMonthEnd = new Date(now.getFullYear(), now.getMonth(), 0);
+
       const monthlyRevenue = (salesData.sales || [])
         .filter((s: Sale) => new Date(s.soldAt) >= monthStart)
         .reduce((sum: number, s: Sale) => sum + (s.productUnit.product.price || 0), 0);
+
+      const lastMonthRevenue = (salesData.sales || [])
+        .filter((s: Sale) => {
+          const date = new Date(s.soldAt);
+          return date >= lastMonthStart && date <= lastMonthEnd;
+        })
+        .reduce((sum: number, s: Sale) => sum + (s.productUnit.product.price || 0), 0);
+
+      const recentSalesCount = (salesData.sales || [])
+        .filter((s: Sale) => {
+          const weekAgo = new Date();
+          weekAgo.setDate(weekAgo.getDate() - 7);
+          return new Date(s.soldAt) >= weekAgo;
+        }).length;
 
       setStats({
         totalUnits: unitsData.stats?.totalUnits || 0,
         totalValue: unitsData.stats?.totalValue || 0,
         totalSold: unitsData.stats?.totalSold || 0,
         totalCustomers: customersData.length || 0,
-        recentSales: salesData.sales?.slice(0, 5).length || 0,
-        monthlyRevenue
+        recentSales: recentSalesCount,
+        monthlyRevenue,
+        lastMonthRevenue
       });
     } catch (error) {
       console.error('Failed to fetch data:', error);
@@ -355,30 +380,48 @@ function PortalContent() {
     return selectedUnits.reduce((sum, u) => sum + (u.product.price || 0), 0);
   };
 
+  const revenueChange = stats.lastMonthRevenue > 0 
+    ? ((stats.monthlyRevenue - stats.lastMonthRevenue) / stats.lastMonthRevenue * 100).toFixed(1)
+    : 0;
+
   if (loading) {
     return (
       <div className="min-h-screen bg-gray-50 flex flex-col items-center justify-center gap-4">
-        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-deep-sky-blue" />
-        <p className="text-sm text-gray-500">Loading your portal...</p>
+        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-gray-900" />
+        <p className="text-sm text-gray-500">Loading dashboard...</p>
       </div>
     );
   }
 
   return (
     <div className="min-h-screen bg-gray-50">
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 space-y-8">
         {/* Header */}
-        <div className="mb-8">
-          <h1 className="text-2xl font-bold text-gray-900">Agent Dashboard</h1>
-          <p className="text-gray-500 mt-1">{agent?.firstName} {agent?.lastName} {agent?.businessName ? `· ${agent.businessName}` : ''}</p>
+        <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
+          <div>
+            <h1 className="text-2xl font-bold text-gray-900">Agent Dashboard</h1>
+            <p className="text-gray-500 mt-1 text-sm">
+              {agent?.firstName} {agent?.lastName}{agent?.businessName ? ` · ${agent.businessName}` : ''}
+            </p>
+            {agent?.city && (
+              <div className="flex items-center gap-1.5 mt-1 text-xs text-gray-400">
+                <MapPin className="w-3 h-3" />
+                {agent.city}, {agent.region}
+              </div>
+            )}
+          </div>
+          <div className="flex items-center gap-2 text-xs font-semibold text-gray-600 bg-white border border-gray-100 px-3 py-2 rounded-lg">
+            <Clock className="w-3.5 h-3.5" />
+            <span>Last updated: {new Date().toLocaleTimeString()}</span>
+          </div>
         </div>
 
         {/* Stats Grid */}
-        <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-4 mb-8">
+        <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-4">
           <Card className="border-gray-200 shadow-sm rounded-xl">
             <CardContent className="p-4">
               <div className="flex items-center gap-3">
-                <div className="p-2 bg-blue-50 rounded-lg">
+                <div className="p-2 rounded-lg bg-blue-50">
                   <Package className="w-4 h-4 text-blue-600" />
                 </div>
                 <div>
@@ -391,7 +434,7 @@ function PortalContent() {
           <Card className="border-gray-200 shadow-sm rounded-xl">
             <CardContent className="p-4">
               <div className="flex items-center gap-3">
-                <div className="p-2 bg-green-50 rounded-lg">
+                <div className="p-2 rounded-lg bg-green-50">
                   <DollarSign className="w-4 h-4 text-green-600" />
                 </div>
                 <div>
@@ -404,7 +447,7 @@ function PortalContent() {
           <Card className="border-gray-200 shadow-sm rounded-xl">
             <CardContent className="p-4">
               <div className="flex items-center gap-3">
-                <div className="p-2 bg-purple-50 rounded-lg">
+                <div className="p-2 rounded-lg bg-purple-50">
                   <ShoppingCart className="w-4 h-4 text-purple-600" />
                 </div>
                 <div>
@@ -417,7 +460,7 @@ function PortalContent() {
           <Card className="border-gray-200 shadow-sm rounded-xl">
             <CardContent className="p-4">
               <div className="flex items-center gap-3">
-                <div className="p-2 bg-amber-50 rounded-lg">
+                <div className="p-2 rounded-lg bg-amber-50">
                   <Users className="w-4 h-4 text-amber-600" />
                 </div>
                 <div>
@@ -430,12 +473,17 @@ function PortalContent() {
           <Card className="border-gray-200 shadow-sm rounded-xl">
             <CardContent className="p-4">
               <div className="flex items-center gap-3">
-                <div className="p-2 bg-cyan-50 rounded-lg">
+                <div className="p-2 rounded-lg bg-cyan-50">
                   <TrendingUp className="w-4 h-4 text-cyan-600" />
                 </div>
-                <div>
+                <div className="flex-1">
                   <p className="text-[10px] font-bold text-gray-400 uppercase">This Month</p>
                   <p className="text-xl font-black text-gray-900">{(stats.monthlyRevenue / 1000).toFixed(1)}K</p>
+                  {Number(revenueChange) !== 0 && (
+                    <p className={`text-[10px] font-bold ${Number(revenueChange) >= 0 ? 'text-green-600' : 'text-red-600'}`}>
+                      {Number(revenueChange) >= 0 ? '↑' : '↓'} {Math.abs(Number(revenueChange))}%
+                    </p>
+                  )}
                 </div>
               </div>
             </CardContent>
@@ -443,46 +491,172 @@ function PortalContent() {
           <Card className="border-gray-200 shadow-sm rounded-xl">
             <CardContent className="p-4">
               <div className="flex items-center gap-3">
-                <div className="p-2 bg-emerald-50 rounded-lg">
+                <div className="p-2 rounded-lg bg-emerald-50">
                   <BarChart3 className="w-4 h-4 text-emerald-600" />
                 </div>
                 <div>
                   <p className="text-[10px] font-bold text-gray-400 uppercase">Conv. Rate</p>
-                  <p className="text-xl font-black text-gray-900">{stats.totalUnits > 0 ? Math.round((stats.totalSold / (stats.totalSold + stats.totalUnits)) * 100) : 0}%</p>
+                  <p className="text-xl font-black text-gray-900">
+                    {stats.totalUnits + stats.totalSold > 0 
+                      ? Math.round((stats.totalSold / (stats.totalSold + stats.totalUnits)) * 100) 
+                      : 0}%
+                  </p>
                 </div>
               </div>
             </CardContent>
           </Card>
         </div>
 
-        {/* Main Content */}
-        <Tabs defaultValue="units" className="space-y-6">
+        {/* Tabs */}
+        <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-6">
           <TabsList className="bg-white border border-gray-200 rounded-xl p-1">
-            <TabsTrigger value="units" className="rounded-lg data-[state=active]:bg-deep-sky-blue data-[state=active]:text-white">
-              <Package className="w-4 h-4 mr-2" />
-              Units ({units.length})
+            <TabsTrigger value="overview" className="rounded-lg data-[state=active]:bg-gray-900 data-[state=active]:text-white font-bold text-sm">
+              Overview
             </TabsTrigger>
-            <TabsTrigger value="sales" className="rounded-lg data-[state=active]:bg-deep-sky-blue data-[state=active]:text-white">
+            <TabsTrigger value="units" className="rounded-lg data-[state=active]:bg-gray-900 data-[state=active]:text-white font-bold text-sm">
+              <Package className="w-4 h-4 mr-2" />
+              My Units ({units.length})
+            </TabsTrigger>
+            <TabsTrigger value="sales" className="rounded-lg data-[state=active]:bg-gray-900 data-[state=active]:text-white font-bold text-sm">
               <ShoppingCart className="w-4 h-4 mr-2" />
               Sales ({sales.length})
             </TabsTrigger>
-            <TabsTrigger value="customers" className="rounded-lg data-[state=active]:bg-deep-sky-blue data-[state=active]:text-white">
+            <TabsTrigger value="customers" className="rounded-lg data-[state=active]:bg-gray-900 data-[state=active]:text-white font-bold text-sm">
               <Users className="w-4 h-4 mr-2" />
               Customers ({customers.length})
             </TabsTrigger>
           </TabsList>
+
+          {/* Overview Tab */}
+          <TabsContent value="overview" className="space-y-6">
+            <div className="grid lg:grid-cols-2 gap-6">
+              {/* Quick Actions */}
+              <Card className="border-gray-200 shadow-sm rounded-xl">
+                <CardHeader className="border-b border-gray-100 pb-4">
+                  <CardTitle className="text-base font-bold">Quick Actions</CardTitle>
+                </CardHeader>
+                <CardContent className="p-6 space-y-3">
+                  <Button 
+                    onClick={() => { setSelectedUnits([]); setShowSaleDialog(true); }}
+                    className="w-full h-12 bg-green-600 hover:bg-green-700 text-white font-bold justify-start"
+                  >
+                    <ShoppingCart className="w-4 h-4 mr-3" />
+                    Record a Sale
+                  </Button>
+                  <Button 
+                    onClick={() => openCustomerDialog()}
+                    variant="outline"
+                    className="w-full h-12 font-bold justify-start"
+                  >
+                    <User className="w-4 h-4 mr-3" />
+                    Add New Customer
+                  </Button>
+                  <Button 
+                    onClick={() => setActiveTab('units')}
+                    variant="outline"
+                    className="w-full h-12 font-bold justify-start"
+                  >
+                    <Package className="w-4 h-4 mr-3" />
+                    View My Inventory
+                  </Button>
+                </CardContent>
+              </Card>
+
+              {/* Recent Sales */}
+              <Card className="border-gray-200 shadow-sm rounded-xl">
+                <CardHeader className="border-b border-gray-100 pb-4 flex flex-row items-center justify-between">
+                  <CardTitle className="text-base font-bold">Recent Sales</CardTitle>
+                  <Button variant="ghost" size="sm" onClick={() => setActiveTab('sales')} className="text-sm font-medium text-gray-600">
+                    View All
+                  </Button>
+                </CardHeader>
+                <CardContent className="p-0">
+                  {sales.length === 0 ? (
+                    <div className="py-12 text-center text-gray-400">
+                      <ShoppingCart className="w-10 h-10 mx-auto mb-2 opacity-30" />
+                      <p className="text-sm">No sales yet</p>
+                    </div>
+                  ) : (
+                    <div className="divide-y divide-gray-100">
+                      {sales.slice(0, 5).map((sale) => (
+                        <div key={sale.id} className="p-4 flex items-center justify-between">
+                          <div className="flex items-center gap-3">
+                            <div className="w-10 h-10 rounded-lg bg-gray-100 flex items-center justify-center">
+                              <Package className="w-4 h-4 text-gray-600" />
+                            </div>
+                            <div>
+                              <p className="text-sm font-bold text-gray-900">{sale.productUnit.product.name}</p>
+                              <p className="text-xs text-gray-500">{sale.customerName}</p>
+                            </div>
+                          </div>
+                          <div className="text-right">
+                            <p className="text-sm font-bold text-gray-900">
+                              {sale.productUnit.product.price ? `${sale.productUnit.product.price.toLocaleString()} ETB` : 'N/A'}
+                            </p>
+                            <p className="text-[10px] text-gray-400">
+                              {new Date(sale.soldAt).toLocaleDateString()}
+                            </p>
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  )}
+                </CardContent>
+              </Card>
+            </div>
+
+            {/* Sales by Category */}
+            <Card className="border-gray-200 shadow-sm rounded-xl">
+              <CardHeader className="border-b border-gray-100 pb-4">
+                <CardTitle className="text-base font-bold">Inventory by Category</CardTitle>
+              </CardHeader>
+              <CardContent className="p-6">
+                {units.length === 0 ? (
+                  <div className="py-8 text-center text-gray-400">
+                    <p className="text-sm">No inventory assigned yet</p>
+                  </div>
+                ) : (
+                  <div className="space-y-3">
+                    {Object.entries(
+                      units.reduce((acc, unit) => {
+                        const cat = unit.product.category;
+                        acc[cat] = (acc[cat] || 0) + 1;
+                        return acc;
+                      }, {} as Record<string, number>)
+                    ).sort((a, b) => b[1] - a[1]).map(([category, count]) => {
+                      const percentage = (count / units.length) * 100;
+                      return (
+                        <div key={category} className="space-y-1">
+                          <div className="flex items-center justify-between">
+                            <span className="text-sm font-medium text-gray-700">{category}</span>
+                            <span className="text-sm font-bold text-gray-900">{count}</span>
+                          </div>
+                          <div className="w-full h-2 bg-gray-100 rounded-full overflow-hidden">
+                            <div 
+                              className="h-full bg-gray-900 rounded-full"
+                              style={{ width: `${percentage}%` }}
+                            />
+                          </div>
+                        </div>
+                      );
+                    })}
+                  </div>
+                )}
+              </CardContent>
+            </Card>
+          </TabsContent>
 
           {/* Units Tab */}
           <TabsContent value="units">
             <Card className="border-gray-200 shadow-sm rounded-xl overflow-hidden">
               <CardHeader className="bg-gray-50/50 border-b border-gray-100 px-6 py-4">
                 <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
-                  <CardTitle className="text-lg font-bold text-gray-900">My Units</CardTitle>
+                  <CardTitle className="text-lg font-bold text-gray-900">My Assigned Units</CardTitle>
                   <div className="flex items-center gap-3">
                     <div className="relative w-64">
                       <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
                       <Input
-                        placeholder="Search units..."
+                        placeholder="Search by chassis or product..."
                         value={search}
                         onChange={(e) => setSearch(e.target.value)}
                         className="pl-10 h-9 bg-white border-gray-200 rounded-lg"
@@ -491,7 +665,7 @@ function PortalContent() {
                     {selectedUnits.length > 0 && (
                       <Button
                         onClick={() => openSaleDialog(selectedUnits)}
-                        className="bg-green-600 hover:bg-green-700 text-white"
+                        className="bg-green-600 hover:bg-green-700 text-white font-bold"
                       >
                         <ShoppingCart className="w-4 h-4 mr-2" />
                         Sell ({selectedUnits.length})
@@ -502,65 +676,59 @@ function PortalContent() {
               </CardHeader>
               <CardContent className="p-0">
                 {filteredUnits.length === 0 ? (
-                  <div className="py-12 text-center text-gray-500">
-                    <Package className="w-12 h-12 text-gray-300 mx-auto mb-4" />
+                  <div className="py-16 text-center text-gray-400">
+                    <Package className="w-12 h-12 mx-auto mb-3 opacity-30" />
                     <p className="font-medium">No units assigned</p>
+                    <p className="text-sm mt-1">Contact your administrator for inventory assignment</p>
                   </div>
                 ) : (
-                  <div className="overflow-x-auto">
-                    <Table>
-                      <TableHeader className="bg-gray-50/30">
-                        <TableRow>
-                          <TableHead className="w-10 px-4">
+                  <Table>
+                    <TableHeader className="bg-gray-50/30">
+                      <TableRow>
+                        <TableHead className="w-10 px-4">
+                          <Checkbox
+                            checked={selectedUnits.length === filteredUnits.length && filteredUnits.length > 0}
+                            onCheckedChange={(checked) => {
+                              setSelectedUnits(checked ? filteredUnits : []);
+                            }}
+                          />
+                        </TableHead>
+                        <TableHead className="font-bold text-gray-600 text-xs uppercase">Chassis</TableHead>
+                        <TableHead className="font-bold text-gray-600 text-xs uppercase">Product</TableHead>
+                        <TableHead className="font-bold text-gray-600 text-xs uppercase">Category</TableHead>
+                        <TableHead className="font-bold text-gray-600 text-xs uppercase">Price</TableHead>
+                        <TableHead className="font-bold text-gray-600 text-xs uppercase">Received</TableHead>
+                        <TableHead className="font-bold text-gray-600 text-xs uppercase text-right">Action</TableHead>
+                      </TableRow>
+                    </TableHeader>
+                    <TableBody>
+                      {filteredUnits.map((unit) => (
+                        <TableRow key={unit.id} className="hover:bg-gray-50/50">
+                          <TableCell className="px-4">
                             <Checkbox
-                              checked={selectedUnits.length === filteredUnits.length && filteredUnits.length > 0}
+                              checked={selectedUnits.some(u => u.id === unit.id)}
                               onCheckedChange={(checked) => {
-                                if (checked) {
-                                  setSelectedUnits(filteredUnits);
-                                } else {
-                                  setSelectedUnits([]);
-                                }
+                                setSelectedUnits(checked 
+                                  ? [...selectedUnits, unit] 
+                                  : selectedUnits.filter(u => u.id !== unit.id)
+                                );
                               }}
                             />
-                          </TableHead>
-                          <TableHead className="font-bold">Chassis</TableHead>
-                          <TableHead className="font-bold">Product</TableHead>
-                          <TableHead className="font-bold">Category</TableHead>
-                          <TableHead className="font-bold">Price</TableHead>
-                          <TableHead className="font-bold">Received</TableHead>
-                          <TableHead className="font-bold text-center">Action</TableHead>
+                          </TableCell>
+                          <TableCell className="font-mono font-bold text-sm">{unit.chassisNumber}</TableCell>
+                          <TableCell className="font-medium">{unit.product.name}</TableCell>
+                          <TableCell><Badge variant="outline" className="text-xs font-medium">{unit.product.category}</Badge></TableCell>
+                          <TableCell className="font-medium">{unit.product.price ? `${unit.product.price.toLocaleString()} ETB` : 'N/A'}</TableCell>
+                          <TableCell className="text-gray-500 text-sm">{new Date(unit.createdAt).toLocaleDateString()}</TableCell>
+                          <TableCell className="text-right">
+                            <Button size="sm" variant="outline" className="h-8 font-bold" onClick={() => openSaleDialog([unit])}>
+                              Sell
+                            </Button>
+                          </TableCell>
                         </TableRow>
-                      </TableHeader>
-                      <TableBody>
-                        {filteredUnits.map((unit) => (
-                          <TableRow key={unit.id} className="hover:bg-gray-50/50">
-                            <TableCell className="px-4">
-                              <Checkbox
-                                checked={selectedUnits.some(u => u.id === unit.id)}
-                                onCheckedChange={(checked) => {
-                                  if (checked) {
-                                    setSelectedUnits([...selectedUnits, unit]);
-                                  } else {
-                                    setSelectedUnits(selectedUnits.filter(u => u.id !== unit.id));
-                                  }
-                                }}
-                              />
-                            </TableCell>
-                            <TableCell className="font-mono font-bold text-sm">{unit.chassisNumber}</TableCell>
-                            <TableCell className="font-medium">{unit.product.name}</TableCell>
-                            <TableCell><Badge variant="outline" className="text-xs">{unit.product.category}</Badge></TableCell>
-                            <TableCell className="font-medium">{unit.product.price ? `${unit.product.price.toLocaleString()} ETB` : 'N/A'}</TableCell>
-                            <TableCell className="text-gray-500 text-sm">{new Date(unit.createdAt).toLocaleDateString()}</TableCell>
-                            <TableCell className="text-center">
-                              <Button size="sm" variant="outline" className="h-8" onClick={() => openSaleDialog([unit])}>
-                                Sell
-                              </Button>
-                            </TableCell>
-                          </TableRow>
-                        ))}
-                      </TableBody>
-                    </Table>
-                  </div>
+                      ))}
+                    </TableBody>
+                  </Table>
                 )}
               </CardContent>
             </Card>
@@ -574,37 +742,36 @@ function PortalContent() {
               </CardHeader>
               <CardContent className="p-0">
                 {sales.length === 0 ? (
-                  <div className="py-12 text-center text-gray-500">
-                    <ShoppingCart className="w-12 h-12 text-gray-300 mx-auto mb-4" />
+                  <div className="py-16 text-center text-gray-400">
+                    <ShoppingCart className="w-12 h-12 mx-auto mb-3 opacity-30" />
                     <p className="font-medium">No sales recorded yet</p>
+                    <p className="text-sm mt-1">Your sales history will appear here</p>
                   </div>
                 ) : (
-                  <div className="overflow-x-auto">
-                    <Table>
-                      <TableHeader className="bg-gray-50/30">
-                        <TableRow>
-                          <TableHead className="font-bold">Date</TableHead>
-                          <TableHead className="font-bold">Customer</TableHead>
-                          <TableHead className="font-bold">Phone</TableHead>
-                          <TableHead className="font-bold">Product</TableHead>
-                          <TableHead className="font-bold">Chassis</TableHead>
-                          <TableHead className="font-bold">Price</TableHead>
+                  <Table>
+                    <TableHeader className="bg-gray-50/30">
+                      <TableRow>
+                        <TableHead className="font-bold text-gray-600 text-xs uppercase">Date</TableHead>
+                        <TableHead className="font-bold text-gray-600 text-xs uppercase">Customer</TableHead>
+                        <TableHead className="font-bold text-gray-600 text-xs uppercase">Phone</TableHead>
+                        <TableHead className="font-bold text-gray-600 text-xs uppercase">Product</TableHead>
+                        <TableHead className="font-bold text-gray-600 text-xs uppercase">Chassis</TableHead>
+                        <TableHead className="font-bold text-gray-600 text-xs uppercase">Price</TableHead>
+                      </TableRow>
+                    </TableHeader>
+                    <TableBody>
+                      {sales.map((sale) => (
+                        <TableRow key={sale.id} className="hover:bg-gray-50/50">
+                          <TableCell className="text-gray-500 text-sm">{new Date(sale.soldAt).toLocaleDateString()}</TableCell>
+                          <TableCell className="font-medium">{sale.customerName}</TableCell>
+                          <TableCell className="font-mono text-sm">{sale.customerPhone}</TableCell>
+                          <TableCell>{sale.productUnit.product.name}</TableCell>
+                          <TableCell className="font-mono font-bold text-sm">{sale.productUnit.chassisNumber}</TableCell>
+                          <TableCell className="font-medium">{sale.productUnit.product.price ? `${sale.productUnit.product.price.toLocaleString()} ETB` : 'N/A'}</TableCell>
                         </TableRow>
-                      </TableHeader>
-                      <TableBody>
-                        {sales.map((sale) => (
-                          <TableRow key={sale.id} className="hover:bg-gray-50/50">
-                            <TableCell className="text-gray-500 text-sm">{new Date(sale.soldAt).toLocaleDateString()}</TableCell>
-                            <TableCell className="font-medium">{sale.customerName}</TableCell>
-                            <TableCell className="font-mono text-sm">{sale.customerPhone}</TableCell>
-                            <TableCell>{sale.productUnit.product.name}</TableCell>
-                            <TableCell className="font-mono font-bold text-sm">{sale.productUnit.chassisNumber}</TableCell>
-                            <TableCell className="font-medium">{sale.productUnit.product.price ? `${sale.productUnit.product.price.toLocaleString()} ETB` : 'N/A'}</TableCell>
-                          </TableRow>
-                        ))}
-                      </TableBody>
-                    </Table>
-                  </div>
+                      ))}
+                    </TableBody>
+                  </Table>
                 )}
               </CardContent>
             </Card>
@@ -626,7 +793,7 @@ function PortalContent() {
                         className="pl-10 h-9 bg-white border-gray-200 rounded-lg"
                       />
                     </div>
-                    <Button onClick={() => openCustomerDialog()} className="bg-deep-sky-blue hover:bg-blue-600 text-white">
+                    <Button onClick={() => openCustomerDialog()} className="bg-gray-900 hover:bg-gray-800 text-white font-bold">
                       <Plus className="w-4 h-4 mr-2" />
                       Add Customer
                     </Button>
@@ -635,55 +802,57 @@ function PortalContent() {
               </CardHeader>
               <CardContent className="p-0">
                 {filteredCustomers.length === 0 ? (
-                  <div className="py-12 text-center text-gray-500">
-                    <Users className="w-12 h-12 text-gray-300 mx-auto mb-4" />
+                  <div className="py-16 text-center text-gray-400">
+                    <Users className="w-12 h-12 mx-auto mb-3 opacity-30" />
                     <p className="font-medium">No customers yet</p>
                     <p className="text-sm mt-1">Add customers to track your sales</p>
                   </div>
                 ) : (
-                  <div className="overflow-x-auto">
-                    <Table>
-                      <TableHeader className="bg-gray-50/30">
-                        <TableRow>
-                          <TableHead className="font-bold">Name</TableHead>
-                          <TableHead className="font-bold">Phone</TableHead>
-                          <TableHead className="font-bold">Email</TableHead>
-                          <TableHead className="font-bold">Purchases</TableHead>
-                          <TableHead className="font-bold">Added</TableHead>
-                          <TableHead className="font-bold text-center">Actions</TableHead>
-                        </TableRow>
-                      </TableHeader>
-                      <TableBody>
-                        {filteredCustomers.map((customer) => (
-                          <TableRow key={customer.id} className="hover:bg-gray-50/50">
-                            <TableCell className="font-medium">{customer.fullName}</TableCell>
-                            <TableCell className="font-mono text-sm">{customer.phone}</TableCell>
-                            <TableCell className="text-gray-500 text-sm">{customer.email || '-'}</TableCell>
-                            <TableCell>
-                              <Badge variant="secondary" className="text-xs">{customer._count?.sales || 0} sales</Badge>
-                            </TableCell>
-                            <TableCell className="text-gray-500 text-sm">{new Date(customer.createdAt).toLocaleDateString()}</TableCell>
-                            <TableCell className="text-center">
-                              <div className="flex items-center justify-center gap-2">
-                                <Button size="sm" variant="outline" className="h-8" onClick={() => openCustomerDialog(customer)}>
-                                  Edit
-                                </Button>
-                                <Button size="sm" className="h-8 bg-green-600 hover:bg-green-700 text-white" onClick={() => {
+                  <Table>
+                    <TableHeader className="bg-gray-50/30">
+                      <TableRow>
+                        <TableHead className="font-bold text-gray-600 text-xs uppercase">Name</TableHead>
+                        <TableHead className="font-bold text-gray-600 text-xs uppercase">Phone</TableHead>
+                        <TableHead className="font-bold text-gray-600 text-xs uppercase">Email</TableHead>
+                        <TableHead className="font-bold text-gray-600 text-xs uppercase">Purchases</TableHead>
+                        <TableHead className="font-bold text-gray-600 text-xs uppercase">Added</TableHead>
+                        <TableHead className="font-bold text-gray-600 text-xs uppercase text-right">Actions</TableHead>
+                      </TableRow>
+                    </TableHeader>
+                    <TableBody>
+                      {filteredCustomers.map((customer) => (
+                        <TableRow key={customer.id} className="hover:bg-gray-50/50">
+                          <TableCell className="font-medium">{customer.fullName}</TableCell>
+                          <TableCell className="font-mono text-sm">{customer.phone}</TableCell>
+                          <TableCell className="text-gray-500 text-sm">{customer.email || '-'}</TableCell>
+                          <TableCell>
+                            <Badge variant="secondary" className="text-xs font-bold">{customer._count?.sales || 0} sales</Badge>
+                          </TableCell>
+                          <TableCell className="text-gray-500 text-sm">{new Date(customer.createdAt).toLocaleDateString()}</TableCell>
+                          <TableCell className="text-right">
+                            <div className="flex items-center justify-end gap-2">
+                              <Button size="sm" variant="outline" className="h-8 font-bold" onClick={() => openCustomerDialog(customer)}>
+                                Edit
+                              </Button>
+                              <Button 
+                                size="sm" 
+                                className="h-8 bg-green-600 hover:bg-green-700 text-white font-bold" 
+                                onClick={() => {
                                   setSelectedCustomerId(customer.id);
                                   setCustomerName(customer.fullName);
                                   setCustomerPhone(customer.phone);
                                   setShowSaleDialog(true);
                                   setSelectedUnits([]);
-                                }}>
-                                  Sell
-                                </Button>
-                              </div>
-                            </TableCell>
-                          </TableRow>
-                        ))}
-                      </TableBody>
-                    </Table>
-                  </div>
+                                }}
+                              >
+                                Sell
+                              </Button>
+                            </div>
+                          </TableCell>
+                        </TableRow>
+                      ))}
+                    </TableBody>
+                  </Table>
                 )}
               </CardContent>
             </Card>
@@ -692,30 +861,22 @@ function PortalContent() {
 
         {/* Sale Dialog */}
         <Dialog open={showSaleDialog} onOpenChange={setShowSaleDialog}>
-          <DialogContent className="max-w-lg rounded-xl p-0 overflow-hidden">
+          <DialogContent className="max-w-md rounded-xl p-0 overflow-hidden">
             <DialogHeader className="bg-gray-900 p-6 text-white">
-              <div className="flex items-center gap-3">
-                <div className="p-2 bg-white/10 rounded-lg">
-                  <ShoppingCart className="w-5 h-5" />
-                </div>
-                <div>
-                  <DialogTitle className="text-xl font-bold">Record Sale</DialogTitle>
-                  <DialogDescription className="text-gray-300">
-                    {selectedUnits.length > 0 ? `${selectedUnits.length} unit(s) selected` : 'Quick sale'}
-                  </DialogDescription>
-                </div>
-              </div>
+              <DialogTitle className="text-xl font-bold">Record Sale</DialogTitle>
+              <DialogDescription className="text-gray-300">
+                {selectedUnits.length > 0 ? `${selectedUnits.length} unit(s) selected` : 'Quick sale entry'}
+              </DialogDescription>
             </DialogHeader>
 
             <div className="p-6 space-y-5">
-              {/* Selected Units Summary */}
               {selectedUnits.length > 0 && (
                 <div className="p-4 bg-gray-50 rounded-xl border border-gray-100">
                   <p className="text-xs font-bold text-gray-500 uppercase mb-2">Selected Units</p>
                   <div className="flex flex-wrap gap-2">
                     {selectedUnits.map((unit) => (
                       <Badge key={unit.id} variant="outline" className="font-mono text-xs">
-                        {unit.chassisNumber} - {unit.product.name}
+                        {unit.chassisNumber}
                       </Badge>
                     ))}
                   </div>
@@ -725,7 +886,6 @@ function PortalContent() {
                 </div>
               )}
 
-              {/* Customer Selection */}
               <div className="space-y-2">
                 <Label className="text-xs font-bold text-gray-500 uppercase">Select Customer</Label>
                 <Select value={selectedCustomerId} onValueChange={handleCustomerSelect}>
@@ -774,11 +934,11 @@ function PortalContent() {
             </div>
 
             <DialogFooter className="p-6 bg-gray-50 border-t border-gray-100 gap-3">
-              <Button variant="outline" onClick={() => setShowSaleDialog(false)} className="h-11 px-6 rounded-xl">
+              <Button variant="outline" onClick={() => setShowSaleDialog(false)} className="h-11 px-6 rounded-xl font-bold">
                 Cancel
               </Button>
               <Button
-                className="h-11 px-6 bg-green-600 hover:bg-green-700 text-white rounded-xl"
+                className="h-11 px-6 bg-green-600 hover:bg-green-700 text-white rounded-xl font-bold"
                 onClick={handleRecordSale}
                 disabled={recordingSale || !customerName || !customerPhone}
               >
@@ -792,12 +952,7 @@ function PortalContent() {
         <Dialog open={showCustomerDialog} onOpenChange={setShowCustomerDialog}>
           <DialogContent className="max-w-md rounded-xl p-0 overflow-hidden">
             <DialogHeader className="bg-gray-900 p-6 text-white">
-              <div className="flex items-center gap-3">
-                <div className="p-2 bg-white/10 rounded-lg">
-                  <User className="w-5 h-5" />
-                </div>
-                <DialogTitle className="text-xl font-bold">{editingCustomer ? 'Edit Customer' : 'New Customer'}</DialogTitle>
-              </div>
+              <DialogTitle className="text-xl font-bold">{editingCustomer ? 'Edit Customer' : 'New Customer'}</DialogTitle>
             </DialogHeader>
 
             <div className="p-6 space-y-4">
@@ -854,11 +1009,11 @@ function PortalContent() {
             </div>
 
             <DialogFooter className="p-6 bg-gray-50 border-t border-gray-100 gap-3">
-              <Button variant="outline" onClick={() => { setShowCustomerDialog(false); setEditingCustomer(null); }} className="h-11 px-6 rounded-xl">
+              <Button variant="outline" onClick={() => { setShowCustomerDialog(false); setEditingCustomer(null); }} className="h-11 px-6 rounded-xl font-bold">
                 Cancel
               </Button>
               <Button
-                className="h-11 px-6 bg-deep-sky-blue hover:bg-blue-600 text-white rounded-xl"
+                className="h-11 px-6 bg-gray-900 hover:bg-gray-800 text-white rounded-xl font-bold"
                 onClick={handleSaveCustomer}
                 disabled={savingCustomer || !customerForm.fullName || !customerForm.phone}
               >
@@ -876,7 +1031,7 @@ export default function AgentPortalPage() {
   return (
     <Suspense fallback={
       <div className="min-h-screen bg-gray-50 flex items-center justify-center">
-        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-deep-sky-blue" />
+        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-gray-900" />
       </div>
     }>
       <PortalContent />

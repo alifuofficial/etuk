@@ -265,228 +265,229 @@ export default function SettingsPage() {
         </TabsContent>
 
         {/* Site Config Tab */}
-        <TabsContent value="site" className="space-y-12 outline-none">
-          <form onSubmit={handleSiteUpdate} className="space-y-12">
-            {/* Section 1: Brand & Contacts */}
-            <div className="grid md:grid-cols-3 gap-8">
-              <div className="md:col-span-1">
-                <h3 className="text-lg font-bold text-gray-900">Brand & Contact</h3>
-                <p className="text-sm text-gray-500 mt-2 leading-relaxed">
-                  Configure the primary identifiers and contact points of the platform.
-                </p>
-                
-                <div className="mt-8 space-y-4">
-                  <div className="p-4 bg-white border border-gray-100 rounded-xl shadow-sm">
-                      <p className="text-[10px] font-bold text-gray-400 uppercase tracking-widest mb-3">Site Logo</p>
-                      <div className="w-20 h-20 bg-gray-50 border-2 border-dashed border-gray-200 rounded-2xl flex items-center justify-center group cursor-pointer hover:border-deep-sky-blue transition-colors">
-                        <ImageIcon className="w-8 h-8 text-gray-300 group-hover:text-deep-sky-blue transition-colors" />
-                      </div>
-                      <p className="text-[10px] text-gray-400 mt-3 italic">Managed in public/images/soreti-logo.png</p>
+        <TabsContent value="site" className="space-y-8 outline-none">
+          <form onSubmit={handleSiteUpdate} className="space-y-8">
+            {/* Branding Card */}
+            <Card className="border-gray-200 shadow-sm rounded-xl overflow-hidden">
+              <CardHeader className="bg-gray-900 p-8 text-white">
+                <div className="flex items-center gap-3 mb-2">
+                  <div className="p-2 bg-white/10 rounded-lg">
+                    <Globe className="w-5 h-5" />
                   </div>
+                  <CardTitle className="text-xl font-bold">Brand Identity</CardTitle>
                 </div>
-              </div>
-
-              <Card className="md:col-span-2 border-gray-200 shadow-sm rounded-xl overflow-hidden">
-                <CardHeader className="border-b border-gray-100 pb-6 px-8 pt-8 bg-slate-50/50">
-                  <CardTitle className="text-lg font-bold">General Information & Footer Header</CardTitle>
-                </CardHeader>
-                <CardContent className="p-8 space-y-6">
-                    <div className="space-y-2">
-                      <Label className="text-xs font-bold text-gray-500 uppercase tracking-widest pl-1">Footer Contact Section Title (e.g. Performance)</Label>
-                      <Input 
-                        value={siteData.footerContactTitle}
-                        onChange={(e) => setSiteData({...siteData, footerContactTitle: e.target.value})}
-                        className="h-12 bg-gray-50/50 border-gray-200 rounded-lg px-4 focus:bg-white focus:border-deep-sky-blue focus:ring-4 focus:ring-deep-sky-blue/5 transition-all font-medium"
-                      />
+                <p className="text-gray-400 text-sm">Configure your platform's name, logo, and contact information</p>
+              </CardHeader>
+              <CardContent className="p-8 space-y-6">
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+                  {/* Logo Upload */}
+                  <div className="space-y-3">
+                    <Label className="text-xs font-bold text-gray-600 uppercase tracking-widest">Site Logo</Label>
+                    <div className="flex flex-col items-center justify-center h-40 bg-gray-50 border-2 border-dashed border-gray-200 rounded-xl cursor-pointer hover:border-deep-sky-blue hover:bg-blue-50/50 transition-all group">
+                      <ImageIcon className="w-10 h-10 text-gray-300 group-hover:text-deep-sky-blue transition-colors mb-2" />
+                      <p className="text-xs text-gray-400 font-medium">Upload Logo</p>
                     </div>
+                    <p className="text-[10px] text-gray-400 text-center italic">Recommended: 200x60px PNG</p>
+                  </div>
 
-                    <div className="space-y-2">
-                      <Label className="text-xs font-bold text-gray-500 uppercase tracking-widest pl-1">Platform Name</Label>
-                      <div className="relative">
-                        <Globe className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
+                  {/* Site Info */}
+                  <div className="md:col-span-2 space-y-5">
+                    <div className="grid grid-cols-2 gap-4">
+                      <div className="space-y-2">
+                        <Label className="text-xs font-bold text-gray-600 uppercase tracking-widest">Platform Name</Label>
                         <Input 
                           value={siteData.siteName}
                           onChange={(e) => setSiteData({...siteData, siteName: e.target.value})}
-                          className="h-12 bg-gray-50/50 border-gray-200 rounded-lg pl-10 px-4 focus:bg-white focus:border-deep-sky-blue focus:ring-4 focus:ring-deep-sky-blue/5 transition-all font-medium"
+                          className="h-11 bg-gray-50 border-gray-200 rounded-xl px-4 focus:bg-white focus:border-deep-sky-blue transition-all"
+                          placeholder="Soreti Ethiopia"
+                        />
+                      </div>
+                      <div className="space-y-2">
+                        <Label className="text-xs font-bold text-gray-600 uppercase tracking-widest">Footer Section Title</Label>
+                        <Input 
+                          value={siteData.footerContactTitle}
+                          onChange={(e) => setSiteData({...siteData, footerContactTitle: e.target.value})}
+                          className="h-11 bg-gray-50 border-gray-200 rounded-xl px-4 focus:bg-white focus:border-deep-sky-blue transition-all"
+                          placeholder="Performance"
                         />
                       </div>
                     </div>
-                    
-                    <div className="grid grid-cols-2 gap-6">
-                      <div className="space-y-2">
-                        <Label className="text-xs font-bold text-gray-500 uppercase tracking-widest pl-1">Support Email</Label>
-                        <div className="relative">
-                          <Mail className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
-                          <Input 
-                            value={siteData.supportEmail}
-                            onChange={(e) => setSiteData({...siteData, supportEmail: e.target.value})}
-                            className="h-12 bg-gray-50/50 border-gray-200 rounded-lg pl-10 px-4 focus:bg-white focus:border-deep-sky-blue focus:ring-4 focus:ring-deep-sky-blue/5 transition-all font-medium"
-                          />
-                        </div>
+
+                    <div className="space-y-2">
+                      <Label className="text-xs font-bold text-gray-600 uppercase tracking-widest">Support Email</Label>
+                      <div className="relative">
+                        <Mail className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
+                        <Input 
+                          value={siteData.supportEmail}
+                          onChange={(e) => setSiteData({...siteData, supportEmail: e.target.value})}
+                          className="h-11 bg-gray-50 border-gray-200 rounded-xl pl-10 pr-4 focus:bg-white focus:border-deep-sky-blue transition-all"
+                          placeholder="support@example.com"
+                        />
                       </div>
+                    </div>
+
+                    <div className="grid grid-cols-2 gap-4">
                       <div className="space-y-2">
-                        <Label className="text-xs font-bold text-gray-500 uppercase tracking-widest pl-1">Public Phone</Label>
+                        <Label className="text-xs font-bold text-gray-600 uppercase tracking-widest">Phone Number</Label>
                         <div className="relative">
                           <Phone className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
                           <Input 
                             value={siteData.phone}
                             onChange={(e) => setSiteData({...siteData, phone: e.target.value})}
-                            className="h-12 bg-gray-50/50 border-gray-200 rounded-lg pl-10 px-4 focus:bg-white focus:border-deep-sky-blue focus:ring-4 focus:ring-deep-sky-blue/5 transition-all font-medium"
+                            className="h-11 bg-gray-50 border-gray-200 rounded-xl pl-10 pr-4 focus:bg-white focus:border-deep-sky-blue transition-all"
+                            placeholder="+251 911 234 567"
+                          />
+                        </div>
+                      </div>
+                      <div className="space-y-2">
+                        <Label className="text-xs font-bold text-gray-600 uppercase tracking-widest">Office Address</Label>
+                        <div className="relative">
+                          <MapPin className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
+                          <Input 
+                            value={siteData.address}
+                            onChange={(e) => setSiteData({...siteData, address: e.target.value})}
+                            className="h-11 bg-gray-50 border-gray-200 rounded-xl pl-10 pr-4 focus:bg-white focus:border-deep-sky-blue transition-all"
+                            placeholder="Addis Ababa, Ethiopia"
                           />
                         </div>
                       </div>
                     </div>
-
-                    <div className="space-y-2">
-                      <Label className="text-xs font-bold text-gray-500 uppercase tracking-widest pl-1">Head Office Address</Label>
-                      <div className="relative">
-                        <MapPin className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
-                        <Input 
-                          value={siteData.address}
-                          onChange={(e) => setSiteData({...siteData, address: e.target.value})}
-                          className="h-12 bg-gray-50/50 border-gray-200 rounded-lg pl-10 px-4 focus:bg-white focus:border-deep-sky-blue focus:ring-4 focus:ring-deep-sky-blue/5 transition-all font-medium"
-                        />
-                      </div>
-                    </div>
-                </CardContent>
-              </Card>
-            </div>
-
-            {/* Section 2: Footer & Social */}
-            <div className="grid md:grid-cols-3 gap-8">
-              <div className="md:col-span-1">
-                <h3 className="text-lg font-bold text-gray-900">Footer & Social</h3>
-                <p className="text-sm text-gray-500 mt-2 leading-relaxed">
-                  Manage the footer about summary and social media connectivity.
-                </p>
-              </div>
-
-              <Card className="md:col-span-2 border-gray-200 shadow-sm rounded-xl overflow-hidden">
-                <CardHeader className="border-b border-gray-100 pb-6 px-8 pt-8 bg-slate-50/50">
-                  <CardTitle className="text-lg font-bold">Public Footer Content</CardTitle>
-                </CardHeader>
-                <CardContent className="p-8 space-y-6">
-                  <div className="space-y-2">
-                    <Label className="text-xs font-bold text-gray-500 uppercase tracking-widest pl-1">Footer About Text</Label>
-                    <Textarea 
-                      value={siteData.footerAbout}
-                      onChange={(e) => setSiteData({...siteData, footerAbout: e.target.value})}
-                      className="bg-gray-50/50 border-gray-200 rounded-lg px-4 focus:bg-white focus:border-deep-sky-blue focus:ring-4 focus:ring-deep-sky-blue/5 transition-all font-medium min-h-[100px]"
-                    />
                   </div>
+                </div>
+              </CardContent>
+            </Card>
 
-                  <div className="grid grid-cols-2 gap-6">
-                    <div className="space-y-2">
-                      <Label className="text-xs font-bold text-gray-500 uppercase tracking-widest pl-1">Facebook URL</Label>
-                      <div className="relative">
-                        <Facebook className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
-                        <Input 
-                          value={siteData.facebook}
-                          onChange={(e) => setSiteData({...siteData, facebook: e.target.value})}
-                          className="h-12 bg-gray-50/50 border-gray-200 rounded-lg pl-10 px-4 focus:bg-white focus:border-deep-sky-blue focus:ring-4 focus:ring-deep-sky-blue/5 transition-all font-medium"
-                          placeholder="https://facebook.com/..."
-                        />
-                      </div>
-                    </div>
-                    <div className="space-y-2">
-                      <Label className="text-xs font-bold text-gray-500 uppercase tracking-widest pl-1">Twitter URL</Label>
-                      <div className="relative">
-                        <Twitter className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
-                        <Input 
-                          value={siteData.twitter}
-                          onChange={(e) => setSiteData({...siteData, twitter: e.target.value})}
-                          className="h-12 bg-gray-50/50 border-gray-200 rounded-lg pl-10 px-4 focus:bg-white focus:border-deep-sky-blue focus:ring-4 focus:ring-deep-sky-blue/5 transition-all font-medium"
-                          placeholder="https://twitter.com/..."
-                        />
-                      </div>
-                    </div>
-                    <div className="space-y-2">
-                      <Label className="text-xs font-bold text-gray-500 uppercase tracking-widest pl-1">Instagram URL</Label>
-                      <div className="relative">
-                        <Instagram className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
-                        <Input 
-                          value={siteData.instagram}
-                          onChange={(e) => setSiteData({...siteData, instagram: e.target.value})}
-                          className="h-12 bg-gray-50/50 border-gray-200 rounded-lg pl-10 px-4 focus:bg-white focus:border-deep-sky-blue focus:ring-4 focus:ring-deep-sky-blue/5 transition-all font-medium"
-                          placeholder="https://instagram.com/..."
-                        />
-                      </div>
-                    </div>
-                    <div className="space-y-2">
-                      <Label className="text-xs font-bold text-gray-500 uppercase tracking-widest pl-1">Youtube URL</Label>
-                      <div className="relative">
-                        <Youtube className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
-                        <Input 
-                          value={siteData.youtube}
-                          onChange={(e) => setSiteData({...siteData, youtube: e.target.value})}
-                          className="h-12 bg-gray-50/50 border-gray-200 rounded-lg pl-10 px-4 focus:bg-white focus:border-deep-sky-blue focus:ring-4 focus:ring-deep-sky-blue/5 transition-all font-medium"
-                          placeholder="https://youtube.com/..."
-                        />
-                      </div>
-                    </div>
+            {/* Footer & Social */}
+            <Card className="border-gray-200 shadow-sm rounded-xl overflow-hidden">
+              <CardHeader className="bg-gray-900 p-8 text-white">
+                <div className="flex items-center gap-3 mb-2">
+                  <div className="p-2 bg-white/10 rounded-lg">
+                    <Layout className="w-5 h-5" />
                   </div>
-                </CardContent>
-              </Card>
-            </div>
+                  <CardTitle className="text-xl font-bold">Footer & Social Links</CardTitle>
+                </div>
+                <p className="text-gray-400 text-sm">Manage footer content and social media presence</p>
+              </CardHeader>
+              <CardContent className="p-8 space-y-6">
+                <div className="space-y-2">
+                  <Label className="text-xs font-bold text-gray-600 uppercase tracking-widest">About Section Text</Label>
+                  <Textarea 
+                    value={siteData.footerAbout}
+                    onChange={(e) => setSiteData({...siteData, footerAbout: e.target.value})}
+                    className="bg-gray-50 border-gray-200 rounded-xl px-4 py-3 focus:bg-white focus:border-deep-sky-blue transition-all min-h-[100px] resize-none"
+                    placeholder="Driving the transition to sustainable mobility across Ethiopia..."
+                  />
+                </div>
 
-            {/* Section 3: Factory Information */}
-            <div className="grid md:grid-cols-3 gap-8">
-              <div className="md:col-span-1">
-                <h3 className="text-lg font-bold text-gray-900">Factory Details</h3>
-                <p className="text-sm text-gray-500 mt-2 leading-relaxed">
-                  Update the assembly factory information displayed in the footer.
-                </p>
-              </div>
+                <div className="h-px bg-gray-100" />
 
-              <Card className="md:col-span-2 border-gray-200 shadow-sm rounded-xl overflow-hidden">
-                <CardHeader className="border-b border-gray-100 pb-6 px-8 pt-8 bg-slate-50/50">
-                  <CardTitle className="text-lg font-bold">Assembly Hub</CardTitle>
-                </CardHeader>
-                <CardContent className="p-8 space-y-6">
-                  <div className="space-y-2">
-                    <Label className="text-xs font-bold text-gray-500 uppercase tracking-widest pl-1">Factory Name</Label>
-                    <div className="relative">
-                      <Factory className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
+                <div>
+                  <Label className="text-xs font-bold text-gray-600 uppercase tracking-widest mb-4 block">Social Media Links</Label>
+                  <div className="grid grid-cols-2 gap-4">
+                    <div className="space-y-2">
+                      <Label className="text-xs text-gray-500 font-medium flex items-center gap-2">
+                        <Facebook className="w-3.5 h-3.5 text-blue-600" /> Facebook
+                      </Label>
                       <Input 
-                        value={siteData.factoryName}
-                        onChange={(e) => setSiteData({...siteData, factoryName: e.target.value})}
-                        className="h-12 bg-gray-50/50 border-gray-200 rounded-lg pl-10 px-4 focus:bg-white focus:border-deep-sky-blue focus:ring-4 focus:ring-deep-sky-blue/5 transition-all font-medium"
+                        value={siteData.facebook}
+                        onChange={(e) => setSiteData({...siteData, facebook: e.target.value})}
+                        className="h-11 bg-gray-50 border-gray-200 rounded-xl px-4 focus:bg-white focus:border-deep-sky-blue transition-all"
+                        placeholder="https://facebook.com/..."
+                      />
+                    </div>
+                    <div className="space-y-2">
+                      <Label className="text-xs text-gray-500 font-medium flex items-center gap-2">
+                        <Twitter className="w-3.5 h-3.5 text-sky-500" /> Twitter
+                      </Label>
+                      <Input 
+                        value={siteData.twitter}
+                        onChange={(e) => setSiteData({...siteData, twitter: e.target.value})}
+                        className="h-11 bg-gray-50 border-gray-200 rounded-xl px-4 focus:bg-white focus:border-deep-sky-blue transition-all"
+                        placeholder="https://twitter.com/..."
+                      />
+                    </div>
+                    <div className="space-y-2">
+                      <Label className="text-xs text-gray-500 font-medium flex items-center gap-2">
+                        <Instagram className="w-3.5 h-3.5 text-pink-600" /> Instagram
+                      </Label>
+                      <Input 
+                        value={siteData.instagram}
+                        onChange={(e) => setSiteData({...siteData, instagram: e.target.value})}
+                        className="h-11 bg-gray-50 border-gray-200 rounded-xl px-4 focus:bg-white focus:border-deep-sky-blue transition-all"
+                        placeholder="https://instagram.com/..."
+                      />
+                    </div>
+                    <div className="space-y-2">
+                      <Label className="text-xs text-gray-500 font-medium flex items-center gap-2">
+                        <Youtube className="w-3.5 h-3.5 text-red-600" /> YouTube
+                      </Label>
+                      <Input 
+                        value={siteData.youtube}
+                        onChange={(e) => setSiteData({...siteData, youtube: e.target.value})}
+                        className="h-11 bg-gray-50 border-gray-200 rounded-xl px-4 focus:bg-white focus:border-deep-sky-blue transition-all"
+                        placeholder="https://youtube.com/..."
                       />
                     </div>
                   </div>
+                </div>
+              </CardContent>
+            </Card>
+
+            {/* Factory & Features Row */}
+            <div className="grid md:grid-cols-2 gap-6">
+              {/* Factory */}
+              <Card className="border-gray-200 shadow-sm rounded-xl overflow-hidden">
+                <CardHeader className="border-b border-gray-100 pb-4 px-6 py-5">
+                  <div className="flex items-center gap-3">
+                    <div className="p-2 bg-amber-50 rounded-lg">
+                      <Factory className="w-4 h-4 text-amber-600" />
+                    </div>
+                    <div>
+                      <CardTitle className="text-base font-bold">Factory Information</CardTitle>
+                      <p className="text-xs text-gray-500 mt-0.5">Assembly hub details</p>
+                    </div>
+                  </div>
+                </CardHeader>
+                <CardContent className="p-6 space-y-4">
                   <div className="space-y-2">
-                    <Label className="text-xs font-bold text-gray-500 uppercase tracking-widest pl-1">Factory Description</Label>
+                    <Label className="text-xs font-bold text-gray-600 uppercase tracking-widest">Factory Name</Label>
+                    <Input 
+                      value={siteData.factoryName}
+                      onChange={(e) => setSiteData({...siteData, factoryName: e.target.value})}
+                      className="h-11 bg-gray-50 border-gray-200 rounded-xl px-4 focus:bg-white focus:border-deep-sky-blue transition-all"
+                      placeholder="Modjo Factory"
+                    />
+                  </div>
+                  <div className="space-y-2">
+                    <Label className="text-xs font-bold text-gray-600 uppercase tracking-widest">Description</Label>
                     <Textarea 
                       value={siteData.factoryDesc}
                       onChange={(e) => setSiteData({...siteData, factoryDesc: e.target.value})}
-                      className="bg-gray-50/50 border-gray-200 rounded-lg px-4 focus:bg-white focus:border-deep-sky-blue focus:ring-4 focus:ring-deep-sky-blue/5 transition-all font-medium min-h-[80px]"
+                      className="bg-gray-50 border-gray-200 rounded-xl px-4 py-3 focus:bg-white focus:border-deep-sky-blue transition-all min-h-[80px] resize-none"
+                      placeholder="Our main assembly hub..."
                     />
                   </div>
                 </CardContent>
               </Card>
-            </div>
 
-            {/* Section 4: Feature Controls */}
-            <div className="grid md:grid-cols-3 gap-8">
-              <div className="md:col-span-1">
-                <h3 className="text-lg font-bold text-gray-900">Feature Controls</h3>
-                <p className="text-sm text-gray-500 mt-2 leading-relaxed">
-                  Enable or disable specific system features for the public website.
-                </p>
-              </div>
-
-              <Card className="md:col-span-2 border-gray-200 shadow-sm rounded-xl overflow-hidden">
-                <CardHeader className="border-b border-gray-100 pb-6 px-8 pt-8 bg-slate-50/50">
-                  <CardTitle className="text-lg font-bold">Registration & Portal</CardTitle>
+              {/* Feature Controls */}
+              <Card className="border-gray-200 shadow-sm rounded-xl overflow-hidden">
+                <CardHeader className="border-b border-gray-100 pb-4 px-6 py-5">
+                  <div className="flex items-center gap-3">
+                    <div className="p-2 bg-green-50 rounded-lg">
+                      <ShieldCheck className="w-4 h-4 text-green-600" />
+                    </div>
+                    <div>
+                      <CardTitle className="text-base font-bold">Feature Controls</CardTitle>
+                      <p className="text-xs text-gray-500 mt-0.5">Toggle platform features</p>
+                    </div>
+                  </div>
                 </CardHeader>
-                <CardContent className="p-8 space-y-6">
-                  <div className="flex items-center justify-between p-6 bg-deep-sky-blue/[0.03] rounded-2xl border border-deep-sky-blue/10 transition-all hover:bg-deep-sky-blue/[0.05]">
-                    <div className="space-y-1">
-                      <Label className="text-sm font-bold flex items-center gap-2 text-gray-900 group cursor-pointer">
-                        <User className="w-4 h-4 text-deep-sky-blue" />
-                        Enable Agent Registration
-                      </Label>
-                      <p className="text-xs text-gray-500 font-medium">Allow public users to access the /become-agent registration form.</p>
+                <CardContent className="p-6 space-y-4">
+                  <div className="flex items-center justify-between p-4 bg-gray-50 rounded-xl border border-gray-100">
+                    <div className="space-y-0.5">
+                      <p className="text-sm font-bold text-gray-900">Agent Registration</p>
+                      <p className="text-[11px] text-gray-500">Enable public /become-agent form</p>
                     </div>
                     <Switch 
                       checked={siteData.isAgentRegistrationEnabled === 'true'} 
@@ -494,13 +495,10 @@ export default function SettingsPage() {
                     />
                   </div>
 
-                  <div className="flex items-center justify-between p-6 bg-amber-500/[0.03] rounded-2xl border border-amber-500/10 transition-all hover:bg-amber-500/[0.05]">
-                    <div className="space-y-1">
-                      <Label className="text-sm font-bold flex items-center gap-2 text-gray-900">
-                        <ShieldCheck className="w-4 h-4 text-amber-500" />
-                        Enable Agent Portal
-                      </Label>
-                      <p className="text-xs text-gray-500 font-medium">Turn off access to the agent dashboard (e.g. for maintenance).</p>
+                  <div className="flex items-center justify-between p-4 bg-gray-50 rounded-xl border border-gray-100">
+                    <div className="space-y-0.5">
+                      <p className="text-sm font-bold text-gray-900">Agent Portal</p>
+                      <p className="text-[11px] text-gray-500">Enable agent dashboard access</p>
                     </div>
                     <Switch 
                       checked={siteData.isAgentPortalEnabled === 'true'} 
@@ -511,19 +509,24 @@ export default function SettingsPage() {
               </Card>
             </div>
 
-            <div className="flex justify-end sticky bottom-6 z-20">
+            {/* Save Button */}
+            <div className="flex justify-end pt-4">
               <Button 
                 type="submit" 
-                className="bg-slate-900 hover:bg-black font-bold h-14 px-10 rounded-xl shadow-[0_20px_40px_-15px_rgba(0,0,0,0.5)] border-b-2 border-deep-sky-blue/30 transition-all flex items-center gap-3 transform hover:-translate-y-1 active:scale-[0.98] group overflow-hidden relative"
+                className="bg-gray-900 hover:bg-gray-800 text-white font-bold h-12 px-8 rounded-xl shadow-lg flex items-center gap-2 transition-all"
                 disabled={loading}
               >
-                {loading && (
-                    <div className="absolute inset-0 bg-deep-sky-blue/20 animate-pulse" />
+                {loading ? (
+                  <>
+                    <div className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" />
+                    <span>Saving...</span>
+                  </>
+                ) : (
+                  <>
+                    <Save className="w-4 h-4" />
+                    <span>Save Settings</span>
+                  </>
                 )}
-                <Save className={cn("w-5 h-5 transition-transform group-hover:rotate-12", loading ? "animate-spin" : "")} />
-                <span className="relative z-10">
-                    {loading ? 'Propagating Infrastructure Changes...' : 'Save Global Settings'}
-                </span>
               </Button>
             </div>
           </form>

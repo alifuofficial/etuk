@@ -17,8 +17,10 @@ export async function GET() {
       totalAgents,
       pendingApplications,
       approvedAgents,
-      rejectedApplications,
+      rejectedAgents,
       totalUsers,
+      totalProducts,
+      activeProducts,
       recentApplications,
     ] = await Promise.all([
       db.agent.count(),
@@ -26,6 +28,8 @@ export async function GET() {
       db.agent.count({ where: { status: 'APPROVED' } }),
       db.agent.count({ where: { status: 'REJECTED' } }),
       db.user.count(),
+      db.product.count(),
+      db.product.count({ where: { isActive: true } }),
       db.agent.findMany({
         take: 10,
         orderBy: { createdAt: 'desc' },
@@ -68,6 +72,12 @@ export async function GET() {
       _count: {
         id: true,
       },
+      orderBy: {
+        _count: {
+          id: 'desc',
+        },
+      },
+      take: 10,
     });
 
     // Get agents by city (Approved only for the map)
@@ -86,20 +96,157 @@ export async function GET() {
         id: true,
       },
     });
+
+    // Get agents by business type
+    const agentsByBusinessType = await db.agent.groupBy({
+      by: ['businessType'],
+      _count: {
+        id: true,
+      },
+      orderBy: {
+        _count: {
+          id: 'desc',
+        },
+      },
+      take: 8,
+    });
+
+    // Get warehouse inventory summary
+    const warehouseInventory = await db.inventory.findMany({
+      where: { agentId: null },
+      include: {
+        product: {
+          select: {
+            id: true,
+            name: true,
+            category: true,
+            isSerialized: true,
+          },
+        },
+      },
+    });
+
+    const totalWarehouseUnits = warehouseInventory.reduce((sum, item) => sum + item.quantity, 0);
+
+    // Get inventory distributed to agents
+    const agentInventoryCount = await db.inventory.aggregate({
+      where: { agentId: { not: null } },
+      _sum: {
+        quantity: true,
+      },
+    });
+
+    // Get agents with warehouse
+    const agentsWithWarehouse = await db.agent.count({
+      where: { hasWarehouse: true, status: 'APPROVED' },
+    });
+
+    // Get products by category
+    const productsByCategory = await db.product.groupBy({
+      by: ['category'],
+      _count: {
+        id: true,
+      },
+      orderBy: {
+        _count: {
+          id: 'desc',
+        },
+      },
+    });
+
+    // Get serialized vs non-serialized products
+    const serializedProducts = await db.product.count({
+      where: { isSerialized: true, isActive: true },
+    });
+    const nonSerializedProducts = await db.product.count({
+      where: { isSerialized: false, isActive: true },
+    });
+
+    // Get recent SMS count (last 7 days)
+    const sevenDaysAgo = new Date();
+    sevenDaysAgo.setDate(sevenDaysAgo.getDate() - 7);
+    
+    const recentSmsCount = await db.smsLog.count({
+      where: {
+        createdAt: {
+          gte: sevenDaysAgo,
+        },
+      },
+    });
+
+    const successfulSms = await db.smsLog.count({
+      where: {
+        status: 'success',
+        createdAt: {
+          gte: sevenDaysAgo,
+        },
+      },
+    });
+
+    // Calculate conversion rate
+    const conversionRate = totalAgents > 0 
+      ? Math.round((approvedAgents / totalAgents) * 100) 
+      : 0;
+
+    // Get approval/rejection this month
+    const startOfMonth = new Date(now.getFullYear(), now.getMonth(), 1);
+    const approvedThisMonth = await db.agent.count({
+      where: {
+        status: 'APPROVED',
+        reviewedAt: {
+          gte: startOfMonth,
+        },
+      },
+    });
+    const rejectedThisMonth = await db.agent.count({
+      where: {
+        status: 'REJECTED',
+        reviewedAt: {
+          gte: startOfMonth,
+        },
+      },
+    });
+
+    // Get unique regions and cities covered
+    const uniqueRegions = await db.agent.groupBy({
+      by: ['region'],
+      where: { status: 'APPROVED' },
+    });
+    const uniqueCities = await db.agent.groupBy({
+      by: ['city'],
+      where: { status: 'APPROVED' },
+    });
     
     return NextResponse.json({
       stats: {
         totalAgents,
         pendingApplications,
         approvedAgents,
-        rejectedApplications,
+        rejectedAgents,
         totalUsers,
+        totalProducts,
+        activeProducts,
+        conversionRate,
+        warehouseUnits: totalWarehouseUnits,
+        distributedUnits: agentInventoryCount._sum.quantity || 0,
+        agentsWithWarehouse,
+        approvedThisMonth,
+        rejectedThisMonth,
+        uniqueRegions: uniqueRegions.length,
+        uniqueCities: uniqueCities.length,
+        recentSmsCount,
+        successfulSms,
+        serializedProducts,
+        nonSerializedProducts,
       },
       recentApplications,
       monthlyTrend,
       agentsByRegion,
       agentsByCity,
       agentsByStatus,
+      agentsByBusinessType: agentsByBusinessType.filter(a => a.businessType),
+      productsByCategory,
+      warehouseInventory: warehouseInventory.slice(0, 5),
     });
   } catch (error) {
     console.error('Error fetching dashboard data:', error);

@@ -93,26 +93,51 @@ export default function AgentPortalPage() {
   const [recordingSale, setRecordingSale] = useState(false);
 
   useEffect(() => {
-    fetchData();
-  }, []);
+    // Redirect to login if not authenticated
+    if (status === 'unauthenticated') {
+      router.push('/auth/login?redirect=/portal');
+      return;
+    }
+    
+    if (status === 'authenticated') {
+      fetchData();
+    }
+  }, [status, router]);
 
   const fetchData = async () => {
     setLoading(true);
     try {
       const res = await fetch('/api/agent/my-units');
-      if (res.ok) {
-        const data = await res.json();
-        setAgent(data.agent);
-        setUnits(data.units || []);
-        setSales(data.sales || []);
-        setStats(data.stats || { totalUnits: 0, totalValue: 0, totalSold: 0 });
-      } else if (res.status === 404) {
+      if (res.status === 401) {
+        // Unauthorized - redirect to login
+        router.push('/auth/login?redirect=/portal');
+        return;
+      }
+      if (res.status === 403) {
+        // Agent not approved
+        toast({
+          title: 'Account Not Approved',
+          description: 'Your agent account has not been approved yet.',
+          variant: 'destructive',
+        });
+        router.push('/');
+        return;
+      }
+      if (res.status === 404) {
         toast({
           title: 'Access Denied',
           description: 'You are not registered as an agent.',
           variant: 'destructive',
         });
         router.push('/');
+        return;
+      }
+      if (res.ok) {
+        const data = await res.json();
+        setAgent(data.agent);
+        setUnits(data.units || []);
+        setSales(data.sales || []);
+        setStats(data.stats || { totalUnits: 0, totalValue: 0, totalSold: 0 });
       }
     } catch (error) {
       console.error('Failed to fetch data:', error);

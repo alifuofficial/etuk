@@ -13,14 +13,23 @@ export async function GET() {
 
   try {
     // Find the agent record for the logged-in user
+    // First try to find by userId (linked account), then by email
     const agent = await prisma.agent.findFirst({
       where: { 
-        email: session.user.email || ''
+        OR: [
+          { userId: session.user.id },
+          { email: session.user.email || '' }
+        ]
       }
     });
 
     if (!agent) {
       return NextResponse.json({ error: 'Agent not found' }, { status: 404 });
+    }
+
+    // Check if the agent is approved
+    if (agent.status !== 'APPROVED') {
+      return NextResponse.json({ error: 'Agent account not approved' }, { status: 403 });
     }
 
     // Get all units assigned to this agent

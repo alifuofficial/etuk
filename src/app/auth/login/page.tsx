@@ -2,7 +2,7 @@
 
 import { useState, useEffect, useRef } from 'react';
 import { signIn } from 'next-auth/react';
-import { useRouter } from 'next/navigation';
+import { useRouter, useSearchParams } from 'next/navigation';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
@@ -15,6 +15,8 @@ type Step = 'login' | 'forgot' | 'verify' | 'reset';
 
 export default function LoginPage() {
   const router = useRouter();
+  const searchParams = useSearchParams();
+  const redirectUrl = searchParams.get('redirect') || '/admin';
   const [step, setStep] = useState<Step>('login');
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
@@ -82,7 +84,7 @@ export default function LoginPage() {
       if (result?.error) {
         setError('Invalid credentials. Please contact administration if you need access.');
       } else {
-        router.push('/admin');
+        router.push(redirectUrl);
       }
     } catch {
       setError('A system error occurred. Secure connection failed.');

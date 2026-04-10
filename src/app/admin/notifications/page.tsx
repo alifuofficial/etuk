@@ -360,7 +360,7 @@ export default function NotificationsPage() {
                     <label className="text-xs font-bold text-gray-600 uppercase tracking-widest">Send To</label>
                     <Select value={recipientMode} onValueChange={(v: any) => { setRecipientMode(v); setSelectedAgentIds(new Set()); }}>
                       <SelectTrigger className="h-10 bg-gray-50 border-gray-200 rounded-lg text-sm font-medium">
-                        <SelectValue />
+                        <SelectValue placeholder="Select recipient mode..." />
                       </SelectTrigger>
                       <SelectContent>
                         <SelectItem value="custom">Custom Selection</SelectItem>
@@ -374,7 +374,7 @@ export default function NotificationsPage() {
                     <label className="text-xs font-bold text-gray-600 uppercase tracking-widest">Agent Status</label>
                     <Select value={agentStatusFilter} onValueChange={(v) => { setAgentStatusFilter(v); setSelectedAgentIds(new Set()); }}>
                       <SelectTrigger className="h-10 bg-gray-50 border-gray-200 rounded-lg text-sm font-medium">
-                        <SelectValue />
+                        <SelectValue placeholder="Select status..." />
                       </SelectTrigger>
                       <SelectContent>
                         <SelectItem value="all">All Agents</SelectItem>
@@ -389,7 +389,7 @@ export default function NotificationsPage() {
                     <label className="text-xs font-bold text-gray-600 uppercase tracking-widest">Business License</label>
                     <Select value={licenseFilter} onValueChange={(v: any) => { setLicenseFilter(v); setSelectedAgentIds(new Set()); }}>
                       <SelectTrigger className="h-10 bg-gray-50 border-gray-200 rounded-lg text-sm font-medium">
-                        <SelectValue />
+                        <SelectValue placeholder="Select license filter..." />
                       </SelectTrigger>
                       <SelectContent>
                         <SelectItem value="all">All Agents</SelectItem>
@@ -506,9 +506,10 @@ export default function NotificationsPage() {
                       <Table>
                         <TableHeader className="bg-gray-50/60 font-bold">
                           <TableRow>
-                            {recipientMode === 'custom' && <TableHead className="w-10 px-4" />}
-                            <TableHead className="px-4 py-2 text-[10px] uppercase tracking-wider text-gray-500">Agent</TableHead>
-                            <TableHead className="px-4 py-2 text-[10px] uppercase tracking-wider text-gray-500">Phone</TableHead>
+                            {recipientMode === 'custom' && <TableHead className="w-10 px-3" />}
+                            <TableHead className="px-3 py-2 text-[10px] uppercase tracking-wider text-gray-500">Agent</TableHead>
+                            <TableHead className="px-3 py-2 text-[10px] uppercase tracking-wider text-gray-500">Phone</TableHead>
+                            <TableHead className="px-3 py-2 text-[10px] uppercase tracking-wider text-gray-500">License</TableHead>
                           </TableRow>
                         </TableHeader>
                         <TableBody>
@@ -517,15 +518,22 @@ export default function NotificationsPage() {
                             return (
                               <TableRow key={agent.id} className={cn("hover:bg-gray-50 transition-colors cursor-pointer", selected && recipientMode === 'custom' && "bg-deep-sky-blue/5")} onClick={() => recipientMode === 'custom' && toggleAgent(agent.id)}>
                                 {recipientMode === 'custom' && (
-                                  <TableCell className="px-4 py-1.5 w-10">
+                                  <TableCell className="px-3 py-2 w-10">
                                     <Checkbox checked={selectedAgentIds.has(agent.id)} onCheckedChange={() => toggleAgent(agent.id)} onClick={(e) => e.stopPropagation()} />
                                   </TableCell>
                                 )}
-                                <TableCell className="px-4 py-1.5">
-                                  <div className="font-semibold text-xs text-gray-900">{agent.firstName} {agent.lastName}</div>
-                                  <div className={cn("text-[9px] font-bold", agent.status === 'APPROVED' ? 'text-green-500' : 'text-amber-500')}>{agent.status}</div>
+                                <TableCell className="px-3 py-2">
+                                  <div className="font-semibold text-xs text-gray-900 truncate max-w-[120px]">{agent.firstName} {agent.lastName}</div>
+                                  <div className={cn("text-[9px] font-bold", agent.status === 'APPROVED' ? 'text-green-500' : agent.status === 'REJECTED' ? 'text-red-500' : 'text-amber-500')}>{agent.status}</div>
                                 </TableCell>
-                                <TableCell className="px-4 py-1.5 text-xs text-gray-600 tabular-nums">{agent.phone}</TableCell>
+                                <TableCell className="px-3 py-2 text-xs text-gray-600 tabular-nums whitespace-nowrap">{agent.phone}</TableCell>
+                                <TableCell className="px-3 py-2">
+                                  {agent.tradeLicense ? (
+                                    <span className="inline-flex items-center px-2 py-0.5 rounded-full text-[9px] font-bold bg-green-50 text-green-600 border border-green-100">Uploaded</span>
+                                  ) : (
+                                    <span className="inline-flex items-center px-2 py-0.5 rounded-full text-[9px] font-bold bg-gray-50 text-gray-500 border border-gray-100">None</span>
+                                  )}
+                                </TableCell>
                               </TableRow>
                             );
                           })}

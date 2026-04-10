@@ -34,8 +34,9 @@ import {
 import { signOut } from 'next-auth/react';
 
 const navItems = [
-  { href: '/admin', label: 'Dashboard', icon: LayoutDashboard },
-  { href: '/admin/agents', label: 'Agents', icon: Users, roles: ['ADMIN', 'MARKETING_MANAGER'] },
+  { href: '/admin', label: 'Dashboard', icon: LayoutDashboard, roles: ['ADMIN', 'MARKETING_MANAGER'] },
+  { href: '/admin/warehouse', label: 'Dashboard', icon: LayoutDashboard, roles: ['WAREHOUSE_MANAGER'] },
+  { href: '/admin/agents', label: 'Agents', icon: Users, roles: ['ADMIN', 'MARKETING_MANAGER', 'WAREHOUSE_MANAGER'] },
   { href: '/admin/locations', label: 'Locations', icon: MapPin, roles: ['ADMIN'] },
   { href: '/admin/users', label: 'Users', icon: UserCircle, roles: ['ADMIN'] },
   { href: '/admin/products', label: 'Products', icon: Package, roles: ['ADMIN'] },
@@ -59,7 +60,11 @@ export default function AdminLayout({
     if (status === 'unauthenticated') {
       router.push('/auth/login');
     }
-  }, [status, router]);
+    // Redirect agents to their portal
+    if (status === 'authenticated' && session?.user?.role === 'AGENT') {
+      router.push('/portal');
+    }
+  }, [status, session, router]);
 
   if (status === 'loading') {
     return (

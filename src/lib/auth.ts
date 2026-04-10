@@ -38,6 +38,22 @@ export const authOptions: NextAuthOptions = {
           return null;
         }
 
+        // If user is an AGENT, verify they have an approved agent profile
+        if (user.role === 'AGENT') {
+          const agent = await db.agent.findFirst({
+            where: {
+              OR: [
+                { userId: user.id },
+                { email: user.email }
+              ]
+            }
+          });
+
+          if (!agent || agent.status !== 'APPROVED') {
+            return null; // Reject login for non-approved agents
+          }
+        }
+
         return {
           id: user.id,
           email: user.email,

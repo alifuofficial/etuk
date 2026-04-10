@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from 'react';
 import { useSession } from 'next-auth/react';
+import { useRouter } from 'next/navigation';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -45,6 +46,7 @@ import {
   Legend,
 } from 'recharts';
 import EthiopiaMap from './components/EthiopiaMap';
+import WarehouseDashboard from './warehouse/dashboard';
 
 interface DashboardStats {
   totalAgents: number;
@@ -79,9 +81,22 @@ interface DashboardStats {
 const COLORS = ['#0ea5e9', '#10b981', '#f59e0b', '#ef4444', '#8b5cf6', '#ec4899', '#06b6d4', '#84cc16'];
 
 export default function AdminDashboard() {
-  const { data: session } = useSession();
+  const { data: session, status } = useSession();
+  const router = useRouter();
   const [stats, setStats] = useState<DashboardStats | null>(null);
   const [loading, setLoading] = useState(true);
+
+  if (status === 'loading') {
+    return (
+      <div className="flex items-center justify-center py-20">
+        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-gray-900" />
+      </div>
+    );
+  }
+
+  if (session?.user?.role === 'WAREHOUSE_MANAGER') {
+    return <WarehouseDashboard />;
+  }
 
   useEffect(() => {
     fetchDashboardData();

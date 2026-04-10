@@ -250,15 +250,74 @@ export async function DELETE(
     }
     
     const { id } = await params;
-    await db.agent.delete({
+
+    // Check if agent has related records
+    const agent = await db.agent.findUnique({
       where: { id },
+      include: {
+        _count: {
+          select: {
+            inventory: true,
+            units: true,
+            sales: true,
+          }
+        }
+      }
     });
-    
-    return NextResponse.json({ success: true });
+
+    if (!agent) {
+      return NextResponse.json({ error: 'Agent not found' }, { status: 404 });
+    }
+
+    // Delete in transaction to handle all related records
+    await db.$transaction(async (tx) => {
+      // Delete sales records
+      await tx.sale.deleteMany({
+        where: { agentId: id }
+      });
+
+      // Delete inventory records
+      await tx.inventory.deleteMany({
+        where: { agentId: id }
+      });
+
+      // Update product units to remove agent association
+      await tx.productUnit.updateMany({
+        where: { currentAgentId: id },
+        data: { currentAgentId: null }
+      });
+
+      // Delete inventory transactions
+      await tx.inventoryTransaction.deleteMany({
+        where: { fromAgentId: id }
+      });
+      await tx.inventoryTransaction.deleteMany({
+        where: { toAgentId: id }
+      });
+
+      // Delete SMS logs
+      await tx.smsLog.deleteMany({
+        where: { agentId: id }
+      });
+
+      // Delete the linked user account if exists
+      if (agent.userId) {
+        await tx.user.delete({
+          where: { id: agent.userId }
+        });
+      }
+
+      // Delete the agent
+      await tx.agent.delete({
+        where: { id }
+      });
+    });
+
+    return NextResponse.json({ success: true, message: 'Agent deleted successfully' });
   } catch (error) {
     console.error('Error deleting agent:', error);
     return NextResponse.json(
-      { error: 'Failed to delete agent' },
+      { error: 'Failed to delete agent. Agent may have related records that cannot be removed.' },
       { status: 500 }
     );
   }

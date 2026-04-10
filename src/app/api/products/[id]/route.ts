@@ -95,23 +95,30 @@ export async function DELETE(
     const { id } = await params;
 
     // Check if product has inventory or units
-    const inventory = await db.inventory.findFirst({
+    const inventoryCount = await db.inventory.count({
       where: { productId: id },
     });
 
-    const units = await db.productUnit.findFirst({
+    const unitsCount = await db.productUnit.count({
       where: { productId: id },
     });
 
-    if (inventory || units) {
-      // Soft delete - just deactivate
-      const product = await db.product.update({
-        where: { id },
-        data: { isActive: false },
-      });
+    if (inventoryCount > 0 || unitsCount > 0) {
+      // Soft delete - just deactivate and also delete inventory records
+      await db.$transaction([
+        // Delete inventory records for this product
+        db.inventory.deleteMany({
+          where: { productId: id },
+        }),
+        // Soft delete the product
+        db.product.update({
+          where: { id },
+          data: { isActive: false },
+        }),
+      ]);
+      
       return NextResponse.json({ 
-        message: 'Product deactivated (has associated inventory)',
-        product 
+        message: 'Product deactivated and inventory removed',
       });
     }
 

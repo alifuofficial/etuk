@@ -1,8 +1,9 @@
 'use client';
 
-import React from 'react';
+import React, { useEffect, useState } from 'react';
 import { motion } from 'framer-motion';
 import dynamic from 'next/dynamic';
+import { Loader2 } from 'lucide-react';
 
 // Dynamically import LeafletMap with SSR disabled as it requires window
 const LeafletMap = dynamic(() => import('./LeafletMapContent'), {
@@ -22,7 +23,6 @@ interface CityData {
 }
 
 interface EthiopiaMapProps {
-  data: CityData[];
   className?: string;
 }
 
@@ -70,7 +70,38 @@ const CITY_GEO_COORDINATES: Record<string, [number, number]> = {
   "moyale": [3.5167, 39.0500],
 };
 
-export default function EthiopiaMap({ data, className }: EthiopiaMapProps) {
+export default function EthiopiaMap({ className }: EthiopiaMapProps) {
+  const [data, setData] = useState<CityData[]>([]);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    fetchLocationData();
+  }, []);
+
+  const fetchLocationData = async () => {
+    try {
+      const res = await fetch('/api/admin/locations');
+      if (res.ok) {
+        const result = await res.json();
+        setData(result.agentsByCity || []);
+      }
+    } catch (error) {
+      console.error('Failed to fetch location data:', error);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  if (loading) {
+    return (
+      <div className={`relative bg-white rounded-3xl p-6 border border-gray-100 shadow-sm overflow-hidden flex flex-col ${className}`}>
+        <div className="flex items-center justify-center h-64">
+          <Loader2 className="w-8 h-8 animate-spin text-gray-300" />
+        </div>
+      </div>
+    );
+  }
+
   return (
     <div className={`relative bg-white rounded-3xl p-6 border border-gray-100 shadow-sm overflow-hidden flex flex-col ${className}`}>
       <div className="flex items-center justify-between mb-8">

@@ -2110,82 +2110,64 @@ export default function AgentsPage() {
         </DialogContent>
       </Dialog>
 
-      {/* Agent Inventory Dialog */}
+{/* Agent Inventory Dialog */}
       <Dialog open={showInventoryDialog} onOpenChange={setShowInventoryDialog}>
-        <DialogContent className="max-w-4xl p-0 overflow-hidden rounded-[2.5rem] shadow-2xl bg-white border-none max-h-[90vh] flex flex-col">
+        <DialogContent className="max-w-2xl p-0 overflow-hidden rounded-2xl shadow-2xl max-h-[95vh] flex flex-col">
           {selectedAgent && (
-            <div className="flex flex-col h-full overflow-hidden">
-              {/* Premium Header */}
-              <div className="p-8 bg-slate-900 flex items-center justify-between shrink-0">
-                <div className="flex items-center gap-6">
-                  <div className="h-16 w-16 rounded-[1.5rem] bg-amber-500/10 flex items-center justify-center border border-amber-500/20 shadow-inner">
-                    <Boxes className="w-8 h-8 text-amber-500" />
+            <div className="flex flex-col flex-1 min-h-0">
+              <div className="bg-gray-900 p-8 text-white">
+                <DialogHeader>
+                  <div className="flex items-center gap-2 mb-2">
+                    <Boxes className="w-4 h-4 text-amber-500" />
+                    <span className="text-xs font-bold text-gray-400 uppercase tracking-[0.2em]">Asset Management</span>
                   </div>
-                  <div>
-                    <div className="flex items-center gap-3">
-                      <h2 className="text-2xl font-black text-white tracking-tight">Agent Inventory</h2>
-                      <div className="px-3 py-1 bg-amber-500 rounded-full">
-                        <span className="text-[10px] font-black text-slate-950 uppercase tracking-widest">Live Asset Tracking</span>
-                      </div>
-                    </div>
-                    <p className="text-sm font-bold text-slate-400 mt-1 uppercase tracking-wider">
-                      {selectedAgent.firstName} {selectedAgent.lastName} · {selectedAgent.city} Hub
-                    </p>
-                  </div>
-                </div>
-                <Button 
-                  variant="ghost" 
-                  size="icon" 
-                  onClick={() => setShowInventoryDialog(false)}
-                  className="rounded-full hover:bg-white/10 text-slate-400"
-                >
-                  <X className="w-6 h-6" />
-                </Button>
+                  <DialogTitle className="text-3xl font-bold leading-none mb-1">
+                    {selectedAgent.firstName} {selectedAgent.lastName}
+                  </DialogTitle>
+                  <DialogDescription className="text-gray-300 text-sm font-medium">
+                    {selectedAgent.city} Hub · Inventory Tracking
+                  </DialogDescription>
+                </DialogHeader>
               </div>
 
-              <div className="flex-1 overflow-y-auto p-10 space-y-12">
+              <div className="p-8 space-y-8 overflow-y-auto bg-white flex-1">
                 {/* Current Assets Grid */}
-                <div className="space-y-6">
-                  <div className="flex items-center justify-between">
-                    <h4 className="text-xs font-black text-slate-900 uppercase tracking-[0.2em] flex items-center gap-3">
-                      <Package className="w-4 h-4 text-amber-500" />
-                      Assigned Assets
-                    </h4>
-                    <span className="text-[10px] font-bold text-slate-400 uppercase">Last updated: Just now</span>
-                  </div>
+                <div className="space-y-4">
+                  <h4 className="text-xs font-bold text-gray-600 uppercase tracking-widest border-b border-gray-100 pb-1 flex items-center gap-2">
+                    <Package className="w-4 h-4" />
+                    Assigned Assets
+                  </h4>
 
                   {agentInventory.length === 0 ? (
-                    <div className="p-12 border-2 border-dashed border-slate-100 rounded-[2rem] text-center bg-slate-50/50">
-                      <div className="inline-flex h-16 w-16 items-center justify-center rounded-2xl bg-white shadow-sm mb-4">
-                        <Inbox className="w-8 h-8 text-slate-200" />
-                      </div>
-                      <p className="text-sm font-black text-slate-400 uppercase tracking-widest">No assets currently assigned</p>
+                    <div className="p-8 border-2 border-dashed border-gray-100 rounded-xl text-center bg-gray-50">
+                      <Inbox className="w-8 h-8 text-gray-200 mx-auto mb-3" />
+                      <p className="text-sm text-gray-500 font-medium">No assets currently assigned</p>
                     </div>
                   ) : (
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    <div className="grid grid-cols-2 gap-4">
                       {agentInventory.map((item) => {
                         const productUnits = currentAgentUnits.filter(u => u.product.id === item.product.id);
                         return (
-                          <div key={item.id} className="group p-6 bg-white border border-slate-100 rounded-[2rem] hover:border-amber-200 hover:shadow-xl hover:shadow-slate-200/50 transition-all duration-300">
-                            <div className="flex items-start justify-between mb-4">
-                              <div className="space-y-1">
-                                <p className="text-sm font-black text-slate-900 group-hover:text-amber-600 transition-colors uppercase tracking-tight">{item.product.name}</p>
-                                <p className="text-[10px] text-slate-400 font-bold uppercase tracking-widest">{item.product.category}</p>
+                          <div key={item.id} className="group p-5 bg-white border border-gray-100 rounded-xl hover:border-amber-200 hover:shadow-lg transition-all">
+                            <div className="flex items-start justify-between mb-3">
+                              <div className="space-y-0.5">
+                                <p className="text-sm font-bold text-gray-900">{item.product.name}</p>
+                                <p className="text-[10px] text-gray-400 font-bold uppercase">{item.product.category}</p>
                               </div>
-                              <div className="h-12 w-12 rounded-2xl bg-slate-50 flex items-center justify-center border border-slate-100 group-hover:bg-amber-50 group-hover:border-amber-200">
-                                <span className="text-lg font-black text-slate-900">{item.quantity}</span>
+                              <div className="h-10 w-10 rounded-lg bg-gray-50 flex items-center justify-center border border-gray-100">
+                                <span className="text-base font-bold text-gray-900">{item.quantity}</span>
                               </div>
                             </div>
                             
                             {item.product.isSerialized && productUnits.length > 0 && (
-                              <div className="pt-4 border-t border-slate-50">
-                                <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-3 flex items-center gap-2">
+                              <div className="pt-3 border-t border-gray-50">
+                                <p className="text-[10px] font-bold text-gray-400 uppercase tracking-wide mb-2 flex items-center gap-1">
                                   <ShieldCheck className="w-3 h-3" />
-                                  Chassis Authentication
+                                  Chassis
                                 </p>
-                                <div className="flex flex-wrap gap-2">
+                                <div className="flex flex-wrap gap-1.5">
                                   {productUnits.map((unit) => (
-                                    <span key={unit.id} className="px-3 py-1.5 bg-slate-50 border border-slate-100 rounded-xl text-[10px] font-black tabular-nums text-slate-600 shadow-sm hover:border-amber-500 hover:bg-white transition-all cursor-default">
+                                    <span key={unit.id} className="px-2.5 py-1 bg-gray-50 border border-gray-100 rounded-lg text-[10px] font-bold text-gray-600">
                                       {unit.chassisNumber}
                                     </span>
                                   ))}
@@ -2199,20 +2181,20 @@ export default function AgentsPage() {
                   )}
                 </div>
 
-                <div className="h-px bg-slate-100" />
+                <div className="h-px bg-gray-100" />
 
                 {/* Transfer Section */}
-                <div className="space-y-6">
-                  <h4 className="text-xs font-black text-slate-900 uppercase tracking-[0.2em] flex items-center gap-3">
-                    <ArrowRightLeft className="w-4 h-4 text-amber-500" />
+                <div className="space-y-4">
+                  <h4 className="text-xs font-bold text-gray-600 uppercase tracking-widest border-b border-gray-100 pb-1 flex items-center gap-2">
+                    <ArrowRightLeft className="w-4 h-4" />
                     Asset Allocation
                   </h4>
                   
-                  <div className="grid grid-cols-1 md:grid-cols-3 gap-6 p-8 bg-slate-50/50 rounded-[2.5rem] border border-slate-100">
-                    <div className="space-y-3">
-                      <Label className="text-[10px] font-black text-slate-500 uppercase tracking-widest ml-1">Stock Portfolio</Label>
+                  <div className="grid grid-cols-3 gap-4 p-5 bg-gray-50 rounded-xl border border-gray-100">
+                    <div className="space-y-2">
+                      <Label className="text-[10px] font-bold text-gray-600 uppercase tracking-widest ml-1">Stock Portfolio</Label>
                       <Select value={transferProductId} onValueChange={setTransferProductId}>
-                        <SelectTrigger className="h-14 bg-white border-slate-200 rounded-2xl shadow-sm">
+                        <SelectTrigger className="h-11 bg-white border-gray-200 rounded-xl shadow-sm">
                           <SelectValue placeholder="Select Asset" />
                         </SelectTrigger>
                         <SelectContent className="bg-white">
@@ -2220,8 +2202,8 @@ export default function AgentsPage() {
                             const whItem = warehouseInventory.find(i => i.productId === p.id && i.agentId === null);
                             const whStock = whItem ? whItem.quantity : 0;
                             return (
-                              <SelectItem key={p.id} value={p.id} disabled={whStock <= 0} className="font-bold">
-                                {p.name} <span className="text-slate-400 ml-2">({whStock} Fixed)</span>
+                              <SelectItem key={p.id} value={p.id} disabled={whStock <= 0}>
+                                {p.name} <span className="text-gray-400 ml-2">({whStock} Fixed)</span>
                               </SelectItem>
                             );
                           })}
@@ -2229,13 +2211,13 @@ export default function AgentsPage() {
                       </Select>
                     </div>
 
-                    <div className="space-y-3">
-                      <Label className="text-[10px] font-black text-slate-500 uppercase tracking-widest ml-1">Allocation Quantity</Label>
+                    <div className="space-y-2">
+                      <Label className="text-[10px] font-bold text-gray-600 uppercase tracking-widest ml-1">Quantity</Label>
                       <Input 
                         type="number" 
                         value={transferAmount || ''} 
                         onChange={(e) => setTransferAmount(parseInt(e.target.value) || 0)}
-                        className="h-14 bg-white border-slate-200 rounded-2xl shadow-sm text-center font-black"
+                        className="h-11 bg-white border-gray-200 rounded-xl shadow-sm text-center font-bold"
                         placeholder="0"
                       />
                     </div>
@@ -2244,29 +2226,26 @@ export default function AgentsPage() {
                       <Button 
                         onClick={handleTransfer} 
                         disabled={transferLoading || !transferProductId || transferAmount <= 0 || (products.find(p => p.id === transferProductId)?.isSerialized && selectedUnitIds.length !== transferAmount)}
-                        className="w-full h-14 bg-slate-900 text-white font-black rounded-2xl hover:bg-amber-500 hover:text-slate-950 transition-all shadow-xl shadow-slate-900/10 uppercase text-xs tracking-widest"
+                        className="w-full h-11 bg-gray-900 text-white font-bold rounded-xl hover:bg-gray-800 transition-all uppercase text-xs"
                       >
-                        {transferLoading ? <Loader2 className="w-5 h-5 animate-spin" /> : 'Commit Assignment'}
+                        {transferLoading ? <Loader2 className="w-4 h-4 animate-spin" /> : 'Assign'}
                       </Button>
                     </div>
 
-                    {/* Serialization Control */}
                     {availableUnits.length > 0 && (
-                      <div className="md:col-span-3 space-y-4 pt-6 border-t border-slate-200 animate-in fade-in slide-in-from-top-4 duration-500">
-                        <div className="flex items-center justify-between px-1">
-                          <Label className="text-[10px] font-black text-slate-500 uppercase tracking-widest">
-                            Chassis Selection Required ({selectedUnitIds.length} / {transferAmount})
-                          </Label>
-                          {unitsLoading && <Loader2 className="w-3 h-3 animate-spin text-amber-500" />}
-                        </div>
-                        <div className="grid grid-cols-2 sm:grid-cols-4 md:grid-cols-5 gap-3 max-h-48 overflow-y-auto p-4 bg-white rounded-2xl border border-slate-200 shadow-inner">
+                      <div className="col-span-3 space-y-3 pt-4 border-t border-gray-200">
+                        <Label className="text-[10px] font-bold text-gray-600 uppercase tracking-widest">
+                          Chassis Selection ({selectedUnitIds.length} / {transferAmount})
+                        </Label>
+                        {unitsLoading && <Loader2 className="w-3 h-3 animate-spin text-amber-500" />}
+                        <div className="grid grid-cols-3 gap-2 max-h-40 overflow-y-auto p-3 bg-white rounded-xl border border-gray-200">
                           {availableUnits.map((unit) => (
                             <div 
                               key={unit.id} 
-                              className={`flex items-center gap-3 p-3 rounded-xl border transition-all cursor-pointer ${
+                              className={`flex items-center gap-2 p-2.5 rounded-lg border transition-all cursor-pointer ${
                                 selectedUnitIds.includes(unit.id) 
-                                  ? 'bg-amber-50 border-amber-500 shadow-sm' 
-                                  : 'bg-white border-slate-100 hover:border-amber-200'
+                                  ? 'bg-amber-50 border-amber-500' 
+                                  : 'bg-white border-gray-100 hover:border-gray-200'
                               }`}
                               onClick={() => {
                                 if (selectedUnitIds.includes(unit.id)) {
@@ -2276,18 +2255,18 @@ export default function AgentsPage() {
                                 }
                               }}
                             >
-                              <div className={`h-4 w-4 rounded-md border flex items-center justify-center transition-all ${selectedUnitIds.includes(unit.id) ? 'bg-amber-500 border-amber-500' : 'bg-white border-slate-300'}`}>
+                              <div className={`h-4 w-4 rounded border flex items-center justify-center ${selectedUnitIds.includes(unit.id) ? 'bg-amber-500 border-amber-500' : 'bg-white border-gray-300'}`}>
                                 {selectedUnitIds.includes(unit.id) && <CheckSquare className="w-3 h-3 text-white" />}
                               </div>
-                              <span className="text-[11px] font-black tabular-nums text-slate-900 truncate">{unit.chassisNumber}</span>
+                              <span className="text-[10px] font-bold text-gray-900 truncate">{unit.chassisNumber}</span>
                             </div>
                           ))}
                         </div>
                         {selectedUnitIds.length > 0 && selectedUnitIds.length !== transferAmount && (
-                          <div className="flex items-center gap-2 px-2">
+                          <div className="flex items-center gap-2">
                             <AlertCircle className="w-4 h-4 text-amber-500" />
-                            <p className="text-[10px] text-amber-600 font-black italic uppercase tracking-wider">
-                              Selection mismatch: Please select {transferAmount} chassis numbers
+                            <p className="text-[10px] text-amber-600 font-bold">
+                              Select {transferAmount} chassis numbers
                             </p>
                           </div>
                         )}
@@ -2296,45 +2275,45 @@ export default function AgentsPage() {
                   </div>
                 </div>
 
+                <div className="h-px bg-gray-100" />
+
                 {/* Audit Trail */}
-                <div className="space-y-6">
-                  <h4 className="text-xs font-black text-slate-900 uppercase tracking-[0.2em] flex items-center gap-3">
-                    <History className="w-4 h-4 text-amber-500" />
-                    Transaction Ledger
+                <div className="space-y-4">
+                  <h4 className="text-xs font-bold text-gray-600 uppercase tracking-widest border-b border-gray-100 pb-1 flex items-center gap-2">
+                    <History className="w-4 h-4" />
+                    Transaction History
                   </h4>
-                  <div className="space-y-3">
-                    {inventoryHistory.length === 0 ? (
-                      <div className="py-12 text-center">
-                        <p className="text-xs font-bold text-slate-400 uppercase tracking-[0.2em]">No historical data found</p>
-                      </div>
-                    ) : (
-                      inventoryHistory.map((tx) => (
-                        <div key={tx.id} className="flex items-center justify-between p-6 bg-white border border-slate-100 rounded-2xl hover:bg-slate-50 transition-colors group">
-                          <div className="flex items-center gap-5">
-                            <div className={`h-12 w-12 rounded-2xl flex items-center justify-center border ${tx.toAgentId === selectedAgent.id ? 'bg-emerald-50 border-emerald-100 text-emerald-600' : 'bg-red-50 border-red-100 text-red-600'}`}>
-                              {tx.toAgentId === selectedAgent.id ? <TrendingUp className="w-6 h-6" /> : <TrendingDown className="w-6 h-6" />}
+                  {inventoryHistory.length === 0 ? (
+                    <div className="py-8 text-center">
+                      <p className="text-sm text-gray-400 font-medium">No historical data found</p>
+                    </div>
+                  ) : (
+                    <div className="space-y-2 max-h-48 overflow-y-auto">
+                      {inventoryHistory.map((tx) => (
+                        <div key={tx.id} className="flex items-center justify-between p-4 bg-white border border-gray-100 rounded-xl hover:bg-gray-50 transition-colors">
+                          <div className="flex items-center gap-3">
+                            <div className={`h-9 w-9 rounded-lg flex items-center justify-center ${tx.toAgentId === selectedAgent.id ? 'bg-emerald-50 text-emerald-600' : 'bg-red-50 text-red-600'}`}>
+                              {tx.toAgentId === selectedAgent.id ? <TrendingUp className="w-4 h-4" /> : <TrendingDown className="w-4 h-4" />}
                             </div>
                             <div>
-                              <p className="text-sm font-black text-slate-900 uppercase tracking-tight">{tx.product.name}</p>
-                              <div className="flex items-center gap-2 mt-1">
-                                <span className={`text-[9px] font-black px-2 py-0.5 rounded-full uppercase tracking-widest ${tx.type === 'TRANSFER' ? 'bg-blue-50 text-blue-600' : 'bg-slate-100 text-slate-500'}`}>
+                              <p className="text-sm font-bold text-gray-900">{tx.product.name}</p>
+                              <div className="flex items-center gap-2 mt-0.5">
+                                <span className={`text-[9px] font-bold px-2 py-0.5 rounded-full uppercase ${tx.type === 'TRANSFER' ? 'bg-blue-50 text-blue-600' : 'bg-gray-100 text-gray-500'}`}>
                                   {tx.type}
                                 </span>
-                                <span className="text-[9px] text-slate-400 font-black uppercase tracking-widest">
+                                <span className="text-[10px] text-gray-400">
                                   {new Date(tx.createdAt).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })}
                                 </span>
                               </div>
                             </div>
                           </div>
-                          <div className="text-right">
-                            <p className={`text-lg font-black ${tx.toAgentId === selectedAgent.id ? 'text-emerald-600' : 'text-red-600'}`}>
-                              {tx.toAgentId === selectedAgent.id ? '+' : '-'}{tx.quantity}
-                            </p>
-                          </div>
+                          <p className={`text-base font-bold ${tx.toAgentId === selectedAgent.id ? 'text-emerald-600' : 'text-red-600'}`}>
+                            {tx.toAgentId === selectedAgent.id ? '+' : '-'}{tx.quantity}
+                          </p>
                         </div>
-                      ))
-                    )}
-                  </div>
+                      ))}
+                    </div>
+                  )}
                 </div>
               </div>
             </div>
@@ -2344,44 +2323,48 @@ export default function AgentsPage() {
 
       {/* SMS Communications Dialog */}
       <Dialog open={showSmsDialog} onOpenChange={(open) => { if (!open) { setShowSmsDialog(false); setSmsAgent(null); setSmsMessage(''); } }}>
-        <DialogContent className="max-w-md p-0 overflow-hidden rounded-[2.5rem] shadow-2xl bg-white border-none">
-          <div className="p-8 bg-slate-900">
-            <div className="flex items-center gap-4 mb-4">
-              <div className="h-12 w-12 rounded-xl bg-purple-500/20 flex items-center justify-center border border-purple-500/30">
-                <MessageSquare className="w-6 h-6 text-purple-400" />
-              </div>
-              <h3 className="text-xl font-black text-white tracking-tight">Direct Messaging</h3>
-            </div>
-            <div className="p-4 bg-white/5 rounded-2xl border border-white/10">
-              <p className="text-xs font-black text-slate-300 uppercase tracking-[0.2em]">{smsAgent?.firstName} {smsAgent?.lastName}</p>
-              <p className="text-[10px] text-purple-400 font-bold mt-1 tracking-widest">{smsAgent?.phone} · Verified Contact</p>
-            </div>
-          </div>
-          
-          <div className="p-8 space-y-6">
-            <div className="space-y-3">
-              <div className="flex justify-between items-center px-1">
-                <Label className="text-[10px] font-black text-slate-500 uppercase tracking-widest">Global SMS Dispatch</Label>
-                <span className={`text-[10px] font-black tabular-nums transition-colors ${smsMessage.length > 150 ? 'text-red-500' : 'text-slate-400'}`}>
-                  {smsMessage.length} / 160
-                </span>
-              </div>
-              <Textarea
-                value={smsMessage}
-                onChange={(e) => setSmsMessage(e.target.value.slice(0, 160))}
-                placeholder="Type operational notice..."
-                className="bg-slate-50 border-slate-200 rounded-[1.5rem] p-5 resize-none h-32 text-sm font-medium focus:ring-purple-500/20 focus:border-purple-300 transition-all leading-relaxed"
-                autoFocus
-              />
+        <DialogContent className="max-w-md p-0 overflow-hidden rounded-2xl shadow-2xl max-h-[95vh] flex flex-col">
+          <div className="flex flex-col flex-1 min-h-0">
+            <div className="bg-gray-900 p-8 text-white">
+              <DialogHeader>
+                <div className="flex items-center gap-2 mb-2">
+                  <MessageSquare className="w-4 h-4 text-purple-400" />
+                  <span className="text-xs font-bold text-gray-400 uppercase tracking-[0.2em]">Direct Messaging</span>
+                </div>
+                <DialogTitle className="text-3xl font-bold leading-none mb-1">
+                  {smsAgent?.firstName} {smsAgent?.lastName}
+                </DialogTitle>
+                <DialogDescription className="text-gray-300 text-sm font-medium">
+                  {smsAgent?.phone} · Verified Contact
+                </DialogDescription>
+              </DialogHeader>
             </div>
             
-            <div className="flex gap-4">
+            <div className="p-8 space-y-6 overflow-y-auto bg-white flex-1">
+              <div className="space-y-3">
+                <div className="flex justify-between items-center">
+                  <Label className="text-[10px] font-bold text-gray-600 uppercase tracking-widest">Message</Label>
+                  <span className={`text-[10px] font-bold tabular-nums ${smsMessage.length > 150 ? 'text-red-500' : 'text-gray-400'}`}>
+                    {smsMessage.length} / 160
+                  </span>
+                </div>
+                <Textarea
+                  value={smsMessage}
+                  onChange={(e) => setSmsMessage(e.target.value.slice(0, 160))}
+                  placeholder="Type operational notice..."
+                  className="bg-gray-50 border-gray-200 rounded-xl p-4 resize-none h-32 text-sm focus:bg-white focus:border-deep-sky-blue focus:ring-0 transition-all leading-relaxed"
+                  autoFocus
+                />
+              </div>
+            </div>
+
+            <div className="p-6 bg-gray-50 border-t border-gray-100 flex items-center justify-end gap-3 shrink-0">
               <Button 
                 variant="outline" 
                 onClick={() => setShowSmsDialog(false)} 
-                className="h-14 flex-1 border-slate-200 text-slate-600 font-black rounded-2xl hover:bg-slate-50 uppercase text-xs tracking-widest transition-all"
+                className="h-11 px-6 border-gray-200 text-gray-600 font-bold rounded-xl hover:bg-white hover:text-gray-900 transition-all uppercase text-xs tracking-widest"
               >
-                Discard
+                Cancel
               </Button>
               <Button
                 onClick={async () => {
@@ -2396,29 +2379,22 @@ export default function AgentsPage() {
                     const data = await res.json();
                     if (!res.ok) throw new Error(data.error);
                     if (data.successCount > 0) {
-                      toast({ title: '✅ SMS DISPATCHED', description: 'Message has been securely delivered.' });
+                      toast({ title: 'SMS Sent', description: 'Message has been delivered successfully.' });
                       setShowSmsDialog(false);
                       setSmsMessage('');
                     } else {
-                      toast({ title: 'Dispatch Failed', description: data.results?.[0]?.error || 'Carrier rejection', variant: 'destructive' });
+                      toast({ title: 'Failed', description: data.results?.[0]?.error || 'Delivery failed', variant: 'destructive' });
                     }
                   } catch (e: any) {
-                    toast({ title: 'Security Error', description: e.message, variant: 'destructive' });
+                    toast({ title: 'Error', description: e.message, variant: 'destructive' });
                   } finally {
                     setSmsSending(false);
                   }
                 }}
                 disabled={!smsMessage.trim() || smsSending}
-                className="h-14 flex-1 bg-purple-600 text-white font-black rounded-2xl hover:bg-purple-700 shadow-lg shadow-purple-900/20 uppercase text-xs tracking-widest transition-all active:scale-95"
+                className="h-11 px-6 bg-gray-900 text-white font-bold rounded-xl hover:bg-gray-800 shadow-lg transition-all uppercase text-xs tracking-widest"
               >
-                {smsSending ? (
-                  <Loader2 className="w-5 h-5 animate-spin" />
-                ) : (
-                  <>
-                    Send Message
-                    <Send className="w-4 h-4 ml-2" />
-                  </>
-                )}
+                {smsSending ? <Loader2 className="w-4 h-4 animate-spin" /> : 'Send'}
               </Button>
             </div>
           </div>

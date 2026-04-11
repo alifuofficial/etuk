@@ -9,13 +9,11 @@ import {
   Boxes, 
   Warehouse, 
   Users, 
-  ArrowRightLeft, 
   Package,
-  ShieldCheck,
   Search,
-  Filter,
   Loader2,
-  AlertCircle
+  AlertCircle,
+  Trash2
 } from 'lucide-react';
 import {
   Table,
@@ -79,6 +77,9 @@ export default function InventoryPage() {
   const [chassisInput, setChassisInput] = useState<string>('');
   const [stockMode, setStockMode] = useState<'ADD' | 'REMOVE' | 'REGISTER'>('ADD');
   const [actionLoading, setActionLoading] = useState(false);
+  
+  const [deleteDialog, setDeleteDialog] = useState<{ open: boolean; item: InventoryItem | null }>({ open: false, item: null });
+  const [deleteLoading, setDeleteLoading] = useState(false);
 
   useEffect(() => {
     fetchInventory();
@@ -186,6 +187,37 @@ export default function InventoryPage() {
       });
     } finally {
       setActionLoading(false);
+    }
+  };
+
+  const handleDeleteInventory = async () => {
+    if (!deleteDialog.item) return;
+
+    setDeleteLoading(true);
+    try {
+      const response = await fetch(`/api/inventory?id=${deleteDialog.item.id}`, {
+        method: 'DELETE',
+      });
+
+      if (response.ok) {
+        toast({
+          title: 'Inventory Deleted',
+          description: `Successfully deleted inventory record for ${deleteDialog.item.product.name}.`,
+        });
+        fetchInventory();
+        setDeleteDialog({ open: false, item: null });
+      } else {
+        const error = await response.json();
+        throw new Error(error.error || 'Failed to delete inventory');
+      }
+    } catch (error: any) {
+      toast({
+        title: 'Error',
+        description: error.message || 'Failed to delete inventory. Please try again.',
+        variant: 'destructive',
+      });
+    } finally {
+      setDeleteLoading(false);
     }
   };
 
@@ -309,6 +341,7 @@ export default function InventoryPage() {
                   <TableHead className="font-bold text-gray-700 text-center">Quantity</TableHead>
                   <TableHead className="font-bold text-gray-700">Units / Chassis</TableHead>
                   <TableHead className="px-6 py-4 font-bold text-xs uppercase text-gray-600">Last Updated</TableHead>
+                  <TableHead className="font-bold text-gray-700 text-center">Actions</TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>
@@ -356,11 +389,21 @@ export default function InventoryPage() {
                     <TableCell className="px-6 py-4 text-sm text-gray-500 font-medium">
                       {new Date(item.updatedAt).toLocaleDateString()}
                     </TableCell>
+                    <TableCell className="text-center">
+                      <Button
+                        variant="ghost"
+                        size="sm"
+                        className="h-8 w-8 p-0 text-gray-400 hover:text-red-600 hover:bg-red-50"
+                        onClick={() => setDeleteDialog({ open: true, item })}
+                      >
+                        <Trash2 className="w-4 h-4" />
+                      </Button>
+                    </TableCell>
                   </TableRow>
                 ))}
                 {filteredInventory.length === 0 && (
                   <TableRow>
-                    <TableCell colSpan={4} className="py-12 text-center text-gray-400 font-bold">
+                    <TableCell colSpan={7} className="py-12 text-center text-gray-400 font-bold">
                       No matching inventory records found.
                     </TableCell>
                   </TableRow>
@@ -557,6 +600,69 @@ export default function InventoryPage() {
               disabled={actionLoading || !selectedProduct || (stockMode === 'ADD' && stockAdjustment === 0) || (stockMode === 'REMOVE' && stockAdjustment === 0) || (stockMode === 'REGISTER' && chassisInput.trim() === '')}
             >
               {actionLoading ? <Loader2 className="w-4 h-4 animate-spin" /> : (stockMode === 'REGISTER' ? 'Register Units' : stockMode === 'REMOVE' ? 'Remove Stock' : 'Add Stock')}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      {/* Delete Confirmation Dialog */}
+      <Dialog open={deleteDialog.open} onOpenChange={(open) => setDeleteDialog({ open, item: open ? deleteDialog.item : null })}>
+        <DialogContent className="max-w-md rounded-2xl p-8 border-none shadow-2xl">
+          <DialogHeader>
+            <div className="w-12 h-12 bg-red-50 rounded-xl flex items-center justify-center mb-4">
+              <Trash2 className="w-6 h-6 text-red-600" />
+            </div>
+            <DialogTitle className="text-2xl font-bold">Delete Inventory Record</DialogTitle>
+            <DialogDescription className="text-gray-500 font-medium">
+              Are you sure you want to delete this inventory record? This action cannot be undone.
+            </DialogDescription>
+          </DialogHeader>
+
+          {deleteDialog.item && (
+            <div className="py-4 space-y-3">
+              <div className="p-4 bg-gray-50 rounded-xl space-y-2 border border-gray-100">
+                <div className="flex justify-between">
+                  <span className="text-sm text-gray-500">Product</span>
+                  <span className="text-sm font-bold text-gray-900">{deleteDialog.item.product.name}</span>
+                </div>
+                <div className="flex justify-between">
+                  <span className="text-sm text-gray-500">Holder</span>
+                  <span className="text-sm font-bold text-gray-900">
+                    {deleteDialog.item.agent 
+                      ? `${deleteDialog.item.agent.firstName} ${deleteDialog.item.agent.lastName}`
+                      : 'Central Warehouse'}
+                  </span>
+                </div>
+                <div className="flex justify-between">
+                  <span className="text-sm text-gray-500">Quantity</span>
+                  <span className="text-sm font-bold text-gray-900">{deleteDialog.item.quantity}</span>
+                </div>
+                {deleteDialog.item.product.isSerialized && (
+                  <div className="pt-2 border-t border-gray-200">
+                    <span className="text-xs text-red-600 font-medium">
+                      Warning: This will also delete all associated unit records with chassis numbers.
+                    </span>
+                  </div>
+                )}
+              </div>
+            </div>
+          )}
+
+          <DialogFooter className="gap-3 sm:gap-0">
+            <Button
+              variant="outline"
+              className="h-12 flex-1 rounded-xl font-bold border-gray-200"
+              onClick={() => setDeleteDialog({ open: false, item: null })}
+              disabled={deleteLoading}
+            >
+              Cancel
+            </Button>
+            <Button
+              className="h-12 flex-1 rounded-xl font-bold bg-red-600 hover:bg-red-700 text-white"
+              onClick={handleDeleteInventory}
+              disabled={deleteLoading}
+            >
+              {deleteLoading ? <Loader2 className="w-4 h-4 animate-spin" /> : 'Delete Record'}
             </Button>
           </DialogFooter>
         </DialogContent>

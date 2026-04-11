@@ -3,6 +3,56 @@ import { db as prisma } from '@/lib/db';
 import { getServerSession } from 'next-auth';
 import { authOptions } from '@/lib/auth';
 
+export async function DELETE(req: Request) {
+  const session = await getServerSession(authOptions);
+  if (!session || session.user.role !== 'ADMIN') {
+    return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+  }
+
+  try {
+    const { searchParams } = new URL(req.url);
+    const inventoryId = searchParams.get('id');
+
+    if (!inventoryId) {
+      return NextResponse.json({ error: 'Inventory ID is required' }, { status: 400 });
+    }
+
+    const inventory = await prisma.inventory.findUnique({
+      where: { id: inventoryId },
+      include: {
+        product: { include: { units: true } }
+      }
+    });
+
+    if (!inventory) {
+      return NextResponse.json({ error: 'Inventory record not found' }, { status: 404 });
+    }
+
+    await prisma.$transaction(async (tx) => {
+      if (inventory.product.isSerialized) {
+        await tx.productUnit.deleteMany({
+          where: {
+            productId: inventory.productId,
+            currentAgentId: inventory.agentId
+          }
+        });
+      }
+
+      await tx.inventory.delete({
+        where: { id: inventoryId }
+      });
+    });
+
+    return NextResponse.json({ success: true });
+  } catch (error: any) {
+    console.error('CRITICAL: Failed to delete inventory:', error);
+    return NextResponse.json({
+      error: 'Internal Server Error',
+      details: error.message
+    }, { status: 500 });
+  }
+}
+
 export async function GET() {
   const session = await getServerSession(authOptions);
   if (!session || session.user.role !== 'ADMIN') {

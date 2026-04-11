@@ -945,19 +945,27 @@ export default function AgentsPage() {
                 <div>
                   <Label className="text-xs text-gray-500">Trade License</Label>
                   <div className="mt-1">
-                    <label className="flex flex-col items-center justify-center w-full h-24 border-2 border-dashed border-gray-200 rounded-xl cursor-pointer hover:border-gray-300 hover:bg-gray-50 transition-all">
-                      {licensePreview ? (
-                        <img src={licensePreview} alt="Preview" className="w-full h-full object-contain rounded-lg" />
-                      ) : (
-                        <div className="flex flex-col items-center">
-                          <Upload className="w-6 h-6 text-gray-400" />
-                          <span className="text-xs text-gray-500 mt-1">Upload License</span>
-                        </div>
-                      )}
-                      <input type="file" accept="image/*,.pdf" className="hidden" onChange={e => handleFileChange('tradeLicense', e.target.files?.[0] || null)} />
-                    </label>
+                    {licensePreview ? (
+                      <div className="border-2 border-gray-200 rounded-xl overflow-hidden">
+                        {licensePreview.startsWith('data:application/pdf') ? (
+                          <div className="h-24 bg-gray-100 flex flex-col items-center justify-center">
+                            <FileText className="w-8 h-8 text-red-500" />
+                            <span className="text-xs text-gray-600 mt-1">PDF Document</span>
+                          </div>
+                        ) : (
+                          <img src={licensePreview} alt="Preview" className="w-full h-24 object-contain" />
+                        )}
+                      </div>
+                    ) : (
+                      <label className="flex flex-col items-center justify-center w-full h-24 border-2 border-dashed border-gray-200 rounded-xl cursor-pointer hover:border-gray-300 hover:bg-gray-50 transition-all">
+                        <Upload className="w-6 h-6 text-gray-400" />
+                        <span className="text-xs text-gray-500 mt-1">Upload License</span>
+                        <span className="text-[10px] text-gray-400">Image or PDF</span>
+                        <input type="file" accept="image/*,.pdf" className="hidden" onChange={e => handleFileChange('tradeLicense', e.target.files?.[0] || null)} />
+                      </label>
+                    )}
                     {licensePreview && (
-                      <Button variant="ghost" size="sm" className="mt-2 text-red-500" onClick={() => { setLicensePreview(null); setFormData(prev => ({ ...prev, tradeLicense: null })); }}>
+                      <Button variant="ghost" size="sm" className="mt-2 text-red-500 w-full" onClick={() => { setLicensePreview(null); setFormData(prev => ({ ...prev, tradeLicense: null })); }}>
                         <X className="w-4 h-4 mr-1" /> Remove
                       </Button>
                     )}
@@ -966,19 +974,27 @@ export default function AgentsPage() {
                 <div>
                   <Label className="text-xs text-gray-500">ID Document</Label>
                   <div className="mt-1">
-                    <label className="flex flex-col items-center justify-center w-full h-24 border-2 border-dashed border-gray-200 rounded-xl cursor-pointer hover:border-gray-300 hover:bg-gray-50 transition-all">
-                      {idPreview ? (
-                        <img src={idPreview} alt="Preview" className="w-full h-full object-contain rounded-lg" />
-                      ) : (
-                        <div className="flex flex-col items-center">
-                          <Upload className="w-6 h-6 text-gray-400" />
-                          <span className="text-xs text-gray-500 mt-1">Upload ID</span>
-                        </div>
-                      )}
-                      <input type="file" accept="image/*,.pdf" className="hidden" onChange={e => handleFileChange('idDocument', e.target.files?.[0] || null)} />
-                    </label>
+                    {idPreview ? (
+                      <div className="border-2 border-gray-200 rounded-xl overflow-hidden">
+                        {idPreview.startsWith('data:application/pdf') ? (
+                          <div className="h-24 bg-gray-100 flex flex-col items-center justify-center">
+                            <FileText className="w-8 h-8 text-red-500" />
+                            <span className="text-xs text-gray-600 mt-1">PDF Document</span>
+                          </div>
+                        ) : (
+                          <img src={idPreview} alt="Preview" className="w-full h-24 object-contain" />
+                        )}
+                      </div>
+                    ) : (
+                      <label className="flex flex-col items-center justify-center w-full h-24 border-2 border-dashed border-gray-200 rounded-xl cursor-pointer hover:border-gray-300 hover:bg-gray-50 transition-all">
+                        <Upload className="w-6 h-6 text-gray-400" />
+                        <span className="text-xs text-gray-500 mt-1">Upload ID</span>
+                        <span className="text-[10px] text-gray-400">Image or PDF</span>
+                        <input type="file" accept="image/*,.pdf" className="hidden" onChange={e => handleFileChange('idDocument', e.target.files?.[0] || null)} />
+                      </label>
+                    )}
                     {idPreview && (
-                      <Button variant="ghost" size="sm" className="mt-2 text-red-500" onClick={() => { setIdPreview(null); setFormData(prev => ({ ...prev, idDocument: null })); }}>
+                      <Button variant="ghost" size="sm" className="mt-2 text-red-500 w-full" onClick={() => { setIdPreview(null); setFormData(prev => ({ ...prev, idDocument: null })); }}>
                         <X className="w-4 h-4 mr-1" /> Remove
                       </Button>
                     )}
@@ -1168,50 +1184,74 @@ export default function AgentsPage() {
                 <div>
                   <Label className="text-xs text-gray-500">Trade License</Label>
                   <div className="mt-1">
-                    <label className="flex flex-col items-center justify-center w-full h-24 border-2 border-dashed border-gray-200 rounded-xl cursor-pointer hover:border-gray-300 hover:bg-gray-50 transition-all">
-                      {licensePreview ? (
-                        licensePreview.startsWith('data:') ? (
-                          <img src={licensePreview} alt="New License" className="w-full h-full object-contain rounded-lg" />
+                    {licensePreview ? (
+                      <div className="border-2 border-gray-200 rounded-xl overflow-hidden">
+                        {licensePreview.endsWith('.pdf') ? (
+                          <div className="h-24 bg-gray-100 flex flex-col items-center justify-center">
+                            <FileText className="w-8 h-8 text-red-500" />
+                            <span className="text-xs text-gray-600 mt-1">PDF Document</span>
+                          </div>
+                        ) : licensePreview.startsWith('data:') ? (
+                          <img src={licensePreview} alt="New License" className="w-full h-24 object-contain" />
                         ) : (
-                          <img src={licensePreview} alt="Current License" className="w-full h-full object-contain rounded-lg" />
-                        )
-                      ) : (
-                        <div className="flex flex-col items-center">
-                          <FileUp className="w-6 h-6 text-gray-400" />
-                          <span className="text-xs text-gray-500 mt-1">Replace License</span>
-                        </div>
-                      )}
-                      <input type="file" accept="image/*,.pdf" className="hidden" onChange={e => handleFileChange('tradeLicense', e.target.files?.[0] || null)} />
-                    </label>
+                          <img src={licensePreview} alt="Current License" className="w-full h-24 object-contain" />
+                        )}
+                      </div>
+                    ) : (
+                      <label className="flex flex-col items-center justify-center w-full h-24 border-2 border-dashed border-gray-200 rounded-xl cursor-pointer hover:border-gray-300 hover:bg-gray-50 transition-all">
+                        <FileUp className="w-6 h-6 text-gray-400" />
+                        <span className="text-xs text-gray-500 mt-1">Upload License</span>
+                        <input type="file" accept="image/*,.pdf" className="hidden" onChange={e => handleFileChange('tradeLicense', e.target.files?.[0] || null)} />
+                      </label>
+                    )}
                     {licensePreview && (
-                      <Button variant="ghost" size="sm" className="mt-2 text-red-500" onClick={() => { setLicensePreview(null); setFormData(prev => ({ ...prev, tradeLicense: null })); }}>
-                        <X className="w-4 h-4 mr-1" /> Remove
-                      </Button>
+                      <div className="flex gap-2 mt-2">
+                        <a href={licensePreview.startsWith('data:') ? '#' : licensePreview} target="_blank" rel="noopener noreferrer" className="flex-1">
+                          <Button variant="outline" size="sm" className="w-full" disabled={licensePreview.startsWith('data:')}>
+                            <Eye className="w-4 h-4 mr-1" /> View
+                          </Button>
+                        </a>
+                        <Button variant="outline" size="sm" className="text-red-500" onClick={() => { setLicensePreview(null); setFormData(prev => ({ ...prev, tradeLicense: null })); }}>
+                          <X className="w-4 h-4" />
+                        </Button>
+                      </div>
                     )}
                   </div>
                 </div>
                 <div>
                   <Label className="text-xs text-gray-500">ID Document</Label>
                   <div className="mt-1">
-                    <label className="flex flex-col items-center justify-center w-full h-24 border-2 border-dashed border-gray-200 rounded-xl cursor-pointer hover:border-gray-300 hover:bg-gray-50 transition-all">
-                      {idPreview ? (
-                        idPreview.startsWith('data:') ? (
-                          <img src={idPreview} alt="New ID" className="w-full h-full object-contain rounded-lg" />
+                    {idPreview ? (
+                      <div className="border-2 border-gray-200 rounded-xl overflow-hidden">
+                        {idPreview.endsWith('.pdf') ? (
+                          <div className="h-24 bg-gray-100 flex flex-col items-center justify-center">
+                            <FileText className="w-8 h-8 text-red-500" />
+                            <span className="text-xs text-gray-600 mt-1">PDF Document</span>
+                          </div>
+                        ) : idPreview.startsWith('data:') ? (
+                          <img src={idPreview} alt="New ID" className="w-full h-24 object-contain" />
                         ) : (
-                          <img src={idPreview} alt="Current ID" className="w-full h-full object-contain rounded-lg" />
-                        )
-                      ) : (
-                        <div className="flex flex-col items-center">
-                          <FileUp className="w-6 h-6 text-gray-400" />
-                          <span className="text-xs text-gray-500 mt-1">Replace ID</span>
-                        </div>
-                      )}
-                      <input type="file" accept="image/*,.pdf" className="hidden" onChange={e => handleFileChange('idDocument', e.target.files?.[0] || null)} />
-                    </label>
+                          <img src={idPreview} alt="Current ID" className="w-full h-24 object-contain" />
+                        )}
+                      </div>
+                    ) : (
+                      <label className="flex flex-col items-center justify-center w-full h-24 border-2 border-dashed border-gray-200 rounded-xl cursor-pointer hover:border-gray-300 hover:bg-gray-50 transition-all">
+                        <FileUp className="w-6 h-6 text-gray-400" />
+                        <span className="text-xs text-gray-500 mt-1">Upload ID</span>
+                        <input type="file" accept="image/*,.pdf" className="hidden" onChange={e => handleFileChange('idDocument', e.target.files?.[0] || null)} />
+                      </label>
+                    )}
                     {idPreview && (
-                      <Button variant="ghost" size="sm" className="mt-2 text-red-500" onClick={() => { setIdPreview(null); setFormData(prev => ({ ...prev, idDocument: null })); }}>
-                        <X className="w-4 h-4 mr-1" /> Remove
-                      </Button>
+                      <div className="flex gap-2 mt-2">
+                        <a href={idPreview.startsWith('data:') ? '#' : idPreview} target="_blank" rel="noopener noreferrer" className="flex-1">
+                          <Button variant="outline" size="sm" className="w-full" disabled={idPreview.startsWith('data:')}>
+                            <Eye className="w-4 h-4 mr-1" /> View
+                          </Button>
+                        </a>
+                        <Button variant="outline" size="sm" className="text-red-500" onClick={() => { setIdPreview(null); setFormData(prev => ({ ...prev, idDocument: null })); }}>
+                          <X className="w-4 h-4" />
+                        </Button>
+                      </div>
                     )}
                   </div>
                 </div>

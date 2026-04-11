@@ -9,8 +9,18 @@ export async function GET(request: NextRequest) {
     const { searchParams } = new URL(request.url);
     const featured = searchParams.get('featured');
     const category = searchParams.get('category');
+    const all = searchParams.get('all');
     
-    const where: Record<string, unknown> = { isActive: true };
+    // Check if user is admin for fetching all products including inactive
+    const session = await getServerSession(authOptions);
+    const isAdmin = session?.user?.role === 'ADMIN' || session?.user?.role === 'MARKETING_MANAGER';
+    
+    const where: Record<string, unknown> = {};
+    
+    // Only filter by isActive if not fetching all (admin) or not admin
+    if (all !== 'true' || !isAdmin) {
+      where.isActive = true;
+    }
     
     if (featured === 'true') {
       where.featured = true;

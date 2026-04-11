@@ -123,7 +123,7 @@ export default function ProductsPage() {
     setLoading(true);
     try {
       const [productsRes, inventoryRes] = await Promise.all([
-        fetch('/api/products'),
+        fetch('/api/products?all=true'),
         fetch('/api/inventory')
       ]);
 

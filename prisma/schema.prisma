@@ -8,25 +8,25 @@ datasource db {
 }
 
 model User {
-  id        String   @id @default(cuid())
-  email     String   @unique
-  name      String
-  password  String
-  role      String   @default("MARKETING_OFFICER")
-  phone     String?
-  isActive  Boolean  @default(true)
-  createdAt DateTime @default(now())
-  updatedAt     DateTime @updatedAt
-  reviewedAgents Agent[]  @relation("AgentReviewer")
+  id             String   @id @default(cuid())
+  email          String   @unique
+  name           String
+  password       String
+  role           String   @default("MARKETING_OFFICER")
+  phone          String?
+  isActive       Boolean  @default(true)
+  createdAt      DateTime @default(now())
+  updatedAt      DateTime @updatedAt
   agentProfile   Agent?   @relation("AgentUser")
+  reviewedAgents Agent[]  @relation("AgentReviewer")
 }
 
 model Agent {
-  id               String    @id @default(cuid())
+  id               String        @id @default(cuid())
   firstName        String
   lastName         String
-  email            String    @unique
-  phone            String    @unique
+  email            String        @unique
+  phone            String        @unique
   alternativePhone String?
   businessName     String?
   businessType     String?
@@ -36,7 +36,7 @@ model Agent {
   woreda           String?
   kebele           String?
   address          String?
-  hasWarehouse     Boolean   @default(false)
+  hasWarehouse     Boolean       @default(false)
   warehouseSize    String?
   existingBrands   String?
   staffCount       Int?
@@ -45,28 +45,28 @@ model Agent {
   accountNumber    String?
   tradeLicense     String?
   idDocument       String?
-  tinNumber        String?   @unique
-  status           String    @default("PENDING")
+  tinNumber        String?       @unique
+  status           String        @default("PENDING")
   reviewedBy       String?
   reviewedAt       DateTime?
   reviewNotes      String?
   message          String?
   howDidYouHear    String?
-  createdAt        DateTime  @default(now())
-  updatedAt        DateTime  @updatedAt
+  createdAt        DateTime      @default(now())
+  updatedAt        DateTime      @updatedAt
   contactPerson    String?
   contactPhone     String?
-  reviewer         User?     @relation("AgentReviewer", fields: [reviewedBy], references: [id])
-  userId           String?   @unique
-  user             User?     @relation("AgentUser", fields: [userId], references: [id])
+  userId           String?       @unique
+  user             User?         @relation("AgentUser", fields: [userId], references: [id])
+  reviewer         User?         @relation("AgentReviewer", fields: [reviewedBy], references: [id])
+  customers        Customer[]
   inventory        Inventory[]
   units            ProductUnit[]
   sales            Sale[]
-  customers        Customer[]
 }
 
 model Product {
-  id             String   @id @default(cuid())
+  id             String                 @id @default(cuid())
   name           String
   nameAm         String?
   nameOr         String?
@@ -77,60 +77,57 @@ model Product {
   specifications String?
   price          Float?
   images         String?
-  isActive       Boolean  @default(true)
-  featured       Boolean  @default(false)
-  isSerialized   Boolean  @default(false)
-  createdAt      DateTime @default(now())
-  updatedAt      DateTime @updatedAt
+  isActive       Boolean                @default(true)
+  featured       Boolean                @default(false)
+  isSerialized   Boolean                @default(false)
+  createdAt      DateTime               @default(now())
+  updatedAt      DateTime               @updatedAt
   inventory      Inventory[]
   transactions   InventoryTransaction[]
   units          ProductUnit[]
 }
 
 model ProductUnit {
-  id            String   @id @default(cuid())
-  productId     String
-  chassisNumber String   @unique
-  currentAgentId String? // null = Warehouse
-  status        String   @default("AVAILABLE") // AVAILABLE, SOLD, MAINTENANCE
-  isSold        Boolean  @default(false)
-  soldAt        DateTime?
-  notes         String?
-  createdAt     DateTime @default(now())
-  updatedAt     DateTime @updatedAt
-
-  product       Product  @relation(fields: [productId], references: [id], onDelete: Cascade)
-  agent         Agent?   @relation(fields: [currentAgentId], references: [id], onDelete: SetNull)
-  transactions  InventoryTransaction[] @relation("TransactionUnits")
-  sales         Sale[]   @relation("UnitSales")
+  id             String                 @id @default(cuid())
+  productId      String
+  chassisNumber  String                 @unique
+  currentAgentId String?
+  status         String                 @default("AVAILABLE")
+  isSold         Boolean                @default(false)
+  soldAt         DateTime?
+  notes          String?
+  createdAt      DateTime               @default(now())
+  updatedAt      DateTime               @updatedAt
+  agent          Agent?                 @relation(fields: [currentAgentId], references: [id])
+  product        Product                @relation(fields: [productId], references: [id], onDelete: Cascade)
+  sales          Sale[]                 @relation("UnitSales")
+  transactions   InventoryTransaction[] @relation("TransactionUnits")
 }
 
 model Inventory {
   id        String   @id @default(cuid())
   productId String
-  agentId   String?  // null represents the central Warehouse
+  agentId   String?
   quantity  Int      @default(0)
   updatedAt DateTime @updatedAt
-  
-  product Product @relation(fields: [productId], references: [id], onDelete: Cascade)
-  agent   Agent?  @relation(fields: [agentId], references: [id], onDelete: Cascade)
+  agent     Agent?   @relation(fields: [agentId], references: [id], onDelete: Cascade)
+  product   Product  @relation(fields: [productId], references: [id], onDelete: Cascade)
 
   @@unique([productId, agentId])
 }
 
 model InventoryTransaction {
-  id              String   @id @default(cuid())
-  productId       String
-  fromAgentId     String?  // source (null = Warehouse)
-  toAgentId       String?  // destination (null = Warehouse)
-  quantity        Int
-  type            String   // e.g., "INITIAL_STOCK", "TRANSFER", "SALE", "RETURN"
-  notes           String?
-  createdAt       DateTime @default(now())
-  performedBy     String?  // User id who did the transaction
-  
-  product Product @relation(fields: [productId], references: [id], onDelete: Cascade)
-  units   ProductUnit[] @relation("TransactionUnits")
+  id          String        @id @default(cuid())
+  productId   String
+  fromAgentId String?
+  toAgentId   String?
+  quantity    Int
+  type        String
+  notes       String?
+  createdAt   DateTime      @default(now())
+  performedBy String?
+  product     Product       @relation(fields: [productId], references: [id], onDelete: Cascade)
+  units       ProductUnit[] @relation("TransactionUnits")
 }
 
 model Region {
@@ -201,7 +198,7 @@ model SmsLog {
   agentId      String?
   recipient    String
   message      String
-  status       String   // "success" | "failed"
+  status       String
   errorMessage String?
   sentBy       String?
   createdAt    DateTime @default(now())
@@ -209,27 +206,26 @@ model SmsLog {
 
 model SmsTemplate {
   id        String   @id @default(cuid())
-  name      String   @unique // AGENT_APPLIED, AGENT_APPROVED, AGENT_REJECTED
+  name      String   @unique
   content   String
   isActive  Boolean  @default(true)
   updatedAt DateTime @updatedAt
 }
 
 model Sale {
-  id            String   @id @default(cuid())
+  id            String      @id @default(cuid())
   productUnitId String
   agentId       String
   customerId    String?
   customerName  String
   customerPhone String
-  soldAt        DateTime @default(now())
+  soldAt        DateTime    @default(now())
   notes         String?
-  createdAt     DateTime @default(now())
-  updatedAt     DateTime @updatedAt
-
-  productUnit ProductUnit @relation(fields: [productUnitId], references: [id], name: "UnitSales")
-  agent       Agent       @relation(fields: [agentId], references: [id])
-  customer    Customer?  @relation(fields: [customerId], references: [id], onDelete: SetNull)
+  createdAt     DateTime    @default(now())
+  updatedAt     DateTime    @updatedAt
+  customer      Customer?   @relation(fields: [customerId], references: [id])
+  agent         Agent       @relation(fields: [agentId], references: [id])
+  productUnit   ProductUnit @relation("UnitSales", fields: [productUnitId], references: [id])
 }
 
 model Customer {
@@ -242,9 +238,8 @@ model Customer {
   notes     String?
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
-
-  agent Agent  @relation(fields: [agentId], references: [id], onDelete: Cascade)
-  sales Sale[]
+  agent     Agent    @relation(fields: [agentId], references: [id], onDelete: Cascade)
+  sales     Sale[]
 
   @@unique([agentId, phone])
 }

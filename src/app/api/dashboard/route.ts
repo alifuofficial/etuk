@@ -185,22 +185,25 @@ export async function GET() {
       },
     });
 
+    const thirtyDaysAgo = new Date();
+    thirtyDaysAgo.setDate(thirtyDaysAgo.getDate() - 30);
+
     const salesWithProductTransfer = await db.$queryRaw<{ 
       saleId: string; 
       transferDate: Date; 
       saleDate: Date; 
     }[]>`
-      SELECT s.id as "saleId", it."createdAt" as "transferDate", s."createdAt" as "saleDate"
-      FROM "Sale" s
-      JOIN "ProductUnit" pu ON s."productUnitId" = pu.id
-      JOIN "InventoryTransaction" it ON it."productId" = pu."productId" 
-        AND it."toAgentId" = s."agentId"
+      SELECT s.id as saleId, it.createdAt as transferDate, s.createdAt as saleDate
+      FROM Sale s
+      JOIN ProductUnit pu ON s.productUnitId = pu.id
+      JOIN InventoryTransaction it ON it.productId = pu.productId 
+        AND it.toAgentId = s.agentId
         AND it.type = 'TRANSFER'
-      WHERE s."createdAt" >= NOW() - INTERVAL '30 days'
+      WHERE s.createdAt >= datetime('now', '-30 days')
     `;
 
     let avgDaysToSell = 0;
-    let totalSalesInPeriod = salesWithProductTransfer.length;
+    const totalSalesInPeriod = salesWithProductTransfer.length;
     if (totalSalesInPeriod > 0) {
       const totalDays = salesWithProductTransfer.reduce((sum, s) => {
         const diff = new Date(s.saleDate).getTime() - new Date(s.transferDate).getTime();
@@ -212,21 +215,22 @@ export async function GET() {
     const last7Days = Array.from({ length: 7 }, (_, i) => {
       const d = new Date(now);
       d.setDate(d.getDate() - (6 - i));
-      return d.toISOString().split('T')[0];
+      return d;
     });
 
     const salesVelocity = await Promise.all(
       last7Days.map(async (date) => {
         const start = new Date(date);
+        start.setHours(0, 0, 0, 0);
         const end = new Date(date);
-        end.setDate(end.getDate() + 1);
+        end.setHours(23, 59, 59, 999);
         
         const count = await db.sale.count({
-          where: { createdAt: { gte: start, lt: end } },
+          where: { createdAt: { gte: start, lte: end } },
         });
         
         return {
-          date: new Date(date).toLocaleDateString('en-US', { weekday: 'short' }),
+          date: date.toLocaleDateString('en-US', { weekday: 'short' }),
           sales: count,
         };
       })
@@ -243,12 +247,12 @@ export async function GET() {
       category: string;
       totalSales: bigint;
     }[]>`
-      SELECT p.id as "productId", p.name as "productName", p.category, COUNT(s.id) as "totalSales"
-      FROM "Sale" s
-      JOIN "ProductUnit" pu ON s."productUnitId" = pu.id
-      JOIN "Product" p ON pu."productId" = p.id
-      GROUP BY p.id, p.name, p.category
-      ORDER BY "totalSales" DESC
+      SELECT p.id as productId, p.name as productName, p.category, COUNT(s.id) as totalSales
+      FROM Sale s
+      JOIN ProductUnit pu ON s.productUnitId = pu.id
+      JOIN Product p ON pu.productId = p.id
+      GROUP BY p.id
+      ORDER BY totalSales DESC
       LIMIT 5
     `;
 

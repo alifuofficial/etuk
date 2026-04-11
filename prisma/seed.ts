@@ -257,7 +257,7 @@ async function main() {
       nameOr: 'ETUK Saadaraa Sibiila 3-Wheeler',
       description: 'Heavy-duty electric 3-wheeler designed for African roads. Features powerful 4000W motor, 180km range, and robust construction. Perfect for passenger and cargo transport.',
       descriptionAm: 'ለአፍሪካ መንገዶች የተነደፈ ጠንካራ ኤሌክትሪክ 3-ጎማ። ኃይለኛ 4000W ሞተር፣ 180ኪሜ ርቀት እና ጠንካራ ግንባታ አለው።',
-      descriptionOr: 'Daandii Afrikaaf qophaa\'e baay\'ee cimaa ta\'e saadaraa sibiila 3-wheeler. Motor cimaa 4000W, fagoo 180km, fi ijaarsa cimaa qaba.',
+      descriptionOr: "Daandii Afrikaaf qophaa'e baay'ee cimaa ta'e saadaraa sibiila 3-wheeler. Motor cimaa 4000W, fagoo 180km, fi ijaarsa cimaa qaba.",
       category: '3W',
       specifications: productSpecs,
       featured: true,

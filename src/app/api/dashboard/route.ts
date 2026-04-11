@@ -3,7 +3,6 @@ import { db } from '@/lib/db';
 import { getServerSession } from 'next-auth';
 import { authOptions } from '@/lib/auth';
 
-// GET - Dashboard statistics
 export async function GET() {
   try {
     const session = await getServerSession(authOptions);
@@ -11,8 +10,15 @@ export async function GET() {
     if (!session?.user) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
-    
-    // Get counts
+
+    const isAdmin = session.user.role === 'ADMIN' || session.user.role === 'MARKETING_MANAGER' || session.user.role === 'WAREHOUSE_MANAGER';
+
+    if (!isAdmin) {
+      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+    }
+
+    const now = new Date();
+
     const [
       totalAgents,
       pendingApplications,
@@ -34,30 +40,20 @@ export async function GET() {
         take: 10,
         orderBy: { createdAt: 'desc' },
         include: {
-          reviewer: {
-            select: { name: true },
-          },
+          reviewer: { select: { name: true } },
         },
       }),
     ]);
-    
-    // Get monthly registration trends (last 6 months)
-    const now = new Date();
+
     const last6MonthsDates = Array.from({ length: 6 }, (_, i) => {
-      const d = new Date(now.getFullYear(), now.getMonth() - (5 - i), 1);
-      return d;
+      return new Date(now.getFullYear(), now.getMonth() - (5 - i), 1);
     });
 
     const monthlyTrend = await Promise.all(
       last6MonthsDates.map(async (monthDate) => {
         const nextMonth = new Date(monthDate.getFullYear(), monthDate.getMonth() + 1, 1);
         const count = await db.agent.count({
-          where: {
-            createdAt: {
-              gte: monthDate,
-              lt: nextMonth,
-            },
-          },
+          where: { createdAt: { gte: monthDate, lt: nextMonth } },
         });
         return {
           month: monthDate.toLocaleString('default', { month: 'short' }),
@@ -65,96 +61,58 @@ export async function GET() {
         };
       })
     );
-    
-    // Get agents by region
+
     const agentsByRegion = await db.agent.groupBy({
       by: ['region'],
-      _count: {
-        id: true,
-      },
-      orderBy: {
-        _count: {
-          id: 'desc',
-        },
-      },
+      _count: { id: true },
+      orderBy: { _count: { id: 'desc' } },
       take: 10,
     });
 
-    // Get agents by city (Approved only for the map)
     const agentsByCity = await db.agent.groupBy({
       where: { status: 'APPROVED' },
       by: ['city'],
-      _count: {
-        id: true,
-      },
-    });
-    
-    // Get agents by status
-    const agentsByStatus = await db.agent.groupBy({
-      by: ['status'],
-      _count: {
-        id: true,
-      },
+      _count: { id: true },
     });
 
-    // Get agents by business type
+    const agentsByStatus = await db.agent.groupBy({
+      by: ['status'],
+      _count: { id: true },
+    });
+
     const agentsByBusinessType = await db.agent.groupBy({
       by: ['businessType'],
-      _count: {
-        id: true,
-      },
-      orderBy: {
-        _count: {
-          id: 'desc',
-        },
-      },
+      _count: { id: true },
+      orderBy: { _count: { id: 'desc' } },
       take: 8,
     });
 
-    // Get warehouse inventory summary
+    const productsByCategory = await db.product.groupBy({
+      by: ['category'],
+      _count: { id: true },
+      orderBy: { _count: { id: 'desc' } },
+    });
+
     const warehouseInventory = await db.inventory.findMany({
       where: { agentId: null },
       include: {
         product: {
-          select: {
-            id: true,
-            name: true,
-            category: true,
-            isSerialized: true,
-          },
+          select: { id: true, name: true, category: true, isSerialized: true },
         },
       },
     });
 
     const totalWarehouseUnits = warehouseInventory.reduce((sum, item) => sum + item.quantity, 0);
 
-    // Get inventory distributed to agents
     const agentInventoryCount = await db.inventory.aggregate({
       where: { agentId: { not: null } },
-      _sum: {
-        quantity: true,
-      },
+      _sum: { quantity: true },
     });
 
-    // Get agents with warehouse
     const agentsWithWarehouse = await db.agent.count({
       where: { hasWarehouse: true, status: 'APPROVED' },
     });
 
-    // Get products by category
-    const productsByCategory = await db.product.groupBy({
-      by: ['category'],
-      _count: {
-        id: true,
-      },
-      orderBy: {
-        _count: {
-          id: 'desc',
-        },
-      },
-    });
-
-    // Get serialized vs non-serialized products
     const serializedProducts = await db.product.count({
       where: { isSerialized: true, isActive: true },
     });
@@ -162,52 +120,27 @@ export async function GET() {
       where: { isSerialized: false, isActive: true },
     });
 
-    // Get recent SMS count (last 7 days)
     const sevenDaysAgo = new Date();
     sevenDaysAgo.setDate(sevenDaysAgo.getDate() - 7);
-    
+
     const recentSmsCount = await db.smsLog.count({
-      where: {
-        createdAt: {
-          gte: sevenDaysAgo,
-        },
-      },
+      where: { createdAt: { gte: sevenDaysAgo } },
     });
 
     const successfulSms = await db.smsLog.count({
-      where: {
-        status: 'success',
-        createdAt: {
-          gte: sevenDaysAgo,
-        },
-      },
+      where: { status: 'success', createdAt: { gte: sevenDaysAgo } },
     });
 
-    // Calculate conversion rate
-    const conversionRate = totalAgents > 0 
-      ? Math.round((approvedAgents / totalAgents) * 100) 
-      : 0;
+    const conversionRate = totalAgents > 0 ? Math.round((approvedAgents / totalAgents) * 100) : 0;
 
-    // Get approval/rejection this month
     const startOfMonth = new Date(now.getFullYear(), now.getMonth(), 1);
     const approvedThisMonth = await db.agent.count({
-      where: {
-        status: 'APPROVED',
-        reviewedAt: {
-          gte: startOfMonth,
-        },
-      },
+      where: { status: 'APPROVED', reviewedAt: { gte: startOfMonth } },
     });
     const rejectedThisMonth = await db.agent.count({
-      where: {
-        status: 'REJECTED',
-        reviewedAt: {
-          gte: startOfMonth,
-        },
-      },
+      where: { status: 'REJECTED', reviewedAt: { gte: startOfMonth } },
     });
 
-    // Get unique regions and cities covered
     const uniqueRegions = await db.agent.groupBy({
       by: ['region'],
       where: { status: 'APPROVED' },
@@ -216,7 +149,109 @@ export async function GET() {
       by: ['city'],
       where: { status: 'APPROVED' },
     });
-    
+
+    const totalCustomers = await db.customer.count();
+
+    const customersByAgent = await db.customer.groupBy({
+      by: ['agentId'],
+      _count: { id: true },
+      orderBy: { _count: { id: 'desc' } },
+      take: 5,
+    });
+
+    const topAgentIds = customersByAgent.map(c => c.agentId);
+    const topAgentsData = await db.agent.findMany({
+      where: { id: { in: topAgentIds } },
+      select: { id: true, firstName: true, lastName: true, businessName: true },
+    });
+
+    const agentCustomerCounts = customersByAgent.map(c => {
+      const agent = topAgentsData.find(a => a.id === c.agentId);
+      return {
+        agentId: c.agentId,
+        agentName: agent ? `${agent.firstName} ${agent.lastName}` : 'Unknown',
+        businessName: agent?.businessName,
+        customerCount: c._count.id,
+      };
+    });
+
+    const recentSales = await db.sale.findMany({
+      take: 20,
+      orderBy: { createdAt: 'desc' },
+      include: {
+        agent: { select: { firstName: true, lastName: true, businessName: true } },
+        customer: { select: { fullName: true, phone: true } },
+        productUnit: { include: { product: { select: { name: true, category: true } } } },
+      },
+    });
+
+    const salesWithProductTransfer = await db.$queryRaw<{ 
+      saleId: string; 
+      transferDate: Date; 
+      saleDate: Date; 
+    }[]>`
+      SELECT s.id as "saleId", it."createdAt" as "transferDate", s."createdAt" as "saleDate"
+      FROM "Sale" s
+      JOIN "ProductUnit" pu ON s."productUnitId" = pu.id
+      JOIN "InventoryTransaction" it ON it."productId" = pu."productId" 
+        AND it."toAgentId" = s."agentId"
+        AND it.type = 'TRANSFER'
+      WHERE s."createdAt" >= NOW() - INTERVAL '30 days'
+    `;
+
+    let avgDaysToSell = 0;
+    let totalSalesInPeriod = salesWithProductTransfer.length;
+    if (totalSalesInPeriod > 0) {
+      const totalDays = salesWithProductTransfer.reduce((sum, s) => {
+        const diff = new Date(s.saleDate).getTime() - new Date(s.transferDate).getTime();
+        return sum + (diff / (1000 * 60 * 60 * 24));
+      }, 0);
+      avgDaysToSell = Math.round(totalDays / totalSalesInPeriod);
+    }
+
+    const last7Days = Array.from({ length: 7 }, (_, i) => {
+      const d = new Date(now);
+      d.setDate(d.getDate() - (6 - i));
+      return d.toISOString().split('T')[0];
+    });
+
+    const salesVelocity = await Promise.all(
+      last7Days.map(async (date) => {
+        const start = new Date(date);
+        const end = new Date(date);
+        end.setDate(end.getDate() + 1);
+        
+        const count = await db.sale.count({
+          where: { createdAt: { gte: start, lt: end } },
+        });
+        
+        return {
+          date: new Date(date).toLocaleDateString('en-US', { weekday: 'short' }),
+          sales: count,
+        };
+      })
+    );
+
+    const totalSales = await db.sale.count();
+    const salesThisMonth = await db.sale.count({
+      where: { createdAt: { gte: startOfMonth } },
+    });
+
+    const topSellingProducts = await db.$queryRaw<{
+      productId: string;
+      productName: string;
+      category: string;
+      totalSales: bigint;
+    }[]>`
+      SELECT p.id as "productId", p.name as "productName", p.category, COUNT(s.id) as "totalSales"
+      FROM "Sale" s
+      JOIN "ProductUnit" pu ON s."productUnitId" = pu.id
+      JOIN "Product" p ON pu."productId" = p.id
+      GROUP BY p.id, p.name, p.category
+      ORDER BY "totalSales" DESC
+      LIMIT 5
+    `;
+
     return NextResponse.json({
       stats: {
         totalAgents,
@@ -238,6 +273,10 @@ export async function GET() {
         successfulSms,
         serializedProducts,
         nonSerializedProducts,
+        totalCustomers,
+        totalSales,
+        salesThisMonth,
+        avgDaysToSell,
       },
       recentApplications,
       monthlyTrend,
@@ -247,6 +286,26 @@ export async function GET() {
       agentsByBusinessType: agentsByBusinessType.filter(a => a.businessType),
       productsByCategory,
       warehouseInventory: warehouseInventory.slice(0, 5),
+      agentCustomerCounts,
+      recentSales: recentSales.map(s => ({
+        id: s.id,
+        agent: s.agent ? `${s.agent.firstName} ${s.agent.lastName}` : 'Unknown',
+        businessName: s.agent?.businessName,
+        customer: s.customer?.fullName || s.customerName || 'Walk-in',
+        customerPhone: s.customer?.phone || s.customerPhone,
+        product: s.productUnit?.product?.name || 'Unknown Product',
+        category: s.productUnit?.product?.category || 'N/A',
+        chassisNumber: s.productUnit?.chassisNumber,
+        date: s.createdAt,
+        notes: s.notes,
+      })),
+      salesVelocity,
+      topSellingProducts: topSellingProducts.map(p => ({
+        productId: p.productId,
+        productName: p.productName,
+        category: p.category,
+        totalSales: Number(p.totalSales),
+      })),
     });
   } catch (error) {
     console.error('Error fetching dashboard data:', error);

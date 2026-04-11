@@ -1,7 +1,7 @@
 'use client';
 
 import { useEffect, useState } from 'react';
-import { Card, CardContent, CardHeader } from '@/components/ui/card';
+import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { useSession } from 'next-auth/react';
 import { Input } from '@/components/ui/input';
@@ -40,20 +40,16 @@ import {
   Download,
   FileSpreadsheet,
   Trash2,
-  Boxes,
   MessageSquare,
   Edit,
   Shield,
-  ShieldOff,
   User,
   ChevronLeft,
   ChevronRight,
-  Warehouse,
-  Send,
-  Key,
   Upload,
-  Save,
   X,
+  Key,
+  FileUp,
 } from 'lucide-react';
 import * as XLSX from 'xlsx';
 import { jsPDF } from 'jspdf';
@@ -68,6 +64,7 @@ interface Agent {
   alternativePhone: string | null;
   businessName: string | null;
   businessType: string | null;
+  experience: string | null;
   region: string;
   city: string;
   woreda: string | null;
@@ -75,9 +72,16 @@ interface Agent {
   address: string | null;
   hasWarehouse: boolean;
   warehouseSize: string | null;
+  existingBrands: string | null;
+  staffCount: number | null;
+  estimatedCapital: string | null;
+  bankName: string | null;
+  accountNumber: string | null;
   tinNumber: string | null;
   tradeLicense: string | null;
+  idDocument: string | null;
   message: string | null;
+  howDidYouHear: string | null;
   status: string;
   reviewNotes: string | null;
   createdAt: string;
@@ -91,6 +95,32 @@ interface Region {
   cities: { id: string; name: string }[];
 }
 
+const BUSINESS_TYPES = [
+  'Retail',
+  'Wholesale',
+  'Service',
+  'Distributor',
+  'Manufacturer',
+  'Individual',
+];
+
+const EXPERIENCE_LEVELS = [
+  'Less than 1 year',
+  '1-3 years',
+  '3-5 years',
+  '5-10 years',
+  'More than 10 years',
+];
+
+const HOW_DID_YOU_HEAR = [
+  'Website',
+  'Social Media',
+  'Friend/Family',
+  'Advertisement',
+  'Trade Show',
+  'Other',
+];
+
 export default function AgentsPage() {
   const { data: session } = useSession();
   const [agents, setAgents] = useState<Agent[]>([]);
@@ -101,18 +131,12 @@ export default function AgentsPage() {
   const [showDetailDialog, setShowDetailDialog] = useState(false);
   const [showAddDialog, setShowAddDialog] = useState(false);
   const [showEditDialog, setShowEditDialog] = useState(false);
-  const [showInventoryDialog, setShowInventoryDialog] = useState(false);
   const [showSmsDialog, setShowSmsDialog] = useState(false);
   const [showPortalDialog, setShowPortalDialog] = useState(false);
   const [reviewNotes, setReviewNotes] = useState('');
   const [actionLoading, setActionLoading] = useState(false);
   const [currentPage, setCurrentPage] = useState(1);
-  const [selectedAgentIds, setSelectedAgentIds] = useState<string[]>([]);
   const [regions, setRegions] = useState<Region[]>([]);
-  
-  // Inventory state
-  const [inventoryData, setInventoryData] = useState<any[]>([]);
-  const [inventoryLoading, setInventoryLoading] = useState(false);
   
   // SMS state
   const [smsMessage, setSmsMessage] = useState('');
@@ -122,7 +146,7 @@ export default function AgentsPage() {
   const [portalPassword, setPortalPassword] = useState('');
   const [portalLoading, setPortalLoading] = useState(false);
   
-  // Add/Edit form state
+  // Form state
   const [formData, setFormData] = useState({
     firstName: '',
     lastName: '',
@@ -131,6 +155,7 @@ export default function AgentsPage() {
     alternativePhone: '',
     businessName: '',
     businessType: '',
+    experience: '',
     region: '',
     city: '',
     woreda: '',
@@ -138,10 +163,22 @@ export default function AgentsPage() {
     address: '',
     hasWarehouse: false,
     warehouseSize: '',
+    existingBrands: '',
+    staffCount: '',
+    estimatedCapital: '',
+    bankName: '',
+    accountNumber: '',
     tinNumber: '',
+    message: '',
+    howDidYouHear: '',
     status: 'PENDING',
     tradeLicense: null as File | null,
+    idDocument: null as File | null,
   });
+  
+  // Preview URLs
+  const [licensePreview, setLicensePreview] = useState<string | null>(null);
+  const [idPreview, setIdPreview] = useState<string | null>(null);
   
   const itemsPerPage = 15;
 
@@ -173,7 +210,7 @@ export default function AgentsPage() {
         const data = await res.json();
         setAgents(Array.isArray(data) ? data : []);
       } else {
-        console.error('Failed to fetch agents:', res.status, res.statusText);
+        console.error('Failed to fetch agents:', res.status);
         setAgents([]);
       }
     } catch (e) {
@@ -181,21 +218,6 @@ export default function AgentsPage() {
       setAgents([]);
     } finally {
       setLoading(false);
-    }
-  };
-
-  const fetchInventory = async (agentId: string) => {
-    setInventoryLoading(true);
-    try {
-      const res = await fetch(`/api/agents/${agentId}/inventory`);
-      if (res.ok) {
-        const data = await res.json();
-        setInventoryData(data.inventory || []);
-      }
-    } catch (e) {
-      console.error('Failed to fetch inventory:', e);
-    } finally {
-      setInventoryLoading(false);
     }
   };
 
@@ -235,27 +257,6 @@ export default function AgentsPage() {
     }
   };
 
-  const handleBulkPortalAction = async (activate: boolean) => {
-    if (selectedAgentIds.length === 0) return;
-    setActionLoading(true);
-    try {
-      const res = await fetch('/api/admin/agents/bulk-portal', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ agentIds: selectedAgentIds, isActive: activate }),
-      });
-      if (res.ok) {
-        toast({ title: `Portal ${activate ? 'activated' : 'deactivated'}`, description: `Updated ${selectedAgentIds.length} agents.` });
-        fetchAgents();
-        setSelectedAgentIds([]);
-      }
-    } catch {
-      toast({ title: 'Error', description: 'Bulk action failed.', variant: 'destructive' });
-    } finally {
-      setActionLoading(false);
-    }
-  };
-
   const handleSendSms = async () => {
     if (!selectedAgent || !smsMessage.trim()) return;
     setSmsSending(true);
@@ -279,8 +280,9 @@ export default function AgentsPage() {
     }
   };
 
-  const handlePortalAccess = async () => {
-    if (!selectedAgent || !portalPassword || portalPassword.length < 6) {
+  const handlePortalAccess = async (activate: boolean) => {
+    if (!selectedAgent) return;
+    if (activate && (!portalPassword || portalPassword.length < 6)) {
       toast({ title: 'Error', description: 'Password must be at least 6 characters.', variant: 'destructive' });
       return;
     }
@@ -289,10 +291,10 @@ export default function AgentsPage() {
       const res = await fetch(`/api/admin/agents/${selectedAgent.id}/portal-access`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ password: portalPassword, isActive: true }),
+        body: JSON.stringify(activate ? { password: portalPassword, isActive: true } : { isActive: false }),
       });
       if (res.ok) {
-        toast({ title: 'Portal Access Updated', description: 'Agent can now access the portal.' });
+        toast({ title: 'Portal Access Updated', description: activate ? 'Agent can now access the portal.' : 'Portal access disabled.' });
         setShowPortalDialog(false);
         setPortalPassword('');
         fetchAgents();
@@ -304,14 +306,33 @@ export default function AgentsPage() {
     }
   };
 
+  const handleFileChange = (field: 'tradeLicense' | 'idDocument', file: File | null) => {
+    setFormData(prev => ({ ...prev, [field]: file }));
+    if (file) {
+      const reader = new FileReader();
+      reader.onloadend = () => {
+        if (field === 'tradeLicense') setLicensePreview(reader.result as string);
+        else setIdPreview(reader.result as string);
+      };
+      reader.readAsDataURL(file);
+    } else {
+      if (field === 'tradeLicense') setLicensePreview(null);
+      else setIdPreview(null);
+    }
+  };
+
   const handleAddAgent = async (e: React.FormEvent) => {
     e.preventDefault();
     setActionLoading(true);
     try {
       const form = new FormData();
       Object.entries(formData).forEach(([key, value]) => {
-        if (value !== null && value !== '') form.append(key, value.toString());
+        if (value !== null && value !== '' && key !== 'tradeLicense' && key !== 'idDocument') {
+          form.append(key, value.toString());
+        }
       });
+      if (formData.tradeLicense) form.append('tradeLicense', formData.tradeLicense);
+      if (formData.idDocument) form.append('idDocument', formData.idDocument);
       
       const res = await fetch('/api/agents', { method: 'POST', body: form });
       if (res.ok) {
@@ -337,17 +358,24 @@ export default function AgentsPage() {
     try {
       const form = new FormData();
       Object.entries(formData).forEach(([key, value]) => {
-        if (value !== null && value !== '') form.append(key, value.toString());
+        if (value !== null && value !== '' && key !== 'tradeLicense' && key !== 'idDocument') {
+          form.append(key, value.toString());
+        }
       });
+      if (formData.tradeLicense) form.append('tradeLicense', formData.tradeLicense);
+      if (formData.idDocument) form.append('idDocument', formData.idDocument);
       
       const res = await fetch(`/api/agents/${selectedAgent.id}`, { method: 'PUT', body: form });
       if (res.ok) {
         toast({ title: 'Agent Updated' });
         setShowEditDialog(false);
         fetchAgents();
+      } else {
+        const err = await res.json();
+        throw new Error(err.error || 'Failed to update');
       }
-    } catch {
-      toast({ title: 'Error', description: 'Failed to update.', variant: 'destructive' });
+    } catch (e: any) {
+      toast({ title: 'Error', description: e.message, variant: 'destructive' });
     } finally {
       setActionLoading(false);
     }
@@ -362,6 +390,7 @@ export default function AgentsPage() {
       alternativePhone: '',
       businessName: '',
       businessType: '',
+      experience: '',
       region: '',
       city: '',
       woreda: '',
@@ -369,10 +398,20 @@ export default function AgentsPage() {
       address: '',
       hasWarehouse: false,
       warehouseSize: '',
+      existingBrands: '',
+      staffCount: '',
+      estimatedCapital: '',
+      bankName: '',
+      accountNumber: '',
       tinNumber: '',
+      message: '',
+      howDidYouHear: '',
       status: 'PENDING',
       tradeLicense: null,
+      idDocument: null,
     });
+    setLicensePreview(null);
+    setIdPreview(null);
   };
 
   const openEditDialog = (agent: Agent) => {
@@ -385,6 +424,7 @@ export default function AgentsPage() {
       alternativePhone: agent.alternativePhone || '',
       businessName: agent.businessName || '',
       businessType: agent.businessType || '',
+      experience: agent.experience || '',
       region: agent.region,
       city: agent.city,
       woreda: agent.woreda || '',
@@ -392,10 +432,20 @@ export default function AgentsPage() {
       address: agent.address || '',
       hasWarehouse: agent.hasWarehouse,
       warehouseSize: agent.warehouseSize || '',
+      existingBrands: agent.existingBrands || '',
+      staffCount: agent.staffCount?.toString() || '',
+      estimatedCapital: agent.estimatedCapital || '',
+      bankName: agent.bankName || '',
+      accountNumber: agent.accountNumber || '',
       tinNumber: agent.tinNumber || '',
+      message: agent.message || '',
+      howDidYouHear: agent.howDidYouHear || '',
       status: agent.status,
       tradeLicense: null,
+      idDocument: null,
     });
+    setLicensePreview(agent.tradeLicense ? getFileUrl(agent.tradeLicense) : null);
+    setIdPreview(agent.idDocument ? getFileUrl(agent.idDocument) : null);
     setShowEditDialog(true);
   };
 
@@ -472,18 +522,6 @@ export default function AgentsPage() {
     REJECTED: agents.filter(a => a.status === 'REJECTED').length,
   };
 
-  const toggleSelectAll = () => {
-    if (selectedAgentIds.length === filteredAgents.length) {
-      setSelectedAgentIds([]);
-    } else {
-      setSelectedAgentIds(filteredAgents.map(a => a.id));
-    }
-  };
-
-  const toggleSelect = (id: string) => {
-    setSelectedAgentIds(prev => prev.includes(id) ? prev.filter(i => i !== id) : [...prev, id]);
-  };
-
   const selectedCities = formData.region
     ? regions.find(r => r.name === formData.region)?.cities || []
     : [];
@@ -512,12 +550,16 @@ export default function AgentsPage() {
       {/* Stats */}
       <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
         {[
-          { label: 'All', count: statusCounts.all, icon: User, color: 'gray' },
-          { label: 'Pending', count: statusCounts.PENDING, icon: Clock, color: 'amber' },
-          { label: 'Approved', count: statusCounts.APPROVED, icon: CheckCircle, color: 'emerald' },
-          { label: 'Rejected', count: statusCounts.REJECTED, icon: XCircle, color: 'red' },
+          { label: 'All', count: statusCounts.all, icon: User, color: 'gray', filter: 'all' },
+          { label: 'Pending', count: statusCounts.PENDING, icon: Clock, color: 'amber', filter: 'PENDING' },
+          { label: 'Approved', count: statusCounts.APPROVED, icon: CheckCircle, color: 'emerald', filter: 'APPROVED' },
+          { label: 'Rejected', count: statusCounts.REJECTED, icon: XCircle, color: 'red', filter: 'REJECTED' },
         ].map(stat => (
-          <Card key={stat.label} className="border-gray-200/60 cursor-pointer hover:border-gray-300 transition-colors" onClick={() => setStatusFilter(stat.label.toUpperCase() === 'ALL' ? 'all' : stat.label.toUpperCase())}>
+          <Card 
+            key={stat.label} 
+            className={`border-gray-200/60 cursor-pointer hover:border-gray-300 transition-colors ${statusFilter === stat.filter ? 'ring-2 ring-gray-900' : ''}`}
+            onClick={() => setStatusFilter(stat.filter)}
+          >
             <CardContent className="p-4">
               <div className="flex items-center gap-3">
                 <div className={`p-2 rounded-lg bg-${stat.color}-50`}>
@@ -533,24 +575,6 @@ export default function AgentsPage() {
         ))}
       </div>
 
-      {/* Bulk Actions */}
-      {selectedAgentIds.length > 0 && (
-        <div className="flex items-center gap-4 p-4 bg-blue-50 border border-blue-100 rounded-xl">
-          <span className="text-sm font-medium text-blue-900">{selectedAgentIds.length} selected</span>
-          <div className="flex gap-2">
-            <Button size="sm" variant="outline" onClick={() => handleBulkPortalAction(true)} className="bg-white border-blue-200 text-blue-700">
-              <Shield className="w-4 h-4 mr-1" /> Enable Portal
-            </Button>
-            <Button size="sm" variant="outline" onClick={() => handleBulkPortalAction(false)} className="bg-white border-red-200 text-red-700">
-              <ShieldOff className="w-4 h-4 mr-1" /> Disable Portal
-            </Button>
-            <Button size="sm" variant="ghost" onClick={() => setSelectedAgentIds([])} className="text-gray-600">
-              Clear
-            </Button>
-          </div>
-        </div>
-      )}
-
       {/* Filters */}
       <div className="flex flex-col md:flex-row gap-4">
         <div className="relative flex-1">
@@ -562,17 +586,6 @@ export default function AgentsPage() {
             className="h-10 pl-10 bg-white"
           />
         </div>
-        <Select value={statusFilter} onValueChange={setStatusFilter}>
-          <SelectTrigger className="w-40 h-10 bg-white">
-            <SelectValue placeholder="Status" />
-          </SelectTrigger>
-          <SelectContent>
-            <SelectItem value="all">All Status</SelectItem>
-            <SelectItem value="PENDING">Pending</SelectItem>
-            <SelectItem value="APPROVED">Approved</SelectItem>
-            <SelectItem value="REJECTED">Rejected</SelectItem>
-          </SelectContent>
-        </Select>
       </div>
 
       {/* Agent List */}
@@ -593,12 +606,9 @@ export default function AgentsPage() {
                 <table className="w-full">
                   <thead className="bg-gray-50/50">
                     <tr>
-                      <th className="w-10 px-4 py-3">
-                        <Checkbox checked={selectedAgentIds.length === filteredAgents.length && filteredAgents.length > 0} onCheckedChange={toggleSelectAll} />
-                      </th>
                       <th className="px-4 py-3 text-left text-xs font-bold text-gray-500 uppercase">Agent</th>
                       <th className="px-4 py-3 text-left text-xs font-bold text-gray-500 uppercase">Contact</th>
-                      <th className="px-4 py-3 text-left text-xs font-bold text-gray-500 uppercase">Business</th>
+                      <th className="px-4 py-3 text-left text-xs font-bold text-gray-500 uppercase">Location</th>
                       <th className="px-4 py-3 text-left text-xs font-bold text-gray-500 uppercase">Status</th>
                       <th className="px-4 py-3 text-left text-xs font-bold text-gray-500 uppercase">Date</th>
                       <th className="px-4 py-3 text-right text-xs font-bold text-gray-500 uppercase">Actions</th>
@@ -608,16 +618,13 @@ export default function AgentsPage() {
                     {paginatedAgents.map(agent => (
                       <tr key={agent.id} className="hover:bg-gray-50/50">
                         <td className="px-4 py-3">
-                          <Checkbox checked={selectedAgentIds.includes(agent.id)} onCheckedChange={() => toggleSelect(agent.id)} />
-                        </td>
-                        <td className="px-4 py-3">
                           <div className="flex items-center gap-3">
                             <div className="w-9 h-9 rounded-full bg-gray-100 flex items-center justify-center shrink-0">
                               <span className="text-xs font-bold text-gray-600">{agent.firstName[0]}{agent.lastName[0]}</span>
                             </div>
                             <div>
                               <p className="font-semibold text-gray-900">{agent.firstName} {agent.lastName}</p>
-                              <p className="text-xs text-gray-500">{agent.region}</p>
+                              <p className="text-xs text-gray-500">{agent.businessName || 'Individual'}</p>
                             </div>
                           </div>
                         </td>
@@ -625,10 +632,7 @@ export default function AgentsPage() {
                           <p className="text-sm text-gray-900">{agent.email}</p>
                           <p className="text-xs text-gray-500">{agent.phone}</p>
                         </td>
-                        <td className="px-4 py-3">
-                          <p className="text-sm text-gray-900">{agent.businessName || 'Individual'}</p>
-                          {agent.businessType && <p className="text-xs text-gray-500">{agent.businessType}</p>}
-                        </td>
+                        <td className="px-4 py-3 text-sm text-gray-700">{agent.city}, {agent.region}</td>
                         <td className="px-4 py-3">
                           <Badge variant="outline" className={getStatusBadge(agent.status)}>{agent.status}</Badge>
                         </td>
@@ -638,15 +642,14 @@ export default function AgentsPage() {
                             <Button variant="ghost" size="sm" onClick={() => { setSelectedAgent(agent); setReviewNotes(agent.reviewNotes || ''); setShowDetailDialog(true); }}>
                               <Eye className="w-4 h-4" />
                             </Button>
-                            <Button variant="ghost" size="sm" onClick={() => { setSelectedAgent(agent); fetchInventory(agent.id); setShowInventoryDialog(true); }}>
-                              <Boxes className="w-4 h-4" />
-                            </Button>
                             <Button variant="ghost" size="sm" onClick={() => { setSelectedAgent(agent); setSmsMessage(''); setShowSmsDialog(true); }}>
                               <MessageSquare className="w-4 h-4" />
                             </Button>
-                            <Button variant="ghost" size="sm" onClick={() => { setSelectedAgent(agent); setPortalPassword(''); setShowPortalDialog(true); }}>
-                              <Key className="w-4 h-4" />
-                            </Button>
+                            {agent.status === 'APPROVED' && (
+                              <Button variant="ghost" size="sm" onClick={() => { setSelectedAgent(agent); setPortalPassword(''); setShowPortalDialog(true); }}>
+                                <Key className="w-4 h-4" />
+                              </Button>
+                            )}
                             <Button variant="ghost" size="sm" onClick={() => openEditDialog(agent)}>
                               <Edit className="w-4 h-4" />
                             </Button>
@@ -743,15 +746,26 @@ export default function AgentsPage() {
 
                 {selectedAgent.tradeLicense && (
                   <div className="border border-gray-200 rounded-xl overflow-hidden">
-                    <div className="bg-gray-50 px-4 py-2 border-b border-gray-200 flex items-center justify-between">
+                    <div className="bg-gray-50 px-4 py-2 border-b border-gray-200">
                       <span className="text-xs font-bold text-gray-500 uppercase">Trade License</span>
                     </div>
-                    <div className="bg-gray-50 p-4">
+                    <div className="p-4 bg-gray-50">
                       {selectedAgent.tradeLicense.toLowerCase().endsWith('.pdf') ? (
                         <iframe src={getFileUrl(selectedAgent.tradeLicense)} className="w-full h-64 rounded-lg" title="License" />
                       ) : (
                         <img src={getFileUrl(selectedAgent.tradeLicense)} alt="License" className="w-full h-64 object-contain rounded-lg" />
                       )}
+                    </div>
+                  </div>
+                )}
+
+                {selectedAgent.idDocument && (
+                  <div className="border border-gray-200 rounded-xl overflow-hidden">
+                    <div className="bg-gray-50 px-4 py-2 border-b border-gray-200">
+                      <span className="text-xs font-bold text-gray-500 uppercase">ID Document</span>
+                    </div>
+                    <div className="p-4 bg-gray-50">
+                      <img src={getFileUrl(selectedAgent.idDocument)} alt="ID" className="w-full h-64 object-contain rounded-lg" />
                     </div>
                   </div>
                 )}
@@ -792,93 +806,217 @@ export default function AgentsPage() {
 
       {/* Add Agent Dialog */}
       <Dialog open={showAddDialog} onOpenChange={setShowAddDialog}>
-        <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
+        <DialogContent className="max-w-3xl max-h-[90vh] overflow-y-auto">
           <DialogHeader>
-            <DialogTitle>Add New Agent</DialogTitle>
+            <DialogTitle className="text-xl">Add New Agent</DialogTitle>
             <DialogDescription>Register a new agent in the system</DialogDescription>
           </DialogHeader>
-          <form onSubmit={handleAddAgent} className="space-y-4">
-            <div className="grid grid-cols-2 gap-4">
-              <div>
-                <Label>First Name *</Label>
-                <Input value={formData.firstName} onChange={e => setFormData({ ...formData, firstName: e.target.value })} required />
-              </div>
-              <div>
-                <Label>Last Name *</Label>
-                <Input value={formData.lastName} onChange={e => setFormData({ ...formData, lastName: e.target.value })} required />
-              </div>
-            </div>
-            <div className="grid grid-cols-2 gap-4">
-              <div>
-                <Label>Email *</Label>
-                <Input type="email" value={formData.email} onChange={e => setFormData({ ...formData, email: e.target.value })} required />
-              </div>
-              <div>
-                <Label>Phone *</Label>
-                <Input value={formData.phone} onChange={e => setFormData({ ...formData, phone: e.target.value })} required />
-              </div>
-            </div>
-            <div className="grid grid-cols-2 gap-4">
-              <div>
-                <Label>Region</Label>
-                <Select value={formData.region} onValueChange={v => setFormData({ ...formData, region: v, city: '' })}>
-                  <SelectTrigger><SelectValue placeholder="Select region" /></SelectTrigger>
-                  <SelectContent>{regions.map(r => <SelectItem key={r.id} value={r.name}>{r.name}</SelectItem>)}</SelectContent>
-                </Select>
-              </div>
-              <div>
-                <Label>City</Label>
-                <Select value={formData.city} onValueChange={v => setFormData({ ...formData, city: v })}>
-                  <SelectTrigger><SelectValue placeholder="Select city" /></SelectTrigger>
-                  <SelectContent>{selectedCities.map(c => <SelectItem key={c.id} value={c.name}>{c.name}</SelectItem>)}</SelectContent>
-                </Select>
+          <form onSubmit={handleAddAgent} className="space-y-6">
+            {/* Personal Information */}
+            <div className="space-y-4">
+              <h3 className="text-sm font-bold text-gray-900 uppercase tracking-wider border-b pb-2">Personal Information</h3>
+              <div className="grid grid-cols-2 gap-4">
+                <div>
+                  <Label className="text-xs text-gray-500">First Name *</Label>
+                  <Input value={formData.firstName} onChange={e => setFormData({ ...formData, firstName: e.target.value })} required className="mt-1" />
+                </div>
+                <div>
+                  <Label className="text-xs text-gray-500">Last Name *</Label>
+                  <Input value={formData.lastName} onChange={e => setFormData({ ...formData, lastName: e.target.value })} required className="mt-1" />
+                </div>
+                <div>
+                  <Label className="text-xs text-gray-500">Email *</Label>
+                  <Input type="email" value={formData.email} onChange={e => setFormData({ ...formData, email: e.target.value })} required className="mt-1" />
+                </div>
+                <div>
+                  <Label className="text-xs text-gray-500">Phone *</Label>
+                  <Input value={formData.phone} onChange={e => setFormData({ ...formData, phone: e.target.value })} required className="mt-1" />
+                </div>
+                <div>
+                  <Label className="text-xs text-gray-500">Alternative Phone</Label>
+                  <Input value={formData.alternativePhone} onChange={e => setFormData({ ...formData, alternativePhone: e.target.value })} className="mt-1" />
+                </div>
+                <div>
+                  <Label className="text-xs text-gray-500">TIN Number</Label>
+                  <Input value={formData.tinNumber} onChange={e => setFormData({ ...formData, tinNumber: e.target.value })} className="mt-1" />
+                </div>
               </div>
             </div>
-            <div className="grid grid-cols-2 gap-4">
-              <div>
-                <Label>Business Name</Label>
-                <Input value={formData.businessName} onChange={e => setFormData({ ...formData, businessName: e.target.value })} />
+
+            {/* Location */}
+            <div className="space-y-4">
+              <h3 className="text-sm font-bold text-gray-900 uppercase tracking-wider border-b pb-2">Location</h3>
+              <div className="grid grid-cols-2 gap-4">
+                <div>
+                  <Label className="text-xs text-gray-500">Region *</Label>
+                  <Select value={formData.region} onValueChange={v => setFormData({ ...formData, region: v, city: '' })}>
+                    <SelectTrigger className="mt-1"><SelectValue placeholder="Select region" /></SelectTrigger>
+                    <SelectContent>{regions.map(r => <SelectItem key={r.id} value={r.name}>{r.name}</SelectItem>)}</SelectContent>
+                  </Select>
+                </div>
+                <div>
+                  <Label className="text-xs text-gray-500">City *</Label>
+                  <Select value={formData.city} onValueChange={v => setFormData({ ...formData, city: v })}>
+                    <SelectTrigger className="mt-1"><SelectValue placeholder="Select city" /></SelectTrigger>
+                    <SelectContent>{selectedCities.map(c => <SelectItem key={c.id} value={c.name}>{c.name}</SelectItem>)}</SelectContent>
+                  </Select>
+                </div>
+                <div>
+                  <Label className="text-xs text-gray-500">Woreda</Label>
+                  <Input value={formData.woreda} onChange={e => setFormData({ ...formData, woreda: e.target.value })} className="mt-1" />
+                </div>
+                <div>
+                  <Label className="text-xs text-gray-500">Kebele</Label>
+                  <Input value={formData.kebele} onChange={e => setFormData({ ...formData, kebele: e.target.value })} className="mt-1" />
+                </div>
               </div>
               <div>
-                <Label>Business Type</Label>
-                <Select value={formData.businessType} onValueChange={v => setFormData({ ...formData, businessType: v })}>
-                  <SelectTrigger><SelectValue placeholder="Select type" /></SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="Retail">Retail</SelectItem>
-                    <SelectItem value="Wholesale">Wholesale</SelectItem>
-                    <SelectItem value="Service">Service</SelectItem>
-                  </SelectContent>
-                </Select>
+                <Label className="text-xs text-gray-500">Address</Label>
+                <Textarea value={formData.address} onChange={e => setFormData({ ...formData, address: e.target.value })} rows={2} className="mt-1" />
               </div>
             </div>
-            <div className="grid grid-cols-2 gap-4">
-              <div>
-                <Label>TIN Number</Label>
-                <Input value={formData.tinNumber} onChange={e => setFormData({ ...formData, tinNumber: e.target.value })} />
+
+            {/* Business Information */}
+            <div className="space-y-4">
+              <h3 className="text-sm font-bold text-gray-900 uppercase tracking-wider border-b pb-2">Business Information</h3>
+              <div className="grid grid-cols-2 gap-4">
+                <div>
+                  <Label className="text-xs text-gray-500">Business Name</Label>
+                  <Input value={formData.businessName} onChange={e => setFormData({ ...formData, businessName: e.target.value })} className="mt-1" />
+                </div>
+                <div>
+                  <Label className="text-xs text-gray-500">Business Type</Label>
+                  <Select value={formData.businessType} onValueChange={v => setFormData({ ...formData, businessType: v })}>
+                    <SelectTrigger className="mt-1"><SelectValue placeholder="Select type" /></SelectTrigger>
+                    <SelectContent>{BUSINESS_TYPES.map(t => <SelectItem key={t} value={t}>{t}</SelectItem>)}</SelectContent>
+                  </Select>
+                </div>
+                <div>
+                  <Label className="text-xs text-gray-500">Experience</Label>
+                  <Select value={formData.experience} onValueChange={v => setFormData({ ...formData, experience: v })}>
+                    <SelectTrigger className="mt-1"><SelectValue placeholder="Select experience" /></SelectTrigger>
+                    <SelectContent>{EXPERIENCE_LEVELS.map(e => <SelectItem key={e} value={e}>{e}</SelectItem>)}</SelectContent>
+                  </Select>
+                </div>
+                <div>
+                  <Label className="text-xs text-gray-500">Staff Count</Label>
+                  <Input type="number" value={formData.staffCount} onChange={e => setFormData({ ...formData, staffCount: e.target.value })} className="mt-1" />
+                </div>
+                <div>
+                  <Label className="text-xs text-gray-500">Estimated Capital</Label>
+                  <Input value={formData.estimatedCapital} onChange={e => setFormData({ ...formData, estimatedCapital: e.target.value })} className="mt-1" />
+                </div>
+                <div>
+                  <Label className="text-xs text-gray-500">Existing Brands</Label>
+                  <Input value={formData.existingBrands} onChange={e => setFormData({ ...formData, existingBrands: e.target.value })} className="mt-1" />
+                </div>
               </div>
-              <div>
-                <Label>Status</Label>
-                <Select value={formData.status} onValueChange={v => setFormData({ ...formData, status: v })}>
-                  <SelectTrigger><SelectValue /></SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="PENDING">Pending</SelectItem>
-                    <SelectItem value="APPROVED">Approved</SelectItem>
-                    <SelectItem value="REJECTED">Rejected</SelectItem>
-                  </SelectContent>
-                </Select>
+              <div className="flex items-center gap-2">
+                <Checkbox id="hasWarehouse" checked={formData.hasWarehouse} onCheckedChange={v => setFormData({ ...formData, hasWarehouse: !!v })} />
+                <Label htmlFor="hasWarehouse">Has Warehouse</Label>
+              </div>
+              {formData.hasWarehouse && (
+                <div>
+                  <Label className="text-xs text-gray-500">Warehouse Size</Label>
+                  <Input value={formData.warehouseSize} onChange={e => setFormData({ ...formData, warehouseSize: e.target.value })} className="mt-1" />
+                </div>
+              )}
+            </div>
+
+            {/* Bank Information */}
+            <div className="space-y-4">
+              <h3 className="text-sm font-bold text-gray-900 uppercase tracking-wider border-b pb-2">Bank Information</h3>
+              <div className="grid grid-cols-2 gap-4">
+                <div>
+                  <Label className="text-xs text-gray-500">Bank Name</Label>
+                  <Input value={formData.bankName} onChange={e => setFormData({ ...formData, bankName: e.target.value })} className="mt-1" />
+                </div>
+                <div>
+                  <Label className="text-xs text-gray-500">Account Number</Label>
+                  <Input value={formData.accountNumber} onChange={e => setFormData({ ...formData, accountNumber: e.target.value })} className="mt-1" />
+                </div>
               </div>
             </div>
-            <div className="flex items-center gap-2">
-              <Checkbox id="hasWarehouse" checked={formData.hasWarehouse} onCheckedChange={v => setFormData({ ...formData, hasWarehouse: !!v })} />
-              <Label htmlFor="hasWarehouse">Has Warehouse</Label>
-            </div>
-            {formData.hasWarehouse && (
-              <div>
-                <Label>Warehouse Size</Label>
-                <Input value={formData.warehouseSize} onChange={e => setFormData({ ...formData, warehouseSize: e.target.value })} />
+
+            {/* Documents */}
+            <div className="space-y-4">
+              <h3 className="text-sm font-bold text-gray-900 uppercase tracking-wider border-b pb-2">Documents</h3>
+              <div className="grid grid-cols-2 gap-4">
+                <div>
+                  <Label className="text-xs text-gray-500">Trade License</Label>
+                  <div className="mt-1">
+                    <label className="flex flex-col items-center justify-center w-full h-24 border-2 border-dashed border-gray-200 rounded-xl cursor-pointer hover:border-gray-300 hover:bg-gray-50 transition-all">
+                      {licensePreview ? (
+                        <img src={licensePreview} alt="Preview" className="w-full h-full object-contain rounded-lg" />
+                      ) : (
+                        <div className="flex flex-col items-center">
+                          <Upload className="w-6 h-6 text-gray-400" />
+                          <span className="text-xs text-gray-500 mt-1">Upload License</span>
+                        </div>
+                      )}
+                      <input type="file" accept="image/*,.pdf" className="hidden" onChange={e => handleFileChange('tradeLicense', e.target.files?.[0] || null)} />
+                    </label>
+                    {licensePreview && (
+                      <Button variant="ghost" size="sm" className="mt-2 text-red-500" onClick={() => { setLicensePreview(null); setFormData(prev => ({ ...prev, tradeLicense: null })); }}>
+                        <X className="w-4 h-4 mr-1" /> Remove
+                      </Button>
+                    )}
+                  </div>
+                </div>
+                <div>
+                  <Label className="text-xs text-gray-500">ID Document</Label>
+                  <div className="mt-1">
+                    <label className="flex flex-col items-center justify-center w-full h-24 border-2 border-dashed border-gray-200 rounded-xl cursor-pointer hover:border-gray-300 hover:bg-gray-50 transition-all">
+                      {idPreview ? (
+                        <img src={idPreview} alt="Preview" className="w-full h-full object-contain rounded-lg" />
+                      ) : (
+                        <div className="flex flex-col items-center">
+                          <Upload className="w-6 h-6 text-gray-400" />
+                          <span className="text-xs text-gray-500 mt-1">Upload ID</span>
+                        </div>
+                      )}
+                      <input type="file" accept="image/*,.pdf" className="hidden" onChange={e => handleFileChange('idDocument', e.target.files?.[0] || null)} />
+                    </label>
+                    {idPreview && (
+                      <Button variant="ghost" size="sm" className="mt-2 text-red-500" onClick={() => { setIdPreview(null); setFormData(prev => ({ ...prev, idDocument: null })); }}>
+                        <X className="w-4 h-4 mr-1" /> Remove
+                      </Button>
+                    )}
+                  </div>
+                </div>
               </div>
-            )}
-            <DialogFooter>
+            </div>
+
+            {/* Additional Info */}
+            <div className="space-y-4">
+              <h3 className="text-sm font-bold text-gray-900 uppercase tracking-wider border-b pb-2">Additional Information</h3>
+              <div className="grid grid-cols-2 gap-4">
+                <div>
+                  <Label className="text-xs text-gray-500">How did you hear about us?</Label>
+                  <Select value={formData.howDidYouHear} onValueChange={v => setFormData({ ...formData, howDidYouHear: v })}>
+                    <SelectTrigger className="mt-1"><SelectValue placeholder="Select" /></SelectTrigger>
+                    <SelectContent>{HOW_DID_YOU_HEAR.map(h => <SelectItem key={h} value={h}>{h}</SelectItem>)}</SelectContent>
+                  </Select>
+                </div>
+                <div>
+                  <Label className="text-xs text-gray-500">Status</Label>
+                  <Select value={formData.status} onValueChange={v => setFormData({ ...formData, status: v })}>
+                    <SelectTrigger className="mt-1"><SelectValue /></SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="PENDING">Pending</SelectItem>
+                      <SelectItem value="APPROVED">Approved</SelectItem>
+                      <SelectItem value="REJECTED">Rejected</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
+              </div>
+              <div>
+                <Label className="text-xs text-gray-500">Message</Label>
+                <Textarea value={formData.message} onChange={e => setFormData({ ...formData, message: e.target.value })} rows={2} className="mt-1" />
+              </div>
+            </div>
+
+            <DialogFooter className="gap-2">
               <Button type="button" variant="outline" onClick={() => setShowAddDialog(false)}>Cancel</Button>
               <Button type="submit" disabled={actionLoading} className="bg-gray-900 hover:bg-gray-800">
                 {actionLoading ? 'Saving...' : 'Add Agent'}
@@ -890,45 +1028,201 @@ export default function AgentsPage() {
 
       {/* Edit Agent Dialog */}
       <Dialog open={showEditDialog} onOpenChange={setShowEditDialog}>
-        <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
+        <DialogContent className="max-w-3xl max-h-[90vh] overflow-y-auto">
           <DialogHeader>
-            <DialogTitle>Edit Agent</DialogTitle>
+            <DialogTitle className="text-xl">Edit Agent</DialogTitle>
+            <DialogDescription>Update agent information and documents</DialogDescription>
           </DialogHeader>
-          <form onSubmit={handleEditAgent} className="space-y-4">
-            <div className="grid grid-cols-2 gap-4">
-              <div>
-                <Label>First Name</Label>
-                <Input value={formData.firstName} onChange={e => setFormData({ ...formData, firstName: e.target.value })} />
-              </div>
-              <div>
-                <Label>Last Name</Label>
-                <Input value={formData.lastName} onChange={e => setFormData({ ...formData, lastName: e.target.value })} />
+          <form onSubmit={handleEditAgent} className="space-y-6">
+            {/* Personal Information */}
+            <div className="space-y-4">
+              <h3 className="text-sm font-bold text-gray-900 uppercase tracking-wider border-b pb-2">Personal Information</h3>
+              <div className="grid grid-cols-2 gap-4">
+                <div>
+                  <Label className="text-xs text-gray-500">First Name *</Label>
+                  <Input value={formData.firstName} onChange={e => setFormData({ ...formData, firstName: e.target.value })} required className="mt-1" />
+                </div>
+                <div>
+                  <Label className="text-xs text-gray-500">Last Name *</Label>
+                  <Input value={formData.lastName} onChange={e => setFormData({ ...formData, lastName: e.target.value })} required className="mt-1" />
+                </div>
+                <div>
+                  <Label className="text-xs text-gray-500">Email *</Label>
+                  <Input type="email" value={formData.email} onChange={e => setFormData({ ...formData, email: e.target.value })} required className="mt-1" />
+                </div>
+                <div>
+                  <Label className="text-xs text-gray-500">Phone *</Label>
+                  <Input value={formData.phone} onChange={e => setFormData({ ...formData, phone: e.target.value })} required className="mt-1" />
+                </div>
+                <div>
+                  <Label className="text-xs text-gray-500">Alternative Phone</Label>
+                  <Input value={formData.alternativePhone} onChange={e => setFormData({ ...formData, alternativePhone: e.target.value })} className="mt-1" />
+                </div>
+                <div>
+                  <Label className="text-xs text-gray-500">TIN Number</Label>
+                  <Input value={formData.tinNumber} onChange={e => setFormData({ ...formData, tinNumber: e.target.value })} className="mt-1" />
+                </div>
               </div>
             </div>
-            <div className="grid grid-cols-2 gap-4">
-              <div>
-                <Label>Email</Label>
-                <Input type="email" value={formData.email} onChange={e => setFormData({ ...formData, email: e.target.value })} />
+
+            {/* Location */}
+            <div className="space-y-4">
+              <h3 className="text-sm font-bold text-gray-900 uppercase tracking-wider border-b pb-2">Location</h3>
+              <div className="grid grid-cols-2 gap-4">
+                <div>
+                  <Label className="text-xs text-gray-500">Region *</Label>
+                  <Select value={formData.region} onValueChange={v => setFormData({ ...formData, region: v, city: '' })}>
+                    <SelectTrigger className="mt-1"><SelectValue placeholder="Select region" /></SelectTrigger>
+                    <SelectContent>{regions.map(r => <SelectItem key={r.id} value={r.name}>{r.name}</SelectItem>)}</SelectContent>
+                  </Select>
+                </div>
+                <div>
+                  <Label className="text-xs text-gray-500">City *</Label>
+                  <Select value={formData.city} onValueChange={v => setFormData({ ...formData, city: v })}>
+                    <SelectTrigger className="mt-1"><SelectValue placeholder="Select city" /></SelectTrigger>
+                    <SelectContent>{selectedCities.map(c => <SelectItem key={c.id} value={c.name}>{c.name}</SelectItem>)}</SelectContent>
+                  </Select>
+                </div>
+                <div>
+                  <Label className="text-xs text-gray-500">Woreda</Label>
+                  <Input value={formData.woreda} onChange={e => setFormData({ ...formData, woreda: e.target.value })} className="mt-1" />
+                </div>
+                <div>
+                  <Label className="text-xs text-gray-500">Kebele</Label>
+                  <Input value={formData.kebele} onChange={e => setFormData({ ...formData, kebele: e.target.value })} className="mt-1" />
+                </div>
               </div>
               <div>
-                <Label>Phone</Label>
-                <Input value={formData.phone} onChange={e => setFormData({ ...formData, phone: e.target.value })} />
+                <Label className="text-xs text-gray-500">Address</Label>
+                <Textarea value={formData.address} onChange={e => setFormData({ ...formData, address: e.target.value })} rows={2} className="mt-1" />
               </div>
             </div>
-            <div className="grid grid-cols-2 gap-4">
-              <div>
-                <Label>Business Name</Label>
-                <Input value={formData.businessName} onChange={e => setFormData({ ...formData, businessName: e.target.value })} />
+
+            {/* Business Information */}
+            <div className="space-y-4">
+              <h3 className="text-sm font-bold text-gray-900 uppercase tracking-wider border-b pb-2">Business Information</h3>
+              <div className="grid grid-cols-2 gap-4">
+                <div>
+                  <Label className="text-xs text-gray-500">Business Name</Label>
+                  <Input value={formData.businessName} onChange={e => setFormData({ ...formData, businessName: e.target.value })} className="mt-1" />
+                </div>
+                <div>
+                  <Label className="text-xs text-gray-500">Business Type</Label>
+                  <Select value={formData.businessType} onValueChange={v => setFormData({ ...formData, businessType: v })}>
+                    <SelectTrigger className="mt-1"><SelectValue placeholder="Select type" /></SelectTrigger>
+                    <SelectContent>{BUSINESS_TYPES.map(t => <SelectItem key={t} value={t}>{t}</SelectItem>)}</SelectContent>
+                  </Select>
+                </div>
+                <div>
+                  <Label className="text-xs text-gray-500">Experience</Label>
+                  <Select value={formData.experience} onValueChange={v => setFormData({ ...formData, experience: v })}>
+                    <SelectTrigger className="mt-1"><SelectValue placeholder="Select experience" /></SelectTrigger>
+                    <SelectContent>{EXPERIENCE_LEVELS.map(e => <SelectItem key={e} value={e}>{e}</SelectItem>)}</SelectContent>
+                  </Select>
+                </div>
+                <div>
+                  <Label className="text-xs text-gray-500">Staff Count</Label>
+                  <Input type="number" value={formData.staffCount} onChange={e => setFormData({ ...formData, staffCount: e.target.value })} className="mt-1" />
+                </div>
+                <div>
+                  <Label className="text-xs text-gray-500">Estimated Capital</Label>
+                  <Input value={formData.estimatedCapital} onChange={e => setFormData({ ...formData, estimatedCapital: e.target.value })} className="mt-1" />
+                </div>
+                <div>
+                  <Label className="text-xs text-gray-500">Existing Brands</Label>
+                  <Input value={formData.existingBrands} onChange={e => setFormData({ ...formData, existingBrands: e.target.value })} className="mt-1" />
+                </div>
               </div>
-              <div>
-                <Label>TIN Number</Label>
-                <Input value={formData.tinNumber} onChange={e => setFormData({ ...formData, tinNumber: e.target.value })} />
+              <div className="flex items-center gap-2">
+                <Checkbox id="editHasWarehouse" checked={formData.hasWarehouse} onCheckedChange={v => setFormData({ ...formData, hasWarehouse: !!v })} />
+                <Label htmlFor="editHasWarehouse">Has Warehouse</Label>
+              </div>
+              {formData.hasWarehouse && (
+                <div>
+                  <Label className="text-xs text-gray-500">Warehouse Size</Label>
+                  <Input value={formData.warehouseSize} onChange={e => setFormData({ ...formData, warehouseSize: e.target.value })} className="mt-1" />
+                </div>
+              )}
+            </div>
+
+            {/* Bank Information */}
+            <div className="space-y-4">
+              <h3 className="text-sm font-bold text-gray-900 uppercase tracking-wider border-b pb-2">Bank Information</h3>
+              <div className="grid grid-cols-2 gap-4">
+                <div>
+                  <Label className="text-xs text-gray-500">Bank Name</Label>
+                  <Input value={formData.bankName} onChange={e => setFormData({ ...formData, bankName: e.target.value })} className="mt-1" />
+                </div>
+                <div>
+                  <Label className="text-xs text-gray-500">Account Number</Label>
+                  <Input value={formData.accountNumber} onChange={e => setFormData({ ...formData, accountNumber: e.target.value })} className="mt-1" />
+                </div>
               </div>
             </div>
+
+            {/* Documents */}
+            <div className="space-y-4">
+              <h3 className="text-sm font-bold text-gray-900 uppercase tracking-wider border-b pb-2">Documents</h3>
+              <p className="text-xs text-gray-500">Upload new files to replace existing documents.</p>
+              <div className="grid grid-cols-2 gap-4">
+                <div>
+                  <Label className="text-xs text-gray-500">Trade License</Label>
+                  <div className="mt-1">
+                    <label className="flex flex-col items-center justify-center w-full h-24 border-2 border-dashed border-gray-200 rounded-xl cursor-pointer hover:border-gray-300 hover:bg-gray-50 transition-all">
+                      {licensePreview ? (
+                        licensePreview.startsWith('data:') ? (
+                          <img src={licensePreview} alt="New License" className="w-full h-full object-contain rounded-lg" />
+                        ) : (
+                          <img src={licensePreview} alt="Current License" className="w-full h-full object-contain rounded-lg" />
+                        )
+                      ) : (
+                        <div className="flex flex-col items-center">
+                          <FileUp className="w-6 h-6 text-gray-400" />
+                          <span className="text-xs text-gray-500 mt-1">Replace License</span>
+                        </div>
+                      )}
+                      <input type="file" accept="image/*,.pdf" className="hidden" onChange={e => handleFileChange('tradeLicense', e.target.files?.[0] || null)} />
+                    </label>
+                    {licensePreview && (
+                      <Button variant="ghost" size="sm" className="mt-2 text-red-500" onClick={() => { setLicensePreview(null); setFormData(prev => ({ ...prev, tradeLicense: null })); }}>
+                        <X className="w-4 h-4 mr-1" /> Remove
+                      </Button>
+                    )}
+                  </div>
+                </div>
+                <div>
+                  <Label className="text-xs text-gray-500">ID Document</Label>
+                  <div className="mt-1">
+                    <label className="flex flex-col items-center justify-center w-full h-24 border-2 border-dashed border-gray-200 rounded-xl cursor-pointer hover:border-gray-300 hover:bg-gray-50 transition-all">
+                      {idPreview ? (
+                        idPreview.startsWith('data:') ? (
+                          <img src={idPreview} alt="New ID" className="w-full h-full object-contain rounded-lg" />
+                        ) : (
+                          <img src={idPreview} alt="Current ID" className="w-full h-full object-contain rounded-lg" />
+                        )
+                      ) : (
+                        <div className="flex flex-col items-center">
+                          <FileUp className="w-6 h-6 text-gray-400" />
+                          <span className="text-xs text-gray-500 mt-1">Replace ID</span>
+                        </div>
+                      )}
+                      <input type="file" accept="image/*,.pdf" className="hidden" onChange={e => handleFileChange('idDocument', e.target.files?.[0] || null)} />
+                    </label>
+                    {idPreview && (
+                      <Button variant="ghost" size="sm" className="mt-2 text-red-500" onClick={() => { setIdPreview(null); setFormData(prev => ({ ...prev, idDocument: null })); }}>
+                        <X className="w-4 h-4 mr-1" /> Remove
+                      </Button>
+                    )}
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            {/* Status */}
             <div>
-              <Label>Status</Label>
+              <Label className="text-xs text-gray-500">Status</Label>
               <Select value={formData.status} onValueChange={v => setFormData({ ...formData, status: v })}>
-                <SelectTrigger><SelectValue /></SelectTrigger>
+                <SelectTrigger className="mt-1"><SelectValue /></SelectTrigger>
                 <SelectContent>
                   <SelectItem value="PENDING">Pending</SelectItem>
                   <SelectItem value="APPROVED">Approved</SelectItem>
@@ -936,47 +1230,14 @@ export default function AgentsPage() {
                 </SelectContent>
               </Select>
             </div>
-            <DialogFooter>
+
+            <DialogFooter className="gap-2">
               <Button type="button" variant="outline" onClick={() => setShowEditDialog(false)}>Cancel</Button>
               <Button type="submit" disabled={actionLoading} className="bg-gray-900 hover:bg-gray-800">
                 {actionLoading ? 'Saving...' : 'Save Changes'}
               </Button>
             </DialogFooter>
           </form>
-        </DialogContent>
-      </Dialog>
-
-      {/* Inventory Dialog */}
-      <Dialog open={showInventoryDialog} onOpenChange={setShowInventoryDialog}>
-        <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
-          <DialogHeader>
-            <DialogTitle>Agent Inventory</DialogTitle>
-          </DialogHeader>
-          {inventoryLoading ? (
-            <div className="flex items-center justify-center py-12">
-              <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-gray-900" />
-            </div>
-          ) : inventoryData.length === 0 ? (
-            <div className="text-center py-12 text-gray-400">
-              <Warehouse className="w-12 h-12 mx-auto mb-4" />
-              <p>No inventory assigned</p>
-            </div>
-          ) : (
-            <div className="space-y-3">
-              {inventoryData.map((item: any) => (
-                <div key={item.id} className="p-4 bg-gray-50 rounded-xl flex items-center justify-between">
-                  <div>
-                    <p className="font-medium">{item.product?.name || 'Unknown Product'}</p>
-                    <p className="text-sm text-gray-500">{item.product?.category || '-'}</p>
-                  </div>
-                  <div className="text-right">
-                    <p className="text-2xl font-bold">{item.quantity}</p>
-                    <p className="text-xs text-gray-500">units</p>
-                  </div>
-                </div>
-              ))}
-            </div>
-          )}
         </DialogContent>
       </Dialog>
 
@@ -1010,29 +1271,45 @@ export default function AgentsPage() {
       <Dialog open={showPortalDialog} onOpenChange={setShowPortalDialog}>
         <DialogContent>
           <DialogHeader>
-            <DialogTitle>Portal Access</DialogTitle>
+            <DialogTitle className="flex items-center gap-2">
+              <Shield className="w-5 h-5" />
+              Portal Access
+            </DialogTitle>
             <DialogDescription>Manage portal access for {selectedAgent?.firstName} {selectedAgent?.lastName}</DialogDescription>
           </DialogHeader>
           <div className="space-y-4">
             <div className="p-4 bg-gray-50 rounded-xl">
-              <p className="text-sm text-gray-600">Current Status</p>
-              <p className="font-medium mt-1">
-                {selectedAgent?.userId ? (selectedAgent.user?.isActive ? 'Portal Active' : 'Portal Disabled') : 'No Portal Access'}
-              </p>
+              <p className="text-xs font-bold text-gray-500 uppercase mb-1">Current Status</p>
+              <div className="flex items-center gap-2">
+                <div className={`w-2 h-2 rounded-full ${selectedAgent?.user?.isActive ? 'bg-emerald-500' : 'bg-red-500'}`} />
+                <p className="font-medium">
+                  {selectedAgent?.userId 
+                    ? (selectedAgent?.user?.isActive ? 'Portal Active' : 'Portal Disabled') 
+                    : 'No Portal Access'}
+                </p>
+              </div>
             </div>
+            
             <div>
-              <Label>Set Portal Password</Label>
+              <Label>Set New Password</Label>
               <Input
                 type="password"
                 value={portalPassword}
                 onChange={e => setPortalPassword(e.target.value)}
-                placeholder="Enter new password (min 6 characters)"
+                placeholder="Enter password (min 6 characters)"
+                className="mt-1"
               />
             </div>
+            
+            {selectedAgent?.user?.isActive && (
+              <Button variant="outline" className="w-full text-red-600 border-red-200 hover:bg-red-50" onClick={() => handlePortalAccess(false)} disabled={portalLoading}>
+                Disable Portal Access
+              </Button>
+            )}
           </div>
-          <DialogFooter>
+          <DialogFooter className="gap-2">
             <Button variant="outline" onClick={() => setShowPortalDialog(false)}>Cancel</Button>
-            <Button onClick={handlePortalAccess} disabled={portalLoading || portalPassword.length < 6} className="bg-gray-900 hover:bg-gray-800">
+            <Button onClick={() => handlePortalAccess(true)} disabled={portalLoading || portalPassword.length < 6} className="bg-gray-900 hover:bg-gray-800">
               {portalLoading ? 'Saving...' : 'Save Password'}
             </Button>
           </DialogFooter>

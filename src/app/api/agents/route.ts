@@ -28,8 +28,9 @@ export async function GET(request: NextRequest) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
     
-    // Only ADMIN and MARKETING_MANAGER can list all agents
-    if (!['ADMIN', 'MARKETING_MANAGER'].includes(session.user.role)) {
+    // ADMIN and MARKETING_MANAGER can see all agents, WAREHOUSE_MANAGER can only see approved agents
+    const allowedRoles = ['ADMIN', 'MARKETING_MANAGER', 'WAREHOUSE_MANAGER'];
+    if (!allowedRoles.includes(session.user.role)) {
       return NextResponse.json({ error: 'Forbidden' }, { status: 403 });
     }
     
@@ -39,7 +40,10 @@ export async function GET(request: NextRequest) {
     
     const where: Record<string, unknown> = {};
     
-    if (status) {
+    // WAREHOUSE_MANAGER can only see approved agents
+    if (session.user.role === 'WAREHOUSE_MANAGER') {
+      where.status = 'APPROVED';
+    } else if (status) {
       where.status = status;
     }
     

@@ -169,9 +169,16 @@ export default function AgentsPage() {
       const params = new URLSearchParams();
       if (statusFilter !== 'all') params.append('status', statusFilter);
       const res = await fetch(`/api/agents?${params}`);
-      if (res.ok) setAgents(Array.isArray(await res.json()) ? await res.json() : []);
+      if (res.ok) {
+        const data = await res.json();
+        setAgents(Array.isArray(data) ? data : []);
+      } else {
+        console.error('Failed to fetch agents:', res.status, res.statusText);
+        setAgents([]);
+      }
     } catch (e) {
       console.error('Failed to fetch agents:', e);
+      setAgents([]);
     } finally {
       setLoading(false);
     }

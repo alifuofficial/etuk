@@ -63,6 +63,7 @@ model Agent {
   inventory        Inventory[]
   units            ProductUnit[]
   sales            Sale[]
+  proformas        Proforma[]
 }
 
 model Product {
@@ -85,6 +86,7 @@ model Product {
   inventory      Inventory[]
   transactions   InventoryTransaction[]
   units          ProductUnit[]
+  proformaItems  ProformaItem[]
 }
 
 model ProductUnit {
@@ -92,7 +94,8 @@ model ProductUnit {
   productId      String
   chassisNumber  String                 @unique
   currentAgentId String?
-  status         String                 @default("AVAILABLE")
+  proformaId     String?                // Reserved for proforma
+  status         String                 @default("AVAILABLE") // AVAILABLE, WITH_AGENT, SOLD, RESERVED
   isSold         Boolean                @default(false)
   soldAt         DateTime?
   notes          String?
@@ -100,6 +103,7 @@ model ProductUnit {
   updatedAt      DateTime               @updatedAt
   agent          Agent?                 @relation(fields: [currentAgentId], references: [id])
   product        Product                @relation(fields: [productId], references: [id], onDelete: Cascade)
+  proforma       Proforma?              @relation(fields: [proformaId], references: [id], onDelete: SetNull)
   sales          Sale[]                 @relation("UnitSales")
   transactions   InventoryTransaction[] @relation("TransactionUnits")
 }
@@ -242,4 +246,37 @@ model Customer {
   sales     Sale[]
 
   @@unique([agentId, phone])
+}
+
+model Proforma {
+  id            String        @id @default(cuid())
+  number        String        @unique
+  agentId       String
+  status        String        @default("PENDING") // PENDING, PAID, EXPIRED, CANCELLED
+  totalAmount   Float
+  notes         String?
+  expiresAt     DateTime
+  paidAt        DateTime?
+  paymentRef    String?       // Payment reference number
+  createdAt     DateTime      @default(now())
+  updatedAt     DateTime      @updatedAt
+  agent         Agent         @relation(fields: [agentId], references: [id])
+  items         ProformaItem[]
+  productUnits  ProductUnit[]
+
+  @@index([agentId])
+  @@index([status])
+}
+
+model ProformaItem {
+  id           String   @id @default(cuid())
+  proformaId   String
+  productId    String
+  productName  String
+  quantity     Int
+  unitPrice    Float
+  totalPrice   Float
+  createdAt    DateTime @default(now())
+  proforma     Proforma @relation(fields: [proformaId], references: [id], onDelete: Cascade)
+  product      Product  @relation(fields: [productId], references: [id])
 }

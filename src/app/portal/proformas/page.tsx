@@ -232,10 +232,35 @@ export default function AgentProformasPage() {
     setShowUploadDialog(true);
   };
 
-  const handlePrint = (proforma: Proforma) => {
+  const handlePrint = async (proforma: Proforma) => {
     const subtotal = proforma.items.reduce((sum, item) => sum + item.totalPrice, 0);
     const vat = subtotal * VAT_RATE;
     const totalWithVat = subtotal + vat;
+
+    // Fetch company settings
+    let companySettings = {
+      companyName: 'ETUK',
+      companyTin: '',
+      companyVatNumber: '',
+      companyBankName: 'Commercial Bank of Ethiopia',
+      companyBankAccount: '',
+      companyBankBranch: '',
+      companyRegistrationNumber: '',
+      address: 'Modjo, Oromia, Ethiopia',
+      phone: '+251 911 234 567',
+      supportEmail: 'support@etuk.et',
+      companyLogo: '',
+    };
+
+    try {
+      const res = await fetch('/api/settings');
+      if (res.ok) {
+        const data = await res.json();
+        companySettings = { ...companySettings, ...data };
+      }
+    } catch (error) {
+      console.error('Failed to fetch company settings:', error);
+    }
 
     const printWindow = window.open('', '_blank');
     if (!printWindow) return;
@@ -246,53 +271,93 @@ export default function AgentProformasPage() {
       <head>
         <title>Proforma Invoice - ${proforma.number}</title>
         <style>
-          body { font-family: Arial, sans-serif; padding: 40px; max-width: 800px; margin: 0 auto; }
-          .header { text-align: center; margin-bottom: 30px; border-bottom: 2px solid #333; padding-bottom: 20px; }
-          .company-name { font-size: 24px; font-weight: bold; color: #16a34a; }
-          .invoice-title { font-size: 18px; margin-top: 10px; }
-          .info-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; margin-bottom: 30px; }
-          .info-box { background: #f5f5f5; padding: 15px; border-radius: 8px; }
-          .info-label { font-size: 12px; color: #666; text-transform: uppercase; }
-          .info-value { font-size: 14px; font-weight: 500; margin-top: 5px; }
-          table { width: 100%; border-collapse: collapse; margin-bottom: 20px; }
+          body { font-family: Arial, sans-serif; padding: 40px; max-width: 800px; margin: 0 auto; font-size: 14px; }
+          
+          .header { display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 30px; border-bottom: 2px solid #333; padding-bottom: 24px; }
+          .header-left h1 { font-size: 24px; font-weight: bold; color: #111; margin: 0; }
+          .header-left .proforma-number { font-size: 18px; font-weight: 600; color: #0ea5e9; margin-top: 4px; }
+          .header-left .dates { margin-top: 12px; color: #666; font-size: 13px; }
+          .header-left .dates p { margin: 4px 0; }
+          .header-right { text-align: right; }
+          .header-right .company-logo { height: 48px; object-contain; margin-bottom: 8px; }
+          .header-right .company-name { font-size: 18px; font-weight: bold; color: #111; }
+          .header-right .company-info { color: #666; font-size: 12px; margin-top: 4px; }
+          .header-right .company-info p { margin: 2px 0; }
+          
+          .bill-to { margin-bottom: 24px; }
+          .bill-to .label { font-size: 11px; font-weight: bold; color: #999; text-transform: uppercase; margin-bottom: 8px; }
+          .bill-to .name { font-weight: bold; color: #111; }
+          .bill-to .details { color: #666; font-size: 13px; margin-top: 4px; }
+          
+          table { width: 100%; border-collapse: collapse; margin-bottom: 24px; }
           th, td { border: 1px solid #ddd; padding: 12px; text-align: left; }
-          th { background: #f5f5f5; font-weight: 600; }
+          th { background: #f3f4f6; font-weight: bold; color: #4b5563; font-size: 11px; text-transform: uppercase; }
+          td { font-size: 13px; }
           .text-right { text-align: right; }
-          .totals { margin-left: auto; width: 300px; }
-          .total-row { display: flex; justify-content: space-between; padding: 8px 0; }
-          .total-row.grand { border-top: 2px solid #333; font-weight: bold; font-size: 18px; }
-          .footer { margin-top: 40px; text-align: center; color: #666; font-size: 12px; }
-          .status-badge { display: inline-block; padding: 4px 12px; border-radius: 20px; font-size: 12px; font-weight: 600; }
-          .status-${proforma.status.toLowerCase()} { background: ${proforma.status === 'PAID' ? '#d1fae5' : proforma.status === 'PENDING' ? '#fef3c7' : '#fee2e2'}; color: ${proforma.status === 'PAID' ? '#059669' : proforma.status === 'PENDING' ? '#d97706' : '#dc2626'}; }
-          @media print { body { padding: 20px; } }
+          tfoot tr:nth-child(1) td, tfoot tr:nth-child(2) td { background: #f9fafb; }
+          tfoot tr:last-child { background: #f3f4f6; }
+          tfoot tr:last-child td { font-weight: bold; font-size: 14px; }
+          
+          .section { margin-bottom: 24px; }
+          .section .label { font-size: 11px; font-weight: bold; color: #999; text-transform: uppercase; margin-bottom: 8px; }
+          .chassis-list { display: flex; flex-wrap: wrap; gap: 8px; padding: 12px; background: #f9fafb; border: 1px solid #e5e7eb; border-radius: 8px; }
+          .chassis-item { padding: 4px 12px; background: white; border: 1px solid #d1d5db; border-radius: 4px; font-family: monospace; font-size: 12px; }
+          
+          .notes-box { padding: 16px; background: #f9fafb; border-radius: 8px; }
+          .notes-box .label { font-size: 11px; font-weight: bold; color: #999; text-transform: uppercase; margin-bottom: 8px; }
+          .notes-box p { color: #4b5563; font-size: 13px; }
+          
+          .bank-details { padding: 16px; background: #eff6ff; border: 1px solid #bfdbfe; border-radius: 8px; margin-bottom: 24px; }
+          .bank-details .label { font-size: 11px; font-weight: bold; color: #2563eb; text-transform: uppercase; margin-bottom: 12px; }
+          .bank-details .grid { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+          .bank-details .item p { margin: 0; font-size: 12px; color: #666; }
+          .bank-details .item .value { font-weight: 500; color: #111; font-size: 13px; }
+          
+          .footer { border-top: 1px solid #e5e7eb; padding-top: 24px; margin-top: 32px; text-align: center; color: #9ca3af; font-size: 12px; }
+          .footer p { margin: 4px 0; }
+          .footer .company-line { font-size: 11px; margin-top: 8px; }
+          
+          @media print { 
+            body { padding: 20px; } 
+            .no-print { display: none; }
+          }
         </style>
       </head>
       <body>
+        <!-- Header -->
         <div class="header">
-          <div class="company-name">SORETI ETHIOPIA</div>
-          <div class="invoice-title">PROFORMA INVOICE</div>
-          <div style="margin-top: 10px;">
-            <span class="status-badge status-${proforma.status.toLowerCase()}">${getStatusLabel(proforma.status)}</span>
+          <div class="header-left">
+            <h1>PROFORMA INVOICE</h1>
+            <p class="proforma-number">${proforma.number}</p>
+            <div class="dates">
+              <p><strong>Date:</strong> ${new Date(proforma.createdAt).toLocaleDateString()}</p>
+              <p><strong>Valid Until:</strong> ${new Date(proforma.expiresAt).toLocaleDateString()}</p>
+            </div>
+          </div>
+          <div class="header-right">
+            ${companySettings.companyLogo ? 
+              `<img src="${companySettings.companyLogo}" alt="${companySettings.companyName}" class="company-logo" />` : 
+              `<p class="company-name">${companySettings.companyName}</p>`
+            }
+            <div class="company-info">
+              <p>${companySettings.address}</p>
+              <p>${companySettings.phone}</p>
+              <p>${companySettings.supportEmail}</p>
+              ${companySettings.companyTin ? `<p>TIN: ${companySettings.companyTin}</p>` : ''}
+              ${companySettings.companyVatNumber ? `<p>VAT: ${companySettings.companyVatNumber}</p>` : ''}
+              ${companySettings.companyRegistrationNumber ? `<p>Reg: ${companySettings.companyRegistrationNumber}</p>` : ''}
+            </div>
           </div>
         </div>
 
-        <div class="info-grid">
-          <div class="info-box">
-            <div class="info-label">Proforma Number</div>
-            <div class="info-value">${proforma.number}</div>
-            <div class="info-label" style="margin-top: 10px;">Date Issued</div>
-            <div class="info-value">${formatDate(proforma.createdAt)}</div>
-          </div>
-          <div class="info-box">
-            <div class="info-label">Valid Until</div>
-            <div class="info-value">${formatDate(proforma.expiresAt)}</div>
-            ${proforma.paidAt ? `
-              <div class="info-label" style="margin-top: 10px;">Paid On</div>
-              <div class="info-value">${formatDate(proforma.paidAt)}</div>
-            ` : ''}
-          </div>
+        <!-- Bill To -->
+        <div class="bill-to">
+          <p class="label">Bill To:</p>
+          <p class="name">${proforma.agent ? `${proforma.agent.firstName} ${proforma.agent.lastName}` : 'Agent'}</p>
+          <p class="details">Agent Portal</p>
         </div>
 
+        <!-- Items Table -->
         <table>
           <thead>
             <tr>
@@ -312,41 +377,68 @@ export default function AgentProformasPage() {
               </tr>
             `).join('')}
           </tbody>
+          <tfoot>
+            <tr>
+              <td colspan="3" class="text-right">Subtotal</td>
+              <td class="text-right">${formatCurrency(subtotal)}</td>
+            </tr>
+            <tr>
+              <td colspan="3" class="text-right">VAT (15%)</td>
+              <td class="text-right">${formatCurrency(vat)}</td>
+            </tr>
+            <tr>
+              <td colspan="3" class="text-right">TOTAL (incl. VAT)</td>
+              <td class="text-right">${formatCurrency(totalWithVat)}</td>
+            </tr>
+          </tfoot>
         </table>
 
-        <div class="totals">
-          <div class="total-row">
-            <span>Subtotal</span>
-            <span>${formatCurrency(subtotal)}</span>
-          </div>
-          <div class="total-row">
-            <span>VAT (15%)</span>
-            <span>${formatCurrency(vat)}</span>
-          </div>
-          <div class="total-row grand">
-            <span>Total (incl. VAT)</span>
-            <span>${formatCurrency(totalWithVat)}</span>
-          </div>
-        </div>
-
         ${proforma.productUnits.length > 0 ? `
-          <div style="margin-top: 30px;">
-            <strong>Reserved Chassis Numbers:</strong>
-            <div style="margin-top: 10px; display: flex; flex-wrap: wrap; gap: 8px;">
-              ${proforma.productUnits.map(u => `<span style="background: #dbeafe; color: #1d4ed8; padding: 4px 12px; border-radius: 20px; font-family: monospace;">${u.chassisNumber}</span>`).join('')}
+          <div class="section">
+            <p class="label">Reserved Units (Chassis Numbers):</p>
+            <div class="chassis-list">
+              ${proforma.productUnits.map(u => `<span class="chassis-item">${u.chassisNumber}</span>`).join('')}
             </div>
           </div>
         ` : ''}
 
         ${proforma.notes ? `
-          <div style="margin-top: 30px; padding: 15px; background: #f5f5f5; border-radius: 8px;">
-            <strong>Notes:</strong> ${proforma.notes}
+          <div class="notes-box">
+            <p class="label">Notes:</p>
+            <p>${proforma.notes}</p>
           </div>
         ` : ''}
 
+        <!-- Bank Details -->
+        <div class="bank-details">
+          <p class="label">Payment Information</p>
+          <div class="grid">
+            <div class="item">
+              <p>Bank Name</p>
+              <p class="value">${companySettings.companyBankName || '-'}</p>
+            </div>
+            <div class="item">
+              <p>Account Number</p>
+              <p class="value" style="font-family: monospace;">${companySettings.companyBankAccount || '-'}</p>
+            </div>
+            ${companySettings.companyBankBranch ? `
+              <div class="item">
+                <p>Branch</p>
+                <p class="value">${companySettings.companyBankBranch}</p>
+              </div>
+            ` : ''}
+            <div class="item">
+              <p>Account Name</p>
+              <p class="value">${companySettings.companyName}</p>
+            </div>
+          </div>
+        </div>
+
+        <!-- Footer -->
         <div class="footer">
-          <p>This is a computer-generated document. No signature required.</p>
+          <p>This is a proforma invoice. Payment must be made before the expiration date.</p>
           <p>Thank you for your business!</p>
+          <p class="company-line">${companySettings.companyName} | ${companySettings.phone} | ${companySettings.supportEmail}</p>
         </div>
       </body>
       </html>

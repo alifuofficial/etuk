@@ -418,10 +418,10 @@ export default function AccountantVerifyPage() {
                     <div>
                       <p className="text-xs font-bold text-gray-500 uppercase mb-3">Payment Receipt</p>
                       <div className="p-4 bg-gray-50 rounded-xl space-y-3">
-                        {/* Show image preview */}
+                        {/* Show image preview using API endpoint */}
                         <div className="border rounded-lg overflow-hidden bg-white">
                           <img 
-                            src={selectedProforma.paymentReceipt} 
+                            src={`/api/uploads/payments/${selectedProforma.paymentReceipt.split('/').pop()}`} 
                             alt="Payment Receipt"
                             className="max-w-full max-h-64 mx-auto object-contain"
                             onError={(e) => {
@@ -434,7 +434,7 @@ export default function AccountantVerifyPage() {
                                       <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path>
                                     </svg>
                                     <p class="text-sm">Receipt file not found</p>
-                                    <a href="${selectedProforma.paymentReceipt}" target="_blank" class="text-blue-600 text-xs hover:underline mt-2 inline-block">Try opening in new tab</a>
+                                    <p class="text-xs text-gray-400 mt-1">File: ${selectedProforma.paymentReceipt}</p>
                                   </div>
                                 `;
                               }
@@ -443,7 +443,7 @@ export default function AccountantVerifyPage() {
                         </div>
                         <div className="flex items-center justify-between">
                           <a 
-                            href={selectedProforma.paymentReceipt} 
+                            href={`/api/uploads/payments/${selectedProforma.paymentReceipt.split('/').pop()}`} 
                             target="_blank" 
                             rel="noopener noreferrer"
                             className="text-sm text-blue-600 hover:text-blue-700 font-medium flex items-center gap-1"

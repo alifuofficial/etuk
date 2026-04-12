@@ -61,6 +61,16 @@ export async function POST(
     const paymentRef = formData.get('paymentRef') as string || '';
     const notes = formData.get('notes') as string || '';
 
+    console.log('Upload request received:', {
+      proformaId: id,
+      proformaNumber: proforma.number,
+      hasFile: !!file,
+      fileName: file?.name,
+      fileType: file?.type,
+      fileSize: file?.size,
+      paymentRef,
+    });
+
     if (!file) {
       return NextResponse.json(
         { error: 'Payment receipt file is required' },
@@ -88,23 +98,35 @@ export async function POST(
 
     // Create uploads directory if it doesn't exist
     const uploadsDir = join(process.cwd(), 'public', 'uploads', 'payments');
+    console.log('Uploads directory:', uploadsDir);
+    
     if (!existsSync(uploadsDir)) {
+      console.log('Creating uploads directory...');
       await mkdir(uploadsDir, { recursive: true });
     }
 
     // Generate unique filename
     const timestamp = Date.now();
-    const fileExtension = file.name.split('.').pop();
+    const fileExtension = file.name.split('.').pop() || 'png';
     const fileName = `payment-${proforma.number}-${timestamp}.${fileExtension}`;
     const filePath = join(uploadsDir, fileName);
+    
+    console.log('Saving file to:', filePath);
 
     // Write file
     const bytes = await file.arrayBuffer();
     const buffer = Buffer.from(bytes);
     await writeFile(filePath, buffer);
+    
+    console.log('File saved successfully. Size:', buffer.length, 'bytes');
+
+    // Verify file was written
+    const fileExists = existsSync(filePath);
+    console.log('File exists after write:', fileExists);
 
     // Update proforma with payment receipt
     const receiptPath = `/uploads/payments/${fileName}`;
+    console.log('Storing receipt path:', receiptPath);
     
     const updatedProforma = await db.proforma.update({
       where: { id },
@@ -134,18 +156,16 @@ export async function POST(
       },
     });
 
-    // TODO: Send notification to accountant about new payment to verify
-    // This could be an SMS or in-app notification
-
     return NextResponse.json({
       success: true,
       message: 'Payment receipt uploaded successfully',
+      receiptPath,
       proforma: updatedProforma,
     });
   } catch (error) {
     console.error('Error uploading payment receipt:', error);
     return NextResponse.json(
-      { error: 'Failed to upload payment receipt' },
+      { error: 'Failed to upload payment receipt', details: String(error) },
       { status: 500 }
     );
   }

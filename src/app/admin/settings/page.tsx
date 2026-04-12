@@ -36,6 +36,9 @@ import {
   CreditCard,
   FileText,
   Receipt,
+  Server,
+  Key,
+  LockKeyhole,
 } from 'lucide-react';
 import LanguageManager from '@/components/admin/settings/LanguageManager';
 import TranslationManager from '@/components/admin/settings/TranslationManager';
@@ -53,6 +56,21 @@ export default function SettingsPage() {
   const [smsTestMsg, setSmsTestMsg] = useState('Hello! This is a test SMS from ETUK Admin.');
   const [smsSaving, setSmsSaving] = useState(false);
   const [smsTesting, setSmsTesting] = useState(false);
+
+  // SMTP Settings
+  const [smtpSettings, setSmtpSettings] = useState({
+    smtpHost: '',
+    smtpPort: '587',
+    smtpUser: '',
+    smtpPassword: '',
+    smtpEncryption: 'tls',
+    smtpFromEmail: '',
+    smtpFromName: 'ETUK',
+  });
+  const [showSmtpPassword, setShowSmtpPassword] = useState(false);
+  const [smtpSaving, setSmtpSaving] = useState(false);
+  const [smtpTesting, setSmtpTesting] = useState(false);
+  const [smtpTestEmail, setSmtpTestEmail] = useState('');
 
   const [profileData, setProfileData] = useState({
     currentPassword: '',
@@ -94,6 +112,17 @@ export default function SettingsPage() {
           const data = await response.json();
           setSiteData(prev => ({...prev, ...data}));
           if (data.sms_api_key) setSmsApiKey(data.sms_api_key);
+          // Load SMTP settings
+          setSmtpSettings(prev => ({
+            ...prev,
+            smtpHost: data.smtpHost || '',
+            smtpPort: data.smtpPort || '587',
+            smtpUser: data.smtpUser || '',
+            smtpPassword: data.smtpPassword || '',
+            smtpEncryption: data.smtpEncryption || 'tls',
+            smtpFromEmail: data.smtpFromEmail || '',
+            smtpFromName: data.smtpFromName || 'ETUK',
+          }));
         }
       } catch (error) {
         console.error('Failed to fetch settings:', error);
@@ -204,6 +233,9 @@ export default function SettingsPage() {
               </TabsTrigger>
               <TabsTrigger value="sms" className="rounded-lg data-[state=active]:bg-white data-[state=active]:shadow-sm data-[state=active]:text-gray-900 px-4 font-semibold text-sm text-gray-500">
                 <MessageSquare className="w-4 h-4 mr-2" /> SMS
+              </TabsTrigger>
+              <TabsTrigger value="smtp" className="rounded-lg data-[state=active]:bg-white data-[state=active]:shadow-sm data-[state=active]:text-gray-900 px-4 font-semibold text-sm text-gray-500">
+                <Server className="w-4 h-4 mr-2" /> SMTP
               </TabsTrigger>
               <TabsTrigger value="company" className="rounded-lg data-[state=active]:bg-white data-[state=active]:shadow-sm data-[state=active]:text-gray-900 px-4 font-semibold text-sm text-gray-500">
                 <Building2 className="w-4 h-4 mr-2" /> Company
@@ -643,6 +675,246 @@ export default function SettingsPage() {
                           <><Send className="w-4 h-4 mr-2" />Send Test</>
                         )}
                       </Button>
+                    </div>
+                  </div>
+                </CardContent>
+              </Card>
+            </TabsContent>
+
+            <TabsContent value="smtp" className="mt-6 outline-none space-y-6">
+              <Card className="border-gray-200/60 shadow-sm rounded-2xl overflow-hidden">
+                <CardHeader className="bg-gradient-to-r from-indigo-600 to-indigo-500 px-8 py-6">
+                  <div className="flex items-center gap-4">
+                    <div className="p-3 bg-white/20 rounded-xl">
+                      <Server className="w-6 h-6 text-white" />
+                    </div>
+                    <div>
+                      <h2 className="text-xl font-bold text-white">SMTP Configuration</h2>
+                      <p className="text-indigo-100 text-sm mt-0.5">Configure email server for sending notifications</p>
+                    </div>
+                  </div>
+                </CardHeader>
+                <CardContent className="p-8">
+                  <div className="grid lg:grid-cols-2 gap-8">
+                    {/* SMTP Server Settings */}
+                    <div className="space-y-5">
+                      <h3 className="text-sm font-bold text-gray-900 uppercase tracking-wider">Server Settings</h3>
+                      
+                      <div className="space-y-2">
+                        <Label className="text-xs font-bold text-gray-500 uppercase tracking-wider">SMTP Host</Label>
+                        <div className="relative">
+                          <Server className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
+                          <Input 
+                            value={smtpSettings.smtpHost}
+                            onChange={(e) => setSmtpSettings({...smtpSettings, smtpHost: e.target.value})}
+                            className="h-12 bg-gray-50 border-gray-200 rounded-xl pl-11"
+                            placeholder="smtp.gmail.com"
+                          />
+                        </div>
+                      </div>
+
+                      <div className="grid grid-cols-2 gap-4">
+                        <div className="space-y-2">
+                          <Label className="text-xs font-bold text-gray-500 uppercase tracking-wider">Port</Label>
+                          <Input 
+                            type="number"
+                            value={smtpSettings.smtpPort}
+                            onChange={(e) => setSmtpSettings({...smtpSettings, smtpPort: e.target.value})}
+                            className="h-12 bg-gray-50 border-gray-200 rounded-xl"
+                            placeholder="587"
+                          />
+                        </div>
+                        <div className="space-y-2">
+                          <Label className="text-xs font-bold text-gray-500 uppercase tracking-wider">Encryption</Label>
+                          <select 
+                            value={smtpSettings.smtpEncryption}
+                            onChange={(e) => setSmtpSettings({...smtpSettings, smtpEncryption: e.target.value})}
+                            className="h-12 w-full bg-gray-50 border border-gray-200 rounded-xl px-4 text-sm"
+                          >
+                            <option value="tls">TLS</option>
+                            <option value="ssl">SSL</option>
+                            <option value="none">None</option>
+                          </select>
+                        </div>
+                      </div>
+
+                      <div className="space-y-2">
+                        <Label className="text-xs font-bold text-gray-500 uppercase tracking-wider">Username</Label>
+                        <div className="relative">
+                          <Mail className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
+                          <Input 
+                            value={smtpSettings.smtpUser}
+                            onChange={(e) => setSmtpSettings({...smtpSettings, smtpUser: e.target.value})}
+                            className="h-12 bg-gray-50 border-gray-200 rounded-xl pl-11"
+                            placeholder="your-email@gmail.com"
+                          />
+                        </div>
+                      </div>
+
+                      <div className="space-y-2">
+                        <Label className="text-xs font-bold text-gray-500 uppercase tracking-wider">Password</Label>
+                        <div className="relative">
+                          <Key className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
+                          <Input 
+                            type={showSmtpPassword ? 'text' : 'password'}
+                            value={smtpSettings.smtpPassword}
+                            onChange={(e) => setSmtpSettings({...smtpSettings, smtpPassword: e.target.value})}
+                            className="h-12 bg-gray-50 border-gray-200 rounded-xl pl-11 pr-12"
+                            placeholder="••••••••••••"
+                          />
+                          <button
+                            type="button"
+                            onClick={() => setShowSmtpPassword(!showSmtpPassword)}
+                            className="absolute right-4 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600"
+                          >
+                            {showSmtpPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
+                          </button>
+                        </div>
+                      </div>
+                    </div>
+
+                    {/* Sender Settings & Test */}
+                    <div className="space-y-5">
+                      <h3 className="text-sm font-bold text-gray-900 uppercase tracking-wider">Sender Settings</h3>
+                      
+                      <div className="space-y-2">
+                        <Label className="text-xs font-bold text-gray-500 uppercase tracking-wider">From Email</Label>
+                        <div className="relative">
+                          <Mail className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
+                          <Input 
+                            value={smtpSettings.smtpFromEmail}
+                            onChange={(e) => setSmtpSettings({...smtpSettings, smtpFromEmail: e.target.value})}
+                            className="h-12 bg-gray-50 border-gray-200 rounded-xl pl-11"
+                            placeholder="noreply@etuk.et"
+                          />
+                        </div>
+                      </div>
+
+                      <div className="space-y-2">
+                        <Label className="text-xs font-bold text-gray-500 uppercase tracking-wider">From Name</Label>
+                        <div className="relative">
+                          <Building2 className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
+                          <Input 
+                            value={smtpSettings.smtpFromName}
+                            onChange={(e) => setSmtpSettings({...smtpSettings, smtpFromName: e.target.value})}
+                            className="h-12 bg-gray-50 border-gray-200 rounded-xl pl-11"
+                            placeholder="ETUK"
+                          />
+                        </div>
+                      </div>
+
+                      <div className="pt-4 border-t border-gray-100">
+                        <h4 className="text-sm font-bold text-gray-900 uppercase tracking-wider mb-3">Test Email</h4>
+                        <div className="space-y-3">
+                          <div className="space-y-2">
+                            <Label className="text-xs text-gray-500">Send test to:</Label>
+                            <Input 
+                              type="email"
+                              value={smtpTestEmail}
+                              onChange={(e) => setSmtpTestEmail(e.target.value)}
+                              className="h-11 bg-gray-50 border-gray-200 rounded-xl"
+                              placeholder="test@example.com"
+                            />
+                          </div>
+                          <Button
+                            type="button"
+                            onClick={async () => {
+                              if (!smtpTestEmail) return;
+                              setSmtpTesting(true);
+                              try {
+                                const res = await fetch('/api/settings/test-smtp', {
+                                  method: 'POST',
+                                  headers: { 'Content-Type': 'application/json' },
+                                  body: JSON.stringify({ 
+                                    ...smtpSettings,
+                                    testEmail: smtpTestEmail 
+                                  }),
+                                });
+                                const data = await res.json();
+                                if (res.ok) {
+                                  toast({ title: 'Email Sent', description: 'Test email sent successfully!' });
+                                } else {
+                                  throw new Error(data.error || 'Failed to send test email');
+                                }
+                              } catch (e: any) {
+                                toast({ title: 'Error', description: e.message, variant: 'destructive' });
+                              } finally {
+                                setSmtpTesting(false);
+                              }
+                            }}
+                            disabled={!smtpTestEmail || smtpTesting || !smtpSettings.smtpHost}
+                            className="h-11 w-full bg-indigo-600 hover:bg-indigo-700 text-white font-bold rounded-xl"
+                          >
+                            {smtpTesting ? (
+                              <><div className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin mr-2" />Sending...</>
+                            ) : (
+                              <><Send className="w-4 h-4 mr-2" />Send Test Email</>
+                            )}
+                          </Button>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* Save Button */}
+                  <div className="flex justify-end pt-6 mt-6 border-t border-gray-100">
+                    <Button
+                      type="button"
+                      onClick={async () => {
+                        setSmtpSaving(true);
+                        try {
+                          const res = await fetch('/api/settings', {
+                            method: 'POST',
+                            headers: { 'Content-Type': 'application/json' },
+                            body: JSON.stringify(smtpSettings),
+                          });
+                          if (res.ok) {
+                            toast({ title: 'SMTP Settings Saved', description: 'Email configuration updated.' });
+                          } else {
+                            throw new Error('Failed to save');
+                          }
+                        } catch {
+                          toast({ title: 'Error', description: 'Failed to save SMTP settings.', variant: 'destructive' });
+                        } finally {
+                          setSmtpSaving(false);
+                        }
+                      }}
+                      disabled={smtpSaving || !smtpSettings.smtpHost}
+                      className="h-12 px-8 bg-gray-900 hover:bg-gray-800 text-white font-bold rounded-xl shadow-lg shadow-gray-200/50 transition-all"
+                    >
+                      {smtpSaving ? (
+                        <><div className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin mr-2" />Saving...</>
+                      ) : (
+                        <><Save className="w-4 h-4 mr-2" />Save SMTP Settings</>
+                      )}
+                    </Button>
+                  </div>
+                </CardContent>
+              </Card>
+
+              {/* Common SMTP Providers Info */}
+              <Card className="border-gray-200/60 shadow-sm rounded-2xl overflow-hidden">
+                <CardHeader className="border-b border-gray-100 px-6 py-4">
+                  <h3 className="text-sm font-bold text-gray-900">Common SMTP Providers</h3>
+                </CardHeader>
+                <CardContent className="p-6">
+                  <div className="grid md:grid-cols-3 gap-4 text-sm">
+                    <div className="p-4 bg-red-50 rounded-xl border border-red-100">
+                      <p className="font-bold text-red-800">Gmail</p>
+                      <p className="text-red-600 mt-1">Host: smtp.gmail.com</p>
+                      <p className="text-red-600">Port: 587 (TLS)</p>
+                      <p className="text-xs text-red-500 mt-2">Use App Password for 2FA accounts</p>
+                    </div>
+                    <div className="p-4 bg-blue-50 rounded-xl border border-blue-100">
+                      <p className="font-bold text-blue-800">Outlook/Office365</p>
+                      <p className="text-blue-600 mt-1">Host: smtp.office365.com</p>
+                      <p className="text-blue-600">Port: 587 (TLS)</p>
+                    </div>
+                    <div className="p-4 bg-amber-50 rounded-xl border border-amber-100">
+                      <p className="font-bold text-amber-800">SendGrid</p>
+                      <p className="text-amber-600 mt-1">Host: smtp.sendgrid.net</p>
+                      <p className="text-amber-600">Port: 587 (TLS)</p>
+                      <p className="text-xs text-amber-500 mt-2">Username: apikey</p>
                     </div>
                   </div>
                 </CardContent>

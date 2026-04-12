@@ -41,8 +41,9 @@ function HeroContent() {
         transition={{ duration: 0.6, delay: 0.1 }}
         className="text-4xl sm:text-5xl lg:text-6xl xl:text-7xl font-black text-slate-900 mb-6 leading-[1.1] tracking-tight"
       >
-        {t('hero.titleTop')}<br />
-        <span className="text-deep-sky-blue">{t('hero.titleBottom')}</span>
+        Drive Electric.<br />
+        <span className="text-deep-sky-blue">Earn Better.</span><br />
+        Live Smarter.
       </motion.h1>
 
       {/* Description */}

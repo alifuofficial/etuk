@@ -21,8 +21,9 @@
     "cta": "Become an Agent",
     "learnMore": "Learn More",
     "badge": "Ethiopia's EV Leader",
-    "titleTop": "ELECTRIC POWER FOR",
-    "titleBottom": "EVERYDAY HUSTLE.",
+    "titleTop": "Drive Electric.",
+    "titleMiddle": "Earn Better.",
+    "titleBottom": "Live Smarter.",
     "motorTag": "4000W Electric Motor",
     "chargeTag": "Fast Charging"
   },
@@ -30,49 +31,32 @@
     "title": "Why Choose ETUK?",
     "subtitle": "Built for Ethiopian roads, designed for Ethiopian drivers",
     "heroTitle": "Get the best experience of our vehicle",
-    "powerful": {
-      "title": "Powerful Performance",
-      "description": "4000W motor with 960 N.M torque for tough terrains"
+    "feature1": {
+      "title": "Range Extender Technology",
+      "subtitle": "(Optional)",
+      "desc": "Backup Power When You Need It Most"
     },
-    "range": {
-      "title": "Extended Range",
-      "description": "Up to 180km on a single charge for all-day operation"
+    "feature2": {
+      "title": "Smart Hill Hold Control",
+      "desc": "Prevents Roll-Back for Safe & Smooth Starts on Inclines"
     },
-    "durable": {
-      "title": "Heavy-Duty Build",
-      "description": "Robust construction with anti-shock absorbers for African roads"
+    "feature3": {
+      "title": "High-Performance Power Battery",
+      "desc": "Lithium Iron Phosphate (7.6 kWh)"
     },
-    "smart": {
-      "title": "Smart Technology",
-      "description": "GPS tracking, digital cluster, and remote connectivity"
+    "feature4": {
+      "title": "High-Performance Drive",
+      "desc": "4000W / 960 N.M Max Torque"
     },
-    "eco": {
-      "title": "Eco-Friendly",
-      "description": "Zero emissions, lithium iron phosphate battery technology"
+    "feature5": {
+      "title": "Built Tough. Built to Last.",
+      "desc": "Higher Load Capacity"
     },
-    "spacious": {
+    "feature6": {
       "title": "Big & Spacious",
-      "description": "Comfortable seating with high load capacity (up to 750kg)"
+      "desc": "Designed to Carry More and Earn More"
     },
-    "load": {
-      "title": "High Payload",
-      "description": "Heavy cargo support up to 750kg"
-    },
-    "sds": {
-      "title": "Smart SDS",
-      "description": "Safe Driving System with anti-skid tech"
-    },
-    "tech": {
-      "battery": "Lithium Iron Phosphate (7.6 kWh)",
-      "power": "4000W / 960 N.M Max Torque",
-      "load": "750 kg GVW",
-      "loadDesc": "High Load Capacity",
-      "sds": "Smart SDS Tech",
-      "sdsDesc": "Advanced Anti-Skid Braking",
-      "cabin": "Spacious Cabin Design",
-      "range": "Up to 180 KM Range",
-      "zeroEmission": "Zero Emission"
-    },
+    "zeroEmission": "Zero Emission",
     "registerNow": "Register Now"
   },
   "specs": {

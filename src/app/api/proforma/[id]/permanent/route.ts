@@ -3,7 +3,7 @@ import { db } from '@/lib/db';
 import { getServerSession } from 'next-auth';
 import { authOptions } from '@/lib/auth';
 
-// DELETE - Permanently delete a proforma (only cancelled or expired)
+// DELETE - Permanently delete a proforma (only cancelled, expired, or rejected)
 export async function DELETE(
   request: NextRequest,
   { params }: { params: Promise<{ id: string }> }
@@ -24,9 +24,9 @@ export async function DELETE(
       return NextResponse.json({ error: 'Proforma not found' }, { status: 404 });
     }
 
-    if (proforma.status !== 'CANCELLED' && proforma.status !== 'EXPIRED') {
+    if (proforma.status !== 'CANCELLED' && proforma.status !== 'EXPIRED' && proforma.status !== 'REJECTED') {
       return NextResponse.json(
-        { error: 'Only cancelled or expired proformas can be permanently deleted' },
+        { error: 'Only cancelled, expired, or rejected proformas can be permanently deleted' },
         { status: 400 }
       );
     }

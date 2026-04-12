@@ -2,19 +2,19 @@
 
 import { memo } from 'react';
 import { useI18n } from '@/lib/i18n/useI18n';
-import { Zap, Battery, ShieldCheck, Gauge, User, Map } from 'lucide-react';
+import { Zap, Battery, ShieldCheck, Gauge, User } from 'lucide-react';
 import { motion, useReducedMotion } from 'framer-motion';
 import Image from 'next/image';
 import Link from 'next/link';
 import { Button } from '@/components/ui/button';
 
 const features = [
-  { icon: Battery, titleKey: 'eco', descKey: 'battery' },
-  { icon: Zap, titleKey: 'powerful', descKey: 'power' },
-  { icon: Gauge, titleKey: 'load', descKey: 'loadDesc' },
-  { icon: ShieldCheck, titleKey: 'sds', descKey: 'sdsDesc' },
-  { icon: User, titleKey: 'spacious', descKey: 'cabin' },
-  { icon: Map, titleKey: 'range', descKey: 'range' },
+  { icon: Battery, title: 'Range Extender Technology', subtitle: '(Optional)', desc: 'Backup Power When You Need It Most' },
+  { icon: ShieldCheck, title: 'Smart Hill Hold Control', desc: 'Prevents Roll-Back for Safe & Smooth Starts on Inclines' },
+  { icon: Battery, title: 'High-Performance Power Battery', desc: 'Lithium Iron Phosphate (7.6 kWh)' },
+  { icon: Zap, title: 'High-Performance Drive', desc: '4000W / 960 N.M Max Torque' },
+  { icon: Gauge, title: 'Built Tough. Built to Last.', desc: 'Higher Load Capacity' },
+  { icon: User, title: 'Big & Spacious', desc: 'Designed to Carry More and Earn More' },
 ];
 
 function Features() {
@@ -98,8 +98,11 @@ function Features() {
                     <item.icon className="w-5 h-5 text-deep-sky-blue group-hover:text-white transition-colors" />
                   </div>
                   <div>
-                    <h4 className="font-bold text-slate-900 mb-0.5">{t(`features.${item.titleKey}.title`)}</h4>
-                    <p className="text-slate-500 text-sm">{t(`features.tech.${item.descKey}`)}</p>
+                    <h4 className="font-bold text-slate-900 mb-0.5">
+                      {item.title}
+                      {item.subtitle && <span className="text-deep-sky-blue font-normal ml-1">{item.subtitle}</span>}
+                    </h4>
+                    <p className="text-slate-500 text-sm">{item.desc}</p>
                   </div>
                 </motion.div>
               ))}

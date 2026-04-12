@@ -24,6 +24,8 @@ import {
   FileText,
   Clock,
   AlertCircle,
+  Image,
+  ExternalLink,
 } from 'lucide-react';
 
 interface ProformaItem {
@@ -51,6 +53,8 @@ interface Proforma {
   expiresAt: string;
   paidAt: string | null;
   paymentRef: string | null;
+  paymentReceipt: string | null;
+  paymentNotes: string | null;
   createdAt: string;
   agent: {
     id: string;
@@ -406,6 +410,31 @@ export default function AccountantVerifyPage() {
                             {unit.chassisNumber}
                           </span>
                         ))}
+                      </div>
+                    </div>
+                  )}
+
+                  {selectedProforma.paymentReceipt && (
+                    <div>
+                      <p className="text-xs font-bold text-gray-500 uppercase mb-3">Payment Receipt</p>
+                      <div className="p-4 bg-gray-50 rounded-xl space-y-3">
+                        <div className="flex items-center gap-2">
+                          <Image className="w-5 h-5 text-blue-600" />
+                          <a 
+                            href={selectedProforma.paymentReceipt} 
+                            target="_blank" 
+                            rel="noopener noreferrer"
+                            className="text-sm text-blue-600 hover:text-blue-700 font-medium flex items-center gap-1"
+                          >
+                            View Payment Receipt <ExternalLink className="w-3 h-3" />
+                          </a>
+                        </div>
+                        {selectedProforma.paymentRef && (
+                          <div>
+                            <p className="text-xs text-gray-500">Payment Reference</p>
+                            <p className="text-sm font-medium">{selectedProforma.paymentRef}</p>
+                          </div>
+                        )}
                       </div>
                     </div>
                   )}

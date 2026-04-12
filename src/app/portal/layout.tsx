@@ -26,11 +26,13 @@ import {
   ChevronDown,
   Bell,
   Truck,
+  FileText,
 } from 'lucide-react';
 import { signOut } from 'next-auth/react';
 
 const navItems = [
   { href: '/portal', label: 'Dashboard', icon: LayoutDashboard },
+  { href: '/portal/proformas', label: 'Proformas', icon: FileText },
   { href: '/portal/units', label: 'My Units', icon: Package },
   { href: '/portal/sales', label: 'Sales', icon: ShoppingCart },
   { href: '/portal/customers', label: 'Customers', icon: Users },

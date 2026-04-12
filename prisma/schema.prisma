@@ -249,20 +249,24 @@ model Customer {
 }
 
 model Proforma {
-  id            String        @id @default(cuid())
-  number        String        @unique
-  agentId       String
-  status        String        @default("PENDING") // PENDING, PAID, EXPIRED, CANCELLED
-  totalAmount   Float
-  notes         String?
-  expiresAt     DateTime
-  paidAt        DateTime?
-  paymentRef    String?       // Payment reference number
-  createdAt     DateTime      @default(now())
-  updatedAt     DateTime      @updatedAt
-  agent         Agent         @relation(fields: [agentId], references: [id])
-  items         ProformaItem[]
-  productUnits  ProductUnit[]
+  id              String        @id @default(cuid())
+  number          String        @unique
+  agentId         String
+  status          String        @default("PENDING") // PENDING, PAYMENT_PENDING, PAID, EXPIRED, CANCELLED, REJECTED
+  totalAmount     Float
+  notes           String?
+  expiresAt       DateTime
+  paidAt          DateTime?
+  paymentRef      String?       // Payment reference number
+  paymentReceipt  String?       // Path to uploaded payment receipt file
+  paymentNotes    String?       // Notes from accountant about payment
+  verifiedBy      String?       // Accountant who verified the payment
+  verifiedAt      DateTime?     // When payment was verified
+  createdAt       DateTime      @default(now())
+  updatedAt       DateTime      @updatedAt
+  agent           Agent         @relation(fields: [agentId], references: [id])
+  items           ProformaItem[]
+  productUnits    ProductUnit[]
 
   @@index([agentId])
   @@index([status])

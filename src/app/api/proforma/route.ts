@@ -4,8 +4,26 @@ import { getServerSession } from 'next-auth';
 import { authOptions } from '@/lib/auth';
 import { triggerTemplateSms } from '@/lib/sms';
 
-// Bank details for proforma
-const BANK_DETAILS = `CBE 1000123456789 | Awash 123456789 | Dashen 987654321`;
+// Get bank details from settings
+async function getBankDetails(): Promise<string> {
+  try {
+    const settings = await db.setting.findMany({
+      where: {
+        key: {
+          in: ['companyBankName', 'companyBankAccount', 'companyBankBranch']
+        }
+      }
+    });
+    
+    const bankName = settings.find(s => s.key === 'companyBankName')?.value || 'CBE';
+    const account = settings.find(s => s.key === 'companyBankAccount')?.value || '1000123456789';
+    const branch = settings.find(s => s.key === 'companyBankBranch')?.value || '';
+    
+    return `${bankName} ${account}${branch ? ` (${branch})` : ''}`;
+  } catch {
+    return 'CBE 1000123456789';
+  }
+}
 
 // Generate unique proforma number
 function generateProformaNumber(): string {
@@ -171,13 +189,14 @@ export async function POST(request: NextRequest) {
       const vatAmount = totalAmount * 0.15;
       const totalWithVat = totalAmount + vatAmount;
       const expiresFormatted = expiresAt.toLocaleDateString();
+      const bankDetails = await getBankDetails();
       
       await triggerTemplateSms('PROFORMA_CREATED', agent.phone, result.id, {
         NAME: `${agent.firstName} ${agent.lastName}`,
         PROFORMA: result.number,
         AMOUNT: totalWithVat.toLocaleString(),
         DEADLINE: expiresFormatted,
-        BANK: BANK_DETAILS,
+        BANK: bankDetails,
       });
     } catch (smsError) {
       console.error('Failed to send proforma SMS:', smsError);

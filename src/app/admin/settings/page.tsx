@@ -32,6 +32,10 @@ import {
   Settings2,
   CheckCircle2,
   Sparkles,
+  Building2,
+  CreditCard,
+  FileText,
+  Receipt,
 } from 'lucide-react';
 import LanguageManager from '@/components/admin/settings/LanguageManager';
 import TranslationManager from '@/components/admin/settings/TranslationManager';
@@ -71,6 +75,15 @@ export default function SettingsPage() {
     footerContactTitle: 'Performance',
     isAgentRegistrationEnabled: 'true',
     isAgentPortalEnabled: 'true',
+    // Company info for proforma
+    companyName: 'Soreti International Trading',
+    companyTin: '',
+    companyVatNumber: '',
+    companyBankName: 'Commercial Bank of Ethiopia',
+    companyBankAccount: '',
+    companyBankBranch: '',
+    companyRegistrationNumber: '',
+    companyLogo: '',
   });
 
   useEffect(() => {
@@ -191,6 +204,9 @@ export default function SettingsPage() {
               </TabsTrigger>
               <TabsTrigger value="sms" className="rounded-lg data-[state=active]:bg-white data-[state=active]:shadow-sm data-[state=active]:text-gray-900 px-4 font-semibold text-sm text-gray-500">
                 <MessageSquare className="w-4 h-4 mr-2" /> SMS
+              </TabsTrigger>
+              <TabsTrigger value="company" className="rounded-lg data-[state=active]:bg-white data-[state=active]:shadow-sm data-[state=active]:text-gray-900 px-4 font-semibold text-sm text-gray-500">
+                <Building2 className="w-4 h-4 mr-2" /> Company
               </TabsTrigger>
             </>
           )}
@@ -634,6 +650,230 @@ export default function SettingsPage() {
             </TabsContent>
           </>
         )}
+
+        <TabsContent value="company" className="mt-6 outline-none">
+          <form onSubmit={handleSiteUpdate} className="space-y-6">
+            <Card className="border-gray-200/60 shadow-sm rounded-2xl overflow-hidden">
+              <CardHeader className="bg-gradient-to-r from-indigo-600 to-indigo-500 px-8 py-6">
+                <div className="flex items-center gap-4">
+                  <div className="p-3 bg-white/20 rounded-xl">
+                    <Building2 className="w-6 h-6 text-white" />
+                  </div>
+                  <div>
+                    <h2 className="text-xl font-bold text-white">Company Information</h2>
+                    <p className="text-indigo-100 text-sm mt-0.5">Used in proforma invoices and official documents</p>
+                  </div>
+                </div>
+              </CardHeader>
+              <CardContent className="p-8 space-y-6">
+                                <div className="grid md:grid-cols-2 gap-6">
+                  <div className="space-y-2">
+                    <Label className="text-xs font-bold text-gray-500 uppercase tracking-wider">Company Name</Label>
+                    <div className="relative">
+                      <Building2 className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
+                      <Input 
+                        value={siteData.companyName}
+                        onChange={(e) => setSiteData({...siteData, companyName: e.target.value})}
+                        className="h-12 bg-gray-50 border-gray-200 rounded-xl pl-11"
+                        placeholder="Company Name"
+                      />
+                    </div>
+                  </div>
+                  <div className="space-y-2">
+                    <Label className="text-xs font-bold text-gray-500 uppercase tracking-wider">Registration Number</Label>
+                    <div className="relative">
+                      <FileText className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
+                      <Input 
+                        value={siteData.companyRegistrationNumber}
+                        onChange={(e) => setSiteData({...siteData, companyRegistrationNumber: e.target.value})}
+                        className="h-12 bg-gray-50 border-gray-200 rounded-xl pl-11"
+                        placeholder="CRD/12345/2024"
+                      />
+                    </div>
+                  </div>
+                </div>
+
+                {/* Logo Upload */}
+                <div className="space-y-2">
+                  <Label className="text-xs font-bold text-gray-500 uppercase tracking-wider">Company Logo</Label>
+                  <div className="flex items-center gap-6">
+                    <div className="w-40 h-20 bg-gray-50 border-2 border-dashed border-gray-200 rounded-xl flex items-center justify-center overflow-hidden">
+                      {siteData.companyLogo ? (
+                        <img src={siteData.companyLogo} alt="Logo" className="w-full h-full object-contain p-2" />
+                      ) : (
+                        <div className="flex flex-col items-center text-gray-400">
+                          <ImageIcon className="w-8 h-8" />
+                          <span className="text-[10px] mt-1">No logo</span>
+                        </div>
+                      )}
+                    </div>
+                    <div className="flex-1 space-y-2">
+                      <Input 
+                        value={siteData.companyLogo}
+                        onChange={(e) => setSiteData({...siteData, companyLogo: e.target.value})}
+                        className="h-10 bg-gray-50 border-gray-200 rounded-lg"
+                        placeholder="Enter logo URL (e.g., /images/logo.png)"
+                      />
+                      <p className="text-[10px] text-gray-400">Enter a URL to your logo image. Recommended size: 200x60px, PNG with transparent background.</p>
+                    </div>
+                  </div>
+                </div>
+
+                <div className="grid md:grid-cols-2 gap-6">
+                  <div className="space-y-2">
+                    <Label className="text-xs font-bold text-gray-500 uppercase tracking-wider">TIN Number</Label>
+                    <div className="relative">
+                      <Receipt className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
+                      <Input 
+                        value={siteData.companyTin}
+                        onChange={(e) => setSiteData({...siteData, companyTin: e.target.value})}
+                        className="h-12 bg-gray-50 border-gray-200 rounded-xl pl-11"
+                        placeholder="0000000000"
+                      />
+                    </div>
+                  </div>
+                  <div className="space-y-2">
+                    <Label className="text-xs font-bold text-gray-500 uppercase tracking-wider">VAT Number</Label>
+                    <div className="relative">
+                      <Receipt className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
+                      <Input 
+                        value={siteData.companyVatNumber}
+                        onChange={(e) => setSiteData({...siteData, companyVatNumber: e.target.value})}
+                        className="h-12 bg-gray-50 border-gray-200 rounded-xl pl-11"
+                        placeholder="VAT-0000000000"
+                      />
+                    </div>
+                  </div>
+                </div>
+
+                <div className="grid md:grid-cols-3 gap-6">
+                  <div className="space-y-2">
+                    <Label className="text-xs font-bold text-gray-500 uppercase tracking-wider">Bank Name</Label>
+                    <div className="relative">
+                      <CreditCard className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
+                      <Input 
+                        value={siteData.companyBankName}
+                        onChange={(e) => setSiteData({...siteData, companyBankName: e.target.value})}
+                        className="h-12 bg-gray-50 border-gray-200 rounded-xl pl-11"
+                        placeholder="Commercial Bank of Ethiopia"
+                      />
+                    </div>
+                  </div>
+                  <div className="space-y-2">
+                    <Label className="text-xs font-bold text-gray-500 uppercase tracking-wider">Account Number</Label>
+                    <div className="relative">
+                      <CreditCard className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
+                      <Input 
+                        value={siteData.companyBankAccount}
+                        onChange={(e) => setSiteData({...siteData, companyBankAccount: e.target.value})}
+                        className="h-12 bg-gray-50 border-gray-200 rounded-xl pl-11"
+                        placeholder="1000123456789"
+                      />
+                    </div>
+                  </div>
+                  <div className="space-y-2">
+                    <Label className="text-xs font-bold text-gray-500 uppercase tracking-wider">Branch</Label>
+                    <div className="relative">
+                      <MapPin className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
+                      <Input 
+                        value={siteData.companyBankBranch}
+                        onChange={(e) => setSiteData({...siteData, companyBankBranch: e.target.value})}
+                        className="h-12 bg-gray-50 border-gray-200 rounded-xl pl-11"
+                        placeholder="Bole Branch"
+                      />
+                    </div>
+                  </div>
+                </div>
+
+                <div className="grid md:grid-cols-2 gap-6">
+                  <div className="space-y-2">
+                    <Label className="text-xs font-bold text-gray-500 uppercase tracking-wider">Address</Label>
+                    <div className="relative">
+                      <MapPin className="absolute left-4 top-4 w-4 h-4 text-gray-400" />
+                      <Textarea 
+                        value={siteData.address}
+                        onChange={(e) => setSiteData({...siteData, address: e.target.value})}
+                        className="bg-gray-50 border-gray-200 rounded-xl pl-11 min-h-[80px]"
+                        placeholder="Full business address"
+                      />
+                    </div>
+                  </div>
+                  <div className="space-y-4">
+                    <div className="space-y-2">
+                      <Label className="text-xs font-bold text-gray-500 uppercase tracking-wider">Phone</Label>
+                      <div className="relative">
+                        <Phone className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
+                        <Input 
+                          value={siteData.phone}
+                          onChange={(e) => setSiteData({...siteData, phone: e.target.value})}
+                          className="h-12 bg-gray-50 border-gray-200 rounded-xl pl-11"
+                          placeholder="+251 911 234 567"
+                        />
+                      </div>
+                    </div>
+                    <div className="space-y-2">
+                      <Label className="text-xs font-bold text-gray-500 uppercase tracking-wider">Email</Label>
+                      <div className="relative">
+                        <Mail className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
+                        <Input 
+                          value={siteData.supportEmail}
+                          onChange={(e) => setSiteData({...siteData, supportEmail: e.target.value})}
+                          className="h-12 bg-gray-50 border-gray-200 rounded-xl pl-11"
+                          placeholder="info@company.com"
+                        />
+                      </div>
+                    </div>
+                  </div>
+                </div>
+
+                {/* Preview */}
+                <div className="p-6 bg-gray-50 rounded-xl border border-gray-200">
+                  <p className="text-xs font-bold text-gray-500 uppercase tracking-wider mb-4">Proforma Preview</p>
+                  <div className="bg-white p-4 rounded-lg border border-gray-100">
+                    <div className="flex justify-between items-start">
+                      <div>
+                        <p className="font-bold text-gray-900">{siteData.companyName || 'Company Name'}</p>
+                        <p className="text-xs text-gray-500 mt-1">{siteData.address || 'Address'}</p>
+                        <p className="text-xs text-gray-500">{siteData.phone} | {siteData.supportEmail}</p>
+                      </div>
+                      <div className="text-right">
+                        {siteData.companyLogo ? (
+                          <img src={siteData.companyLogo} alt="Logo" className="h-8 object-contain mb-2 ml-auto" />
+                        ) : null}
+                        <div className="text-xs text-gray-500">
+                          {siteData.companyTin && <p>TIN: {siteData.companyTin}</p>}
+                          {siteData.companyVatNumber && <p>VAT: {siteData.companyVatNumber}</p>}
+                          {siteData.companyRegistrationNumber && <p>CR: {siteData.companyRegistrationNumber}</p>}
+                        </div>
+                      </div>
+                    </div>
+                    {siteData.companyBankName && (
+                      <div className="mt-3 pt-3 border-t border-gray-100 text-xs text-gray-600">
+                        <p className="font-medium">Bank: {siteData.companyBankName}</p>
+                        {siteData.companyBankAccount && <p>Account: {siteData.companyBankAccount}</p>}
+                        {siteData.companyBankBranch && <p>Branch: {siteData.companyBankBranch}</p>}
+                      </div>
+                    )}
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
+
+            <div className="flex justify-end pt-2">
+              <Button 
+                type="submit" 
+                className="h-12 px-8 bg-gray-900 hover:bg-gray-800 text-white font-bold rounded-xl shadow-lg shadow-gray-200/50 transition-all"
+                disabled={loading}
+              >
+                {loading ? (
+                  <><div className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin mr-2" />Saving...</>
+                ) : (
+                  <><Save className="w-4 h-4 mr-2" />Save Company Info</>
+                )}
+              </Button>
+            </div>
+          </form>
+        </TabsContent>
       </Tabs>
     </div>
   );

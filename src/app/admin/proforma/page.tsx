@@ -117,6 +117,21 @@ export default function ProformaPage() {
   const printRef = useRef<HTMLDivElement>(null);
   const [sendingReminders, setSendingReminders] = useState(false);
   
+  // Company settings
+  const [companySettings, setCompanySettings] = useState({
+    companyName: 'ETUK',
+    companyTin: '',
+    companyVatNumber: '',
+    companyBankName: 'Commercial Bank of Ethiopia',
+    companyBankAccount: '',
+    companyBankBranch: '',
+    companyRegistrationNumber: '',
+    address: 'Modjo, Oromia, Ethiopia',
+    phone: '+251 911 234 567',
+    supportEmail: 'support@etuk.et',
+    companyLogo: '',
+  });
+  
   // Dialogs
   const [showCreateDialog, setShowCreateDialog] = useState(false);
   const [showDetailDialog, setShowDetailDialog] = useState(false);
@@ -143,7 +158,20 @@ export default function ProformaPage() {
     fetchProformas();
     fetchAgents();
     fetchProducts();
+    fetchCompanySettings();
   }, []);
+
+  const fetchCompanySettings = async () => {
+    try {
+      const res = await fetch('/api/settings');
+      if (res.ok) {
+        const data = await res.json();
+        setCompanySettings(prev => ({ ...prev, ...data }));
+      }
+    } catch (error) {
+      console.error('Failed to fetch company settings:', error);
+    }
+  };
 
   useEffect(() => {
     if (selectedAgentId) {
@@ -932,9 +960,23 @@ export default function ProformaPage() {
                       </p>
                     </div>
                     <div className="text-right">
-                      <h2 className="text-xl font-bold text-gray-900">ETUK</h2>
-                      <p className="text-sm text-gray-500">Electric Vehicles</p>
-                      <p className="text-sm text-gray-500">Modjo, Oromia, Ethiopia</p>
+                      {companySettings.companyLogo ? (
+                        <img src={companySettings.companyLogo} alt={companySettings.companyName} className="h-12 object-contain mb-2 ml-auto" />
+                      ) : (
+                        <h2 className="text-xl font-bold text-gray-900">{companySettings.companyName}</h2>
+                      )}
+                      <p className="text-sm text-gray-500">{companySettings.address}</p>
+                      <p className="text-sm text-gray-500">{companySettings.phone}</p>
+                      <p className="text-sm text-gray-500">{companySettings.supportEmail}</p>
+                      {companySettings.companyTin && (
+                        <p className="text-xs text-gray-500 mt-1">TIN: {companySettings.companyTin}</p>
+                      )}
+                      {companySettings.companyVatNumber && (
+                        <p className="text-xs text-gray-500">VAT: {companySettings.companyVatNumber}</p>
+                      )}
+                      {companySettings.companyRegistrationNumber && (
+                        <p className="text-xs text-gray-500">Reg: {companySettings.companyRegistrationNumber}</p>
+                      )}
                     </div>
                   </div>
 
@@ -1007,10 +1049,36 @@ export default function ProformaPage() {
                     </div>
                   )}
 
+                  {/* Bank Details */}
+                  <div className="mb-8 p-4 bg-blue-50 rounded-lg border border-blue-100">
+                    <p className="text-xs font-bold text-blue-600 uppercase mb-2">Payment Information</p>
+                    <div className="grid grid-cols-2 gap-4 text-sm">
+                      <div>
+                        <p className="text-gray-500">Bank Name</p>
+                        <p className="font-medium text-gray-900">{companySettings.companyBankName || '-'}</p>
+                      </div>
+                      <div>
+                        <p className="text-gray-500">Account Number</p>
+                        <p className="font-medium text-gray-900 font-mono">{companySettings.companyBankAccount || '-'}</p>
+                      </div>
+                      {companySettings.companyBankBranch && (
+                        <div>
+                          <p className="text-gray-500">Branch</p>
+                          <p className="font-medium text-gray-900">{companySettings.companyBankBranch}</p>
+                        </div>
+                      )}
+                      <div>
+                        <p className="text-gray-500">Account Name</p>
+                        <p className="font-medium text-gray-900">{companySettings.companyName}</p>
+                      </div>
+                    </div>
+                  </div>
+
                   {/* Footer */}
                   <div className="border-t pt-6 mt-8 text-center text-sm text-gray-500 print:pb-4">
                     <p>This is a proforma invoice. Payment must be made before the expiration date.</p>
                     <p className="mt-1">Thank you for your business!</p>
+                    <p className="text-xs text-gray-400 mt-2">{companySettings.companyName} | {companySettings.phone} | {companySettings.supportEmail}</p>
                   </div>
                 </div>
 

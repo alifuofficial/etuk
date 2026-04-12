@@ -4,8 +4,26 @@ import { getServerSession } from 'next-auth';
 import { authOptions } from '@/lib/auth';
 import { triggerTemplateSms } from '@/lib/sms';
 
-// Bank details for proforma
-const BANK_DETAILS = `CBE 1000123456789 | Awash 123456789 | Dashen 987654321`;
+// Get bank details from settings
+async function getBankDetails(): Promise<string> {
+  try {
+    const settings = await db.setting.findMany({
+      where: {
+        key: {
+          in: ['companyBankName', 'companyBankAccount', 'companyBankBranch']
+        }
+      }
+    });
+    
+    const bankName = settings.find(s => s.key === 'companyBankName')?.value || 'CBE';
+    const account = settings.find(s => s.key === 'companyBankAccount')?.value || '1000123456789';
+    const branch = settings.find(s => s.key === 'companyBankBranch')?.value || '';
+    
+    return `${bankName} ${account}${branch ? ` (${branch})` : ''}`;
+  } catch {
+    return 'CBE 1000123456789';
+  }
+}
 
 // POST - Send reminders for proformas about to expire
 export async function POST() {
@@ -46,6 +64,7 @@ export async function POST() {
 
     let sentCount = 0;
     let failedCount = 0;
+    const bankDetails = await getBankDetails();
 
     for (const proforma of pendingProformas) {
       try {
@@ -59,7 +78,7 @@ export async function POST() {
           PROFORMA: proforma.number,
           AMOUNT: totalWithVat.toLocaleString(),
           DEADLINE: expiresFormatted,
-          BANK: BANK_DETAILS,
+          BANK: bankDetails,
           DAYS_LEFT: daysLeft.toString(),
         });
 

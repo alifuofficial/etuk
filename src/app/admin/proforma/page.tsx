@@ -41,6 +41,7 @@ import {
   AlertTriangle,
   Loader2,
   Bell,
+  RotateCcw,
 } from 'lucide-react';
 
 const VAT_RATE = 0.15; // 15% VAT
@@ -314,6 +315,64 @@ export default function ProformaPage() {
     }
   };
 
+  const handleMarkPaymentPending = async (proformaId: string) => {
+    try {
+      const res = await fetch(`/api/proforma/${proformaId}/verify`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ status: 'PAYMENT_PENDING' }),
+      });
+
+      if (res.ok) {
+        toast({ title: 'Payment Pending', description: 'Proforma marked for payment verification by accountant.' });
+        fetchProformas();
+      } else {
+        throw new Error('Failed to update status');
+      }
+    } catch (error: any) {
+      toast({ title: 'Error', description: error.message, variant: 'destructive' });
+    }
+  };
+
+  const handleReactivateProforma = async (proformaId: string) => {
+    if (!confirm('Reactivate this proforma? It will be set to pending status.')) return;
+
+    try {
+      const res = await fetch(`/api/proforma/${proformaId}/reactivate`, {
+        method: 'POST',
+      });
+
+      if (res.ok) {
+        toast({ title: 'Proforma Reactivated', description: 'Proforma is now pending.' });
+        fetchProformas();
+      } else {
+        const error = await res.json();
+        throw new Error(error.error || 'Failed to reactivate proforma');
+      }
+    } catch (error: any) {
+      toast({ title: 'Error', description: error.message, variant: 'destructive' });
+    }
+  };
+
+  const handleDeleteProforma = async (proformaId: string) => {
+    if (!confirm('Permanently delete this proforma? This action cannot be undone.')) return;
+
+    try {
+      const res = await fetch(`/api/proforma/${proformaId}/permanent`, {
+        method: 'DELETE',
+      });
+
+      if (res.ok) {
+        toast({ title: 'Proforma Deleted', description: 'Proforma permanently removed.' });
+        fetchProformas();
+      } else {
+        throw new Error('Failed to delete proforma');
+      }
+    } catch (error: any) {
+      toast({ title: 'Error', description: error.message, variant: 'destructive' });
+    }
+  };
+
   const handleSendReminders = async () => {
     setSendingReminders(true);
     try {
@@ -384,9 +443,11 @@ export default function ProformaPage() {
   const getStatusBadge = (status: string) => {
     const styles: Record<string, string> = {
       PENDING: 'bg-amber-50 text-amber-700 border-amber-200',
+      PAYMENT_PENDING: 'bg-blue-50 text-blue-700 border-blue-200',
       PAID: 'bg-emerald-50 text-emerald-700 border-emerald-200',
       EXPIRED: 'bg-gray-100 text-gray-600 border-gray-200',
       CANCELLED: 'bg-red-50 text-red-700 border-red-200',
+      REJECTED: 'bg-red-50 text-red-700 border-red-200',
     };
     return styles[status] || 'bg-gray-50 text-gray-700 border-gray-200';
   };
@@ -408,6 +469,7 @@ export default function ProformaPage() {
   const statusCounts = {
     all: proformas.length,
     PENDING: proformas.filter(p => p.status === 'PENDING').length,
+    PAYMENT_PENDING: proformas.filter(p => p.status === 'PAYMENT_PENDING').length,
     PAID: proformas.filter(p => p.status === 'PAID').length,
     EXPIRED: proformas.filter(p => p.status === 'EXPIRED').length,
     CANCELLED: proformas.filter(p => p.status === 'CANCELLED').length,
@@ -442,10 +504,11 @@ export default function ProformaPage() {
       </div>
 
       {/* Stats */}
-      <div className="grid grid-cols-2 md:grid-cols-5 gap-4">
+      <div className="grid grid-cols-2 md:grid-cols-6 gap-4">
         {[
           { label: 'All', count: statusCounts.all, filter: 'all' },
           { label: 'Pending', count: statusCounts.PENDING, filter: 'PENDING' },
+          { label: 'Verify', count: statusCounts.PAYMENT_PENDING, filter: 'PAYMENT_PENDING' },
           { label: 'Paid', count: statusCounts.PAID, filter: 'PAID' },
           { label: 'Expired', count: statusCounts.EXPIRED, filter: 'EXPIRED' },
           { label: 'Cancelled', count: statusCounts.CANCELLED, filter: 'CANCELLED' },
@@ -536,11 +599,21 @@ export default function ProformaPage() {
                         </Button>
                         {proforma.status === 'PENDING' && (
                           <>
-                            <Button variant="ghost" size="sm" className="text-emerald-600" onClick={() => { setSelectedProforma(proforma); setShowPaymentDialog(true); }}>
+                            <Button variant="ghost" size="sm" className="text-blue-600" onClick={() => handleMarkPaymentPending(proforma.id)} title="Agent Claims Paid">
                               <DollarSign className="w-4 h-4" />
                             </Button>
                             <Button variant="ghost" size="sm" className="text-red-500" onClick={() => handleCancelProforma(proforma.id)}>
                               <XCircle className="w-4 h-4" />
+                            </Button>
+                          </>
+                        )}
+                        {(proforma.status === 'CANCELLED' || proforma.status === 'EXPIRED') && (
+                          <>
+                            <Button variant="ghost" size="sm" className="text-amber-600" onClick={() => handleReactivateProforma(proforma.id)} title="Reactivate">
+                              <RotateCcw className="w-4 h-4" />
+                            </Button>
+                            <Button variant="ghost" size="sm" className="text-red-500" onClick={() => handleDeleteProforma(proforma.id)} title="Delete Permanently">
+                              <Trash2 className="w-4 h-4" />
                             </Button>
                           </>
                         )}
@@ -882,6 +955,16 @@ export default function ProformaPage() {
                       </Button>
                       <Button className="bg-emerald-600 hover:bg-emerald-700" onClick={() => { setShowDetailDialog(false); setShowPaymentDialog(true); }}>
                         <DollarSign className="w-4 h-4 mr-2" /> Record Payment
+                      </Button>
+                    </>
+                  )}
+                  {(selectedProforma.status === 'CANCELLED' || selectedProforma.status === 'EXPIRED') && (
+                    <>
+                      <Button variant="outline" className="text-amber-600 border-amber-200 hover:bg-amber-50" onClick={() => { handleReactivateProforma(selectedProforma.id); setShowDetailDialog(false); }}>
+                        <RotateCcw className="w-4 h-4 mr-2" /> Reactivate
+                      </Button>
+                      <Button variant="outline" className="text-red-600 border-red-200 hover:bg-red-50" onClick={() => { handleDeleteProforma(selectedProforma.id); setShowDetailDialog(false); }}>
+                        <Trash2 className="w-4 h-4 mr-2" /> Delete
                       </Button>
                     </>
                   )}

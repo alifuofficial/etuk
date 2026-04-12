@@ -313,6 +313,7 @@ export default function UsersPage() {
                 <SelectItem value="WAREHOUSE_MANAGER">Warehouse Manager</SelectItem>
                 <SelectItem value="MARKETING_MANAGER">Marketing Manager</SelectItem>
                 <SelectItem value="MARKETING_OFFICER">Marketing Officer</SelectItem>
+                <SelectItem value="ACCOUNTANT">Accountant</SelectItem>
               </SelectContent>
             </Select>
           </div>
@@ -461,6 +462,7 @@ export default function UsersPage() {
                               <SelectItem value="WAREHOUSE_MANAGER" className="py-3 font-medium">Warehouse Manager</SelectItem>
                               <SelectItem value="MARKETING_MANAGER" className="py-3 font-medium">Marketing Manager</SelectItem>
                               <SelectItem value="MARKETING_OFFICER" className="py-3 font-medium">Marketing Officer</SelectItem>
+                              <SelectItem value="ACCOUNTANT" className="py-3 font-medium">Accountant</SelectItem>
                           </SelectContent>
                       </Select>
                   </div>

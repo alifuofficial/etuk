@@ -84,7 +84,24 @@ function LoginContent() {
       if (result?.error) {
         setError('Invalid credentials. Please contact administration if you need access.');
       } else {
-        router.push(redirectUrl);
+        // Get session to determine user role for redirect
+        const sessionRes = await fetch('/api/auth/session');
+        const sessionData = await sessionRes.json();
+        const userRole = sessionData?.user?.role;
+
+        // Redirect based on role
+        let redirectTo = redirectUrl;
+        if (userRole === 'ACCOUNTANT') {
+          redirectTo = '/accountant';
+        } else if (userRole === 'AGENT') {
+          redirectTo = '/portal';
+        } else if (userRole === 'WAREHOUSE_MANAGER') {
+          redirectTo = '/admin/warehouse';
+        } else {
+          redirectTo = '/admin';
+        }
+        
+        router.push(redirectTo);
       }
     } catch {
       setError('A system error occurred. Secure connection failed.');

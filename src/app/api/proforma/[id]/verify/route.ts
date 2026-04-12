@@ -70,6 +70,8 @@ export async function POST(
           status: 'PAID',
           paidAt: new Date(),
           paymentRef: paymentRef || `VERIFIED-${Date.now()}`,
+          verifiedBy: session.user.id,
+          verifiedAt: new Date(),
         },
         include: {
           agent: true,
@@ -128,8 +130,10 @@ export async function POST(
         return await tx.proforma.update({
           where: { id },
           data: {
-            status: 'CANCELLED',
-            reviewNotes: notes || 'Payment rejected by accountant',
+            status: 'REJECTED',
+            paymentNotes: notes || 'Payment rejected by accountant',
+            verifiedBy: session.user.id,
+            verifiedAt: new Date(),
           },
           include: {
             agent: true,
@@ -158,7 +162,7 @@ export async function POST(
         where: { id },
         data: {
           status: 'PAYMENT_PENDING',
-          reviewNotes: notes || null,
+          paymentNotes: notes || null,
         },
         include: {
           agent: true,

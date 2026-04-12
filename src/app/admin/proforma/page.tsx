@@ -473,6 +473,7 @@ export default function ProformaPage() {
     PAID: proformas.filter(p => p.status === 'PAID').length,
     EXPIRED: proformas.filter(p => p.status === 'EXPIRED').length,
     CANCELLED: proformas.filter(p => p.status === 'CANCELLED').length,
+    REJECTED: proformas.filter(p => p.status === 'REJECTED').length,
   };
 
   return (
@@ -504,7 +505,7 @@ export default function ProformaPage() {
       </div>
 
       {/* Stats */}
-      <div className="grid grid-cols-2 md:grid-cols-6 gap-4">
+      <div className="grid grid-cols-2 md:grid-cols-7 gap-4">
         {[
           { label: 'All', count: statusCounts.all, filter: 'all' },
           { label: 'Pending', count: statusCounts.PENDING, filter: 'PENDING' },
@@ -512,6 +513,7 @@ export default function ProformaPage() {
           { label: 'Paid', count: statusCounts.PAID, filter: 'PAID' },
           { label: 'Expired', count: statusCounts.EXPIRED, filter: 'EXPIRED' },
           { label: 'Cancelled', count: statusCounts.CANCELLED, filter: 'CANCELLED' },
+          { label: 'Rejected', count: statusCounts.REJECTED, filter: 'REJECTED' },
         ].map(stat => (
           <Card 
             key={stat.label} 
@@ -607,7 +609,7 @@ export default function ProformaPage() {
                             </Button>
                           </>
                         )}
-                        {(proforma.status === 'CANCELLED' || proforma.status === 'EXPIRED') && (
+                        {(proforma.status === 'CANCELLED' || proforma.status === 'EXPIRED' || proforma.status === 'REJECTED') && (
                           <>
                             <Button variant="ghost" size="sm" className="text-amber-600" onClick={() => handleReactivateProforma(proforma.id)} title="Reactivate">
                               <RotateCcw className="w-4 h-4" />

@@ -271,8 +271,31 @@ export async function DELETE(
 
     // Delete in transaction to handle all related records
     await db.$transaction(async (tx) => {
+      // Get all proformas for this agent
+      const proformas = await tx.proforma.findMany({
+        where: { agentId: id },
+        select: { id: true }
+      });
+
+      // Delete proforma items first
+      for (const proforma of proformas) {
+        await tx.proformaItem.deleteMany({
+          where: { proformaId: proforma.id }
+        });
+      }
+
+      // Delete proformas
+      await tx.proforma.deleteMany({
+        where: { agentId: id }
+      });
+
       // Delete sales records
       await tx.sale.deleteMany({
+        where: { agentId: id }
+      });
+
+      // Delete customers (cascade should handle this, but explicit for safety)
+      await tx.customer.deleteMany({
         where: { agentId: id }
       });
 

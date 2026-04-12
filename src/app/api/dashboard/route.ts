@@ -256,6 +256,21 @@ export async function GET() {
       LIMIT 5
     `;
 
+    // Proforma stats
+    const [
+      totalProformas,
+      pendingProformas,
+      paymentPendingProformas,
+      paidProformas,
+      rejectedProformas,
+    ] = await Promise.all([
+      db.proforma.count(),
+      db.proforma.count({ where: { status: 'PENDING' } }),
+      db.proforma.count({ where: { status: 'PAYMENT_PENDING' } }),
+      db.proforma.count({ where: { status: 'PAID' } }),
+      db.proforma.count({ where: { status: 'REJECTED' } }),
+    ]);
+
     return NextResponse.json({
       stats: {
         totalAgents,
@@ -281,6 +296,12 @@ export async function GET() {
         totalSales,
         salesThisMonth,
         avgDaysToSell,
+        // Proforma stats
+        totalProformas,
+        pendingProformas,
+        paymentPendingProformas,
+        paidProformas,
+        rejectedProformas,
       },
       recentApplications,
       monthlyTrend,

@@ -23,7 +23,9 @@ import {
   ShoppingCart,
   Zap,
   UserCheck,
-  Timer
+  Timer,
+  FileText,
+  DollarSign
 } from 'lucide-react';
 import Link from 'next/link';
 import {
@@ -73,6 +75,12 @@ interface DashboardStats {
   totalSales: number;
   salesThisMonth: number;
   avgDaysToSell: number;
+  // Proforma stats
+  totalProformas: number;
+  pendingProformas: number;
+  paymentPendingProformas: number;
+  paidProformas: number;
+  rejectedProformas: number;
 }
 
 interface RecentApplication {
@@ -180,6 +188,12 @@ export default function AdminDashboard() {
         totalSales: data.stats?.totalSales || 0,
         salesThisMonth: data.stats?.salesThisMonth || 0,
         avgDaysToSell: data.stats?.avgDaysToSell || 0,
+        // Proforma stats
+        totalProformas: data.stats?.totalProformas || 0,
+        pendingProformas: data.stats?.pendingProformas || 0,
+        paymentPendingProformas: data.stats?.paymentPendingProformas || 0,
+        paidProformas: data.stats?.paidProformas || 0,
+        rejectedProformas: data.stats?.rejectedProformas || 0,
       });
       setRecentApplications(data.recentApplications || []);
       setMonthlyTrend(data.monthlyTrend || []);
@@ -286,6 +300,52 @@ export default function AdminDashboard() {
           </CardContent>
         </Card>
       </div>
+
+      {/* Proforma Stats */}
+      <Card className="border-gray-200 shadow-sm rounded-xl overflow-hidden">
+        <CardHeader className="border-b border-gray-100 pb-4 px-6">
+          <div className="flex items-center justify-between">
+            <div>
+              <CardTitle className="text-lg font-bold">Proforma Overview</CardTitle>
+              <p className="text-xs text-gray-500 mt-0.5">Invoice status summary</p>
+            </div>
+            <Link href="/admin/proforma">
+              <Button variant="ghost" size="sm" className="text-deep-sky-blue font-bold hover:bg-gray-50">
+                View All <ArrowRight className="w-4 h-4 ml-2" />
+              </Button>
+            </Link>
+          </div>
+        </CardHeader>
+        <CardContent className="p-6">
+          <div className="grid grid-cols-2 sm:grid-cols-5 gap-4">
+            <div className="p-4 bg-gray-50 rounded-xl text-center">
+              <FileText className="w-6 h-6 text-gray-600 mx-auto mb-2" />
+              <p className="text-2xl font-black text-gray-900">{stats?.totalProformas || 0}</p>
+              <p className="text-[10px] font-bold text-gray-500 uppercase">Total</p>
+            </div>
+            <div className="p-4 bg-amber-50 rounded-xl text-center">
+              <Clock className="w-6 h-6 text-amber-600 mx-auto mb-2" />
+              <p className="text-2xl font-black text-amber-700">{stats?.pendingProformas || 0}</p>
+              <p className="text-[10px] font-bold text-amber-600 uppercase">Pending</p>
+            </div>
+            <div className="p-4 bg-blue-50 rounded-xl text-center">
+              <DollarSign className="w-6 h-6 text-blue-600 mx-auto mb-2" />
+              <p className="text-2xl font-black text-blue-700">{stats?.paymentPendingProformas || 0}</p>
+              <p className="text-[10px] font-bold text-blue-600 uppercase">Verify</p>
+            </div>
+            <div className="p-4 bg-green-50 rounded-xl text-center">
+              <CheckCircle2 className="w-6 h-6 text-green-600 mx-auto mb-2" />
+              <p className="text-2xl font-black text-green-700">{stats?.paidProformas || 0}</p>
+              <p className="text-[10px] font-bold text-green-600 uppercase">Paid</p>
+            </div>
+            <div className="p-4 bg-red-50 rounded-xl text-center">
+              <XCircle className="w-6 h-6 text-red-600 mx-auto mb-2" />
+              <p className="text-2xl font-black text-red-700">{stats?.rejectedProformas || 0}</p>
+              <p className="text-[10px] font-bold text-red-600 uppercase">Rejected</p>
+            </div>
+          </div>
+        </CardContent>
+      </Card>
 
       <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
         <Card className="border-gray-200 shadow-sm rounded-xl">

@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useState } from 'react';
+import { useEffect, useState, useRef } from 'react';
 import { Card, CardContent, CardHeader } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -41,6 +41,8 @@ import {
   AlertTriangle,
   Loader2,
 } from 'lucide-react';
+
+const VAT_RATE = 0.15; // 15% VAT
 
 interface ProformaItem {
   id: string;
@@ -111,11 +113,13 @@ export default function ProformaPage() {
   const [loading, setLoading] = useState(true);
   const [search, setSearch] = useState('');
   const [statusFilter, setStatusFilter] = useState('all');
+  const printRef = useRef<HTMLDivElement>(null);
   
   // Dialogs
   const [showCreateDialog, setShowCreateDialog] = useState(false);
   const [showDetailDialog, setShowDetailDialog] = useState(false);
   const [showPaymentDialog, setShowPaymentDialog] = useState(false);
+  const [showPrintDialog, setShowPrintDialog] = useState(false);
   const [selectedProforma, setSelectedProforma] = useState<Proforma | null>(null);
   
   // Create form state
@@ -152,6 +156,8 @@ export default function ProformaPage() {
       if (res.ok) {
         const data = await res.json();
         setProformas(Array.isArray(data) ? data : []);
+      } else {
+        console.error('Failed to fetch proformas:', res.status, res.statusText);
       }
     } catch (error) {
       console.error('Failed to fetch proformas:', error);
@@ -210,14 +216,15 @@ export default function ProformaPage() {
         body: JSON.stringify({
           agentId: selectedAgentId,
           items: proformaItems,
-          unitIds: selectedUnitIds,
+          unitIds: selectedUnitIds.length > 0 ? selectedUnitIds : undefined,
           notes: proformaNotes,
           validityDays,
         }),
       });
 
       if (res.ok) {
-        toast({ title: 'Proforma Created', description: 'New proforma has been generated.' });
+        const data = await res.json();
+        toast({ title: 'Proforma Created', description: `Proforma ${data.number} has been generated.` });
         setShowCreateDialog(false);
         resetCreateForm();
         fetchProformas();
@@ -277,6 +284,15 @@ export default function ProformaPage() {
     }
   };
 
+  const handlePrint = (proforma: Proforma) => {
+    setSelectedProforma(proforma);
+    setShowPrintDialog(true);
+  };
+
+  const printProforma = () => {
+    window.print();
+  };
+
   const resetCreateForm = () => {
     setSelectedAgentId('');
     setProformaItems([]);
@@ -301,12 +317,15 @@ export default function ProformaPage() {
     setProformaItems(proformaItems.filter((_, i) => i !== index));
   };
 
-  const calculateTotal = () => {
+  const calculateSubtotal = () => {
     return proformaItems.reduce((sum, item) => {
       const product = products.find(p => p.id === item.productId);
       return sum + (item.quantity * (product?.price || 0));
     }, 0);
   };
+
+  const calculateVat = (subtotal: number) => subtotal * VAT_RATE;
+  const calculateTotal = (subtotal: number) => subtotal + calculateVat(subtotal);
 
   const getStatusBadge = (status: string) => {
     const styles: Record<string, string> = {
@@ -319,7 +338,7 @@ export default function ProformaPage() {
   };
 
   const formatDate = (dateString: string) => new Date(dateString).toLocaleDateString();
-  const formatCurrency = (amount: number) => `ETB ${amount.toLocaleString()}`;
+  const formatCurrency = (amount: number) => `ETB ${amount.toLocaleString('en-US', { minimumFractionDigits: 2 })}`;
 
   const filteredProformas = proformas.filter(p => {
     const q = search.toLowerCase();
@@ -400,58 +419,67 @@ export default function ProformaPage() {
             </div>
           ) : (
             <div className="divide-y divide-gray-100">
-              {filteredProformas.map(proforma => (
-                <div
-                  key={proforma.id}
-                  className="flex items-center justify-between p-4 hover:bg-gray-50/50 transition-colors"
-                >
-                  <div className="flex items-center gap-4 min-w-0 flex-1">
-                    <div className="w-10 h-10 rounded-full bg-gray-100 flex items-center justify-center shrink-0">
-                      <FileText className="w-5 h-5 text-gray-500" />
-                    </div>
-                    <div className="min-w-0 flex-1">
-                      <div className="flex items-center gap-2">
-                        <span className="font-semibold text-gray-900">{proforma.number}</span>
-                        <Badge variant="outline" className={getStatusBadge(proforma.status)}>
-                          {proforma.status}
-                        </Badge>
+              {filteredProformas.map(proforma => {
+                const subtotal = proforma.items.reduce((sum, item) => sum + item.totalPrice, 0);
+                const vat = subtotal * VAT_RATE;
+                const totalWithVat = subtotal + vat;
+                
+                return (
+                  <div
+                    key={proforma.id}
+                    className="flex items-center justify-between p-4 hover:bg-gray-50/50 transition-colors"
+                  >
+                    <div className="flex items-center gap-4 min-w-0 flex-1">
+                      <div className="w-10 h-10 rounded-full bg-gray-100 flex items-center justify-center shrink-0">
+                        <FileText className="w-5 h-5 text-gray-500" />
                       </div>
-                      <div className="flex items-center gap-4 mt-1 text-xs text-gray-500">
-                        <span className="flex items-center gap-1">
-                          <User className="w-3 h-3" /> {proforma.agent.firstName} {proforma.agent.lastName}
-                        </span>
-                        <span className="flex items-center gap-1">
-                          <Package className="w-3 h-3" /> {proforma.items.length} items
-                        </span>
-                        <span className="flex items-center gap-1">
-                          <Calendar className="w-3 h-3" /> Expires {formatDate(proforma.expiresAt)}
-                        </span>
+                      <div className="min-w-0 flex-1">
+                        <div className="flex items-center gap-2">
+                          <span className="font-semibold text-gray-900">{proforma.number}</span>
+                          <Badge variant="outline" className={getStatusBadge(proforma.status)}>
+                            {proforma.status}
+                          </Badge>
+                        </div>
+                        <div className="flex items-center gap-4 mt-1 text-xs text-gray-500">
+                          <span className="flex items-center gap-1">
+                            <User className="w-3 h-3" /> {proforma.agent.firstName} {proforma.agent.lastName}
+                          </span>
+                          <span className="flex items-center gap-1">
+                            <Package className="w-3 h-3" /> {proforma.items.length} items
+                          </span>
+                          <span className="flex items-center gap-1">
+                            <Calendar className="w-3 h-3" /> Expires {formatDate(proforma.expiresAt)}
+                          </span>
+                        </div>
+                      </div>
+                    </div>
+                    <div className="flex items-center gap-4 shrink-0">
+                      <div className="text-right">
+                        <p className="font-bold text-gray-900">{formatCurrency(totalWithVat)}</p>
+                        <p className="text-xs text-gray-500">{formatDate(proforma.createdAt)}</p>
+                      </div>
+                      <div className="flex items-center gap-1">
+                        <Button variant="ghost" size="sm" onClick={() => handlePrint(proforma)} title="Print">
+                          <Printer className="w-4 h-4" />
+                        </Button>
+                        <Button variant="ghost" size="sm" onClick={() => { setSelectedProforma(proforma); setShowDetailDialog(true); }}>
+                          <Eye className="w-4 h-4" />
+                        </Button>
+                        {proforma.status === 'PENDING' && (
+                          <>
+                            <Button variant="ghost" size="sm" className="text-emerald-600" onClick={() => { setSelectedProforma(proforma); setShowPaymentDialog(true); }}>
+                              <DollarSign className="w-4 h-4" />
+                            </Button>
+                            <Button variant="ghost" size="sm" className="text-red-500" onClick={() => handleCancelProforma(proforma.id)}>
+                              <XCircle className="w-4 h-4" />
+                            </Button>
+                          </>
+                        )}
                       </div>
                     </div>
                   </div>
-                  <div className="flex items-center gap-4 shrink-0">
-                    <div className="text-right">
-                      <p className="font-bold text-gray-900">{formatCurrency(proforma.totalAmount)}</p>
-                      <p className="text-xs text-gray-500">{formatDate(proforma.createdAt)}</p>
-                    </div>
-                    <div className="flex items-center gap-1">
-                      <Button variant="ghost" size="sm" onClick={() => { setSelectedProforma(proforma); setShowDetailDialog(true); }}>
-                        <Eye className="w-4 h-4" />
-                      </Button>
-                      {proforma.status === 'PENDING' && (
-                        <>
-                          <Button variant="ghost" size="sm" className="text-emerald-600" onClick={() => { setSelectedProforma(proforma); setShowPaymentDialog(true); }}>
-                            <DollarSign className="w-4 h-4" />
-                          </Button>
-                          <Button variant="ghost" size="sm" className="text-red-500" onClick={() => handleCancelProforma(proforma.id)}>
-                            <XCircle className="w-4 h-4" />
-                          </Button>
-                        </>
-                      )}
-                    </div>
-                  </div>
-                </div>
-              ))}
+                );
+              })}
             </div>
           )}
         </CardContent>
@@ -472,23 +500,34 @@ export default function ProformaPage() {
               <Select value={selectedAgentId} onValueChange={setSelectedAgentId}>
                 <SelectTrigger className="mt-1"><SelectValue placeholder="Choose approved agent" /></SelectTrigger>
                 <SelectContent>
-                  {agents.map(agent => (
-                    <SelectItem key={agent.id} value={agent.id}>
-                      {agent.firstName} {agent.lastName} {agent.businessName ? `(${agent.businessName})` : ''}
-                    </SelectItem>
-                  ))}
+                  {agents.length === 0 ? (
+                    <SelectItem value="none" disabled>No approved agents available</SelectItem>
+                  ) : (
+                    agents.map(agent => (
+                      <SelectItem key={agent.id} value={agent.id}>
+                        {agent.firstName} {agent.lastName} {agent.businessName ? `(${agent.businessName})` : ''}
+                      </SelectItem>
+                    ))
+                  )}
                 </SelectContent>
               </Select>
+              {agents.length === 0 && (
+                <p className="text-xs text-amber-600 mt-1">No approved agents found. Approve an agent first.</p>
+              )}
             </div>
 
             {/* Items */}
             <div className="space-y-4">
               <div className="flex items-center justify-between">
                 <Label className="text-xs text-gray-500">Products *</Label>
-                <Button variant="outline" size="sm" onClick={addItem}>
+                <Button variant="outline" size="sm" onClick={addItem} disabled={products.length === 0}>
                   <Plus className="w-3 h-3 mr-1" /> Add Item
                 </Button>
               </div>
+
+              {products.length === 0 && (
+                <p className="text-xs text-amber-600">No serialized products found. Create a serialized product first.</p>
+              )}
               
               {proformaItems.map((item, index) => {
                 const product = products.find(p => p.id === item.productId);
@@ -527,9 +566,19 @@ export default function ProformaPage() {
 
               {proformaItems.length > 0 && (
                 <div className="flex justify-end pt-4 border-t">
-                  <div className="text-right">
-                    <p className="text-xs text-gray-500">Total Amount</p>
-                    <p className="text-2xl font-bold text-gray-900">{formatCurrency(calculateTotal())}</p>
+                  <div className="text-right space-y-1">
+                    <div className="flex justify-between gap-8">
+                      <span className="text-sm text-gray-500">Subtotal</span>
+                      <span className="text-sm font-medium">{formatCurrency(calculateSubtotal())}</span>
+                    </div>
+                    <div className="flex justify-between gap-8">
+                      <span className="text-sm text-gray-500">VAT (15%)</span>
+                      <span className="text-sm font-medium">{formatCurrency(calculateVat(calculateSubtotal()))}</span>
+                    </div>
+                    <div className="flex justify-between gap-8 pt-2 border-t">
+                      <span className="text-sm font-bold">Total (incl. VAT)</span>
+                      <span className="text-lg font-bold text-gray-900">{formatCurrency(calculateTotal(calculateSubtotal()))}</span>
+                    </div>
                   </div>
                 </div>
               )}
@@ -596,129 +645,146 @@ export default function ProformaPage() {
       {/* Detail Dialog */}
       <Dialog open={showDetailDialog} onOpenChange={setShowDetailDialog}>
         <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
-          {selectedProforma && (
-            <>
-              <DialogHeader>
-                <div className="flex items-center justify-between">
-                  <div>
-                    <DialogTitle className="text-xl">{selectedProforma.number}</DialogTitle>
-                    <p className="text-sm text-gray-500 mt-1">
-                      {selectedProforma.agent.firstName} {selectedProforma.agent.lastName}
-                      {selectedProforma.agent.businessName && ` (${selectedProforma.agent.businessName})`}
-                    </p>
+          {selectedProforma && (() => {
+            const subtotal = selectedProforma.items.reduce((sum, item) => sum + item.totalPrice, 0);
+            const vat = subtotal * VAT_RATE;
+            const totalWithVat = subtotal + vat;
+            
+            return (
+              <>
+                <DialogHeader>
+                  <div className="flex items-center justify-between">
+                    <div>
+                      <DialogTitle className="text-xl">{selectedProforma.number}</DialogTitle>
+                      <p className="text-sm text-gray-500 mt-1">
+                        {selectedProforma.agent.firstName} {selectedProforma.agent.lastName}
+                        {selectedProforma.agent.businessName && ` (${selectedProforma.agent.businessName})`}
+                      </p>
+                    </div>
+                    <Badge variant="outline" className={getStatusBadge(selectedProforma.status)}>
+                      {selectedProforma.status}
+                    </Badge>
                   </div>
-                  <Badge variant="outline" className={getStatusBadge(selectedProforma.status)}>
-                    {selectedProforma.status}
-                  </Badge>
-                </div>
-              </DialogHeader>
+                </DialogHeader>
 
-              <div className="space-y-6 py-4">
-                {/* Agent Info */}
-                <div className="grid grid-cols-2 gap-4 p-4 bg-gray-50 rounded-xl">
-                  <div>
-                    <p className="text-xs text-gray-500">Email</p>
-                    <p className="text-sm font-medium">{selectedProforma.agent.email}</p>
+                <div className="space-y-6 py-4">
+                  {/* Agent Info */}
+                  <div className="grid grid-cols-2 gap-4 p-4 bg-gray-50 rounded-xl">
+                    <div>
+                      <p className="text-xs text-gray-500">Email</p>
+                      <p className="text-sm font-medium">{selectedProforma.agent.email}</p>
+                    </div>
+                    <div>
+                      <p className="text-xs text-gray-500">Phone</p>
+                      <p className="text-sm font-medium">{selectedProforma.agent.phone}</p>
+                    </div>
                   </div>
-                  <div>
-                    <p className="text-xs text-gray-500">Phone</p>
-                    <p className="text-sm font-medium">{selectedProforma.agent.phone}</p>
-                  </div>
-                </div>
 
-                {/* Items Table */}
-                <div>
-                  <p className="text-xs font-bold text-gray-500 uppercase mb-3">Items</p>
-                  <div className="border rounded-xl overflow-hidden">
-                    <table className="w-full">
-                      <thead className="bg-gray-50">
-                        <tr>
-                          <th className="px-4 py-2 text-left text-xs font-bold text-gray-500">Product</th>
-                          <th className="px-4 py-2 text-center text-xs font-bold text-gray-500">Qty</th>
-                          <th className="px-4 py-2 text-right text-xs font-bold text-gray-500">Unit Price</th>
-                          <th className="px-4 py-2 text-right text-xs font-bold text-gray-500">Total</th>
-                        </tr>
-                      </thead>
-                      <tbody className="divide-y">
-                        {selectedProforma.items.map(item => (
-                          <tr key={item.id}>
-                            <td className="px-4 py-3 text-sm">{item.productName}</td>
-                            <td className="px-4 py-3 text-sm text-center">{item.quantity}</td>
-                            <td className="px-4 py-3 text-sm text-right">{formatCurrency(item.unitPrice)}</td>
-                            <td className="px-4 py-3 text-sm text-right font-medium">{formatCurrency(item.totalPrice)}</td>
+                  {/* Items Table */}
+                  <div>
+                    <p className="text-xs font-bold text-gray-500 uppercase mb-3">Items</p>
+                    <div className="border rounded-xl overflow-hidden">
+                      <table className="w-full">
+                        <thead className="bg-gray-50">
+                          <tr>
+                            <th className="px-4 py-2 text-left text-xs font-bold text-gray-500">Product</th>
+                            <th className="px-4 py-2 text-center text-xs font-bold text-gray-500">Qty</th>
+                            <th className="px-4 py-2 text-right text-xs font-bold text-gray-500">Unit Price</th>
+                            <th className="px-4 py-2 text-right text-xs font-bold text-gray-500">Total</th>
                           </tr>
+                        </thead>
+                        <tbody className="divide-y">
+                          {selectedProforma.items.map(item => (
+                            <tr key={item.id}>
+                              <td className="px-4 py-3 text-sm">{item.productName}</td>
+                              <td className="px-4 py-3 text-sm text-center">{item.quantity}</td>
+                              <td className="px-4 py-3 text-sm text-right">{formatCurrency(item.unitPrice)}</td>
+                              <td className="px-4 py-3 text-sm text-right font-medium">{formatCurrency(item.totalPrice)}</td>
+                            </tr>
+                          ))}
+                        </tbody>
+                        <tfoot className="bg-gray-50">
+                          <tr>
+                            <td colSpan={3} className="px-4 py-2 text-sm text-right">Subtotal</td>
+                            <td className="px-4 py-2 text-sm text-right font-medium">{formatCurrency(subtotal)}</td>
+                          </tr>
+                          <tr>
+                            <td colSpan={3} className="px-4 py-2 text-sm text-right">VAT (15%)</td>
+                            <td className="px-4 py-2 text-sm text-right font-medium">{formatCurrency(vat)}</td>
+                          </tr>
+                          <tr className="border-t-2 border-gray-300">
+                            <td colSpan={3} className="px-4 py-3 text-sm font-bold text-right">Total (incl. VAT)</td>
+                            <td className="px-4 py-3 text-sm font-bold text-right">{formatCurrency(totalWithVat)}</td>
+                          </tr>
+                        </tfoot>
+                      </table>
+                    </div>
+                  </div>
+
+                  {/* Reserved Chassis */}
+                  {selectedProforma.productUnits.length > 0 && (
+                    <div>
+                      <p className="text-xs font-bold text-gray-500 uppercase mb-3">Reserved Chassis Numbers</p>
+                      <div className="flex flex-wrap gap-2">
+                        {selectedProforma.productUnits.map(unit => (
+                          <span key={unit.id} className="px-3 py-1 bg-blue-50 text-blue-700 rounded-full text-xs font-mono font-medium">
+                            {unit.chassisNumber}
+                          </span>
                         ))}
-                      </tbody>
-                      <tfoot className="bg-gray-50">
-                        <tr>
-                          <td colSpan={3} className="px-4 py-3 text-sm font-bold text-right">Total</td>
-                          <td className="px-4 py-3 text-sm font-bold text-right">{formatCurrency(selectedProforma.totalAmount)}</td>
-                        </tr>
-                      </tfoot>
-                    </table>
-                  </div>
-                </div>
-
-                {/* Reserved Chassis */}
-                {selectedProforma.productUnits.length > 0 && (
-                  <div>
-                    <p className="text-xs font-bold text-gray-500 uppercase mb-3">Reserved Chassis Numbers</p>
-                    <div className="flex flex-wrap gap-2">
-                      {selectedProforma.productUnits.map(unit => (
-                        <span key={unit.id} className="px-3 py-1 bg-blue-50 text-blue-700 rounded-full text-xs font-mono font-medium">
-                          {unit.chassisNumber}
-                        </span>
-                      ))}
-                    </div>
-                  </div>
-                )}
-
-                {/* Dates */}
-                <div className="grid grid-cols-2 gap-4 p-4 bg-gray-50 rounded-xl">
-                  <div>
-                    <p className="text-xs text-gray-500">Created</p>
-                    <p className="text-sm font-medium">{formatDate(selectedProforma.createdAt)}</p>
-                  </div>
-                  <div>
-                    <p className="text-xs text-gray-500">Expires</p>
-                    <p className="text-sm font-medium">{formatDate(selectedProforma.expiresAt)}</p>
-                  </div>
-                  {selectedProforma.paidAt && (
-                    <div>
-                      <p className="text-xs text-gray-500">Paid</p>
-                      <p className="text-sm font-medium">{formatDate(selectedProforma.paidAt)}</p>
+                      </div>
                     </div>
                   )}
-                  {selectedProforma.paymentRef && (
+
+                  {/* Dates */}
+                  <div className="grid grid-cols-2 gap-4 p-4 bg-gray-50 rounded-xl">
                     <div>
-                      <p className="text-xs text-gray-500">Payment Reference</p>
-                      <p className="text-sm font-medium">{selectedProforma.paymentRef}</p>
+                      <p className="text-xs text-gray-500">Created</p>
+                      <p className="text-sm font-medium">{formatDate(selectedProforma.createdAt)}</p>
+                    </div>
+                    <div>
+                      <p className="text-xs text-gray-500">Expires</p>
+                      <p className="text-sm font-medium">{formatDate(selectedProforma.expiresAt)}</p>
+                    </div>
+                    {selectedProforma.paidAt && (
+                      <div>
+                        <p className="text-xs text-gray-500">Paid</p>
+                        <p className="text-sm font-medium">{formatDate(selectedProforma.paidAt)}</p>
+                      </div>
+                    )}
+                    {selectedProforma.paymentRef && (
+                      <div>
+                        <p className="text-xs text-gray-500">Payment Reference</p>
+                        <p className="text-sm font-medium">{selectedProforma.paymentRef}</p>
+                      </div>
+                    )}
+                  </div>
+
+                  {selectedProforma.notes && (
+                    <div className="p-4 bg-gray-50 rounded-xl">
+                      <p className="text-xs text-gray-500">Notes</p>
+                      <p className="text-sm">{selectedProforma.notes}</p>
                     </div>
                   )}
                 </div>
 
-                {selectedProforma.notes && (
-                  <div className="p-4 bg-gray-50 rounded-xl">
-                    <p className="text-xs text-gray-500">Notes</p>
-                    <p className="text-sm">{selectedProforma.notes}</p>
-                  </div>
-                )}
-              </div>
-
-              <DialogFooter className="gap-2">
-                {selectedProforma.status === 'PENDING' && (
-                  <>
-                    <Button variant="outline" className="text-red-600 border-red-200" onClick={() => { handleCancelProforma(selectedProforma.id); setShowDetailDialog(false); }}>
-                      <XCircle className="w-4 h-4 mr-2" /> Cancel
-                    </Button>
-                    <Button className="bg-emerald-600 hover:bg-emerald-700" onClick={() => { setShowDetailDialog(false); setShowPaymentDialog(true); }}>
-                      <DollarSign className="w-4 h-4 mr-2" /> Record Payment
-                    </Button>
-                  </>
-                )}
-              </DialogFooter>
-            </>
-          )}
+                <DialogFooter className="gap-2">
+                  <Button variant="outline" onClick={() => handlePrint(selectedProforma)}>
+                    <Printer className="w-4 h-4 mr-2" /> Print
+                  </Button>
+                  {selectedProforma.status === 'PENDING' && (
+                    <>
+                      <Button variant="outline" className="text-red-600 border-red-200" onClick={() => { handleCancelProforma(selectedProforma.id); setShowDetailDialog(false); }}>
+                        <XCircle className="w-4 h-4 mr-2" /> Cancel
+                      </Button>
+                      <Button className="bg-emerald-600 hover:bg-emerald-700" onClick={() => { setShowDetailDialog(false); setShowPaymentDialog(true); }}>
+                        <DollarSign className="w-4 h-4 mr-2" /> Record Payment
+                      </Button>
+                    </>
+                  )}
+                </DialogFooter>
+              </>
+            );
+          })()}
         </DialogContent>
       </Dialog>
 
@@ -743,7 +809,7 @@ export default function ProformaPage() {
             </div>
             <div className="p-4 bg-emerald-50 rounded-xl">
               <p className="text-sm text-emerald-800">
-                <strong>Amount Due:</strong> {formatCurrency(selectedProforma?.totalAmount || 0)}
+                <strong>Amount Due:</strong> {selectedProforma && formatCurrency(selectedProforma.items.reduce((sum, item) => sum + item.totalPrice, 0) * 1.15)}
               </p>
             </div>
           </div>
@@ -753,6 +819,129 @@ export default function ProformaPage() {
               {paymentLoading ? 'Processing...' : 'Confirm Payment'}
             </Button>
           </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      {/* Print Dialog */}
+      <Dialog open={showPrintDialog} onOpenChange={setShowPrintDialog}>
+        <DialogContent className="max-w-3xl print:max-w-none print:shadow-none">
+          {selectedProforma && (() => {
+            const subtotal = selectedProforma.items.reduce((sum, item) => sum + item.totalPrice, 0);
+            const vat = subtotal * VAT_RATE;
+            const totalWithVat = subtotal + vat;
+            
+            return (
+              <>
+                <DialogHeader className="print:hidden">
+                  <DialogTitle>Print Proforma</DialogTitle>
+                </DialogHeader>
+
+                {/* Printable Content */}
+                <div ref={printRef} className="bg-white p-8 print:p-0">
+                  {/* Header */}
+                  <div className="flex justify-between items-start mb-8 border-b pb-6">
+                    <div>
+                      <h1 className="text-2xl font-bold text-gray-900">PROFORMA INVOICE</h1>
+                      <p className="text-lg font-semibold text-deep-sky-blue mt-1">{selectedProforma.number}</p>
+                      <p className="text-sm text-gray-500 mt-2">
+                        Date: {new Date(selectedProforma.createdAt).toLocaleDateString()}
+                      </p>
+                      <p className="text-sm text-gray-500">
+                        Valid Until: {new Date(selectedProforma.expiresAt).toLocaleDateString()}
+                      </p>
+                    </div>
+                    <div className="text-right">
+                      <h2 className="text-xl font-bold text-gray-900">ETUK</h2>
+                      <p className="text-sm text-gray-500">Electric Vehicles</p>
+                      <p className="text-sm text-gray-500">Modjo, Oromia, Ethiopia</p>
+                    </div>
+                  </div>
+
+                  {/* Bill To */}
+                  <div className="mb-8">
+                    <p className="text-xs font-bold text-gray-400 uppercase mb-2">Bill To:</p>
+                    <p className="font-bold text-gray-900">
+                      {selectedProforma.agent.firstName} {selectedProforma.agent.lastName}
+                      {selectedProforma.agent.businessName && ` (${selectedProforma.agent.businessName})`}
+                    </p>
+                    <p className="text-sm text-gray-600">{selectedProforma.agent.email}</p>
+                    <p className="text-sm text-gray-600">{selectedProforma.agent.phone}</p>
+                  </div>
+
+                  {/* Items Table */}
+                  <table className="w-full mb-8 border-collapse">
+                    <thead>
+                      <tr className="bg-gray-100">
+                        <th className="px-4 py-3 text-left text-xs font-bold text-gray-600 uppercase border">Product</th>
+                        <th className="px-4 py-3 text-center text-xs font-bold text-gray-600 uppercase border">Qty</th>
+                        <th className="px-4 py-3 text-right text-xs font-bold text-gray-600 uppercase border">Unit Price</th>
+                        <th className="px-4 py-3 text-right text-xs font-bold text-gray-600 uppercase border">Total</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {selectedProforma.items.map(item => (
+                        <tr key={item.id}>
+                          <td className="px-4 py-3 border">{item.productName}</td>
+                          <td className="px-4 py-3 text-center border">{item.quantity}</td>
+                          <td className="px-4 py-3 text-right border">{formatCurrency(item.unitPrice)}</td>
+                          <td className="px-4 py-3 text-right font-medium border">{formatCurrency(item.totalPrice)}</td>
+                        </tr>
+                      ))}
+                    </tbody>
+                    <tfoot>
+                      <tr>
+                        <td colSpan={3} className="px-4 py-3 text-right border font-medium">Subtotal</td>
+                        <td className="px-4 py-3 text-right border font-medium">{formatCurrency(subtotal)}</td>
+                      </tr>
+                      <tr>
+                        <td colSpan={3} className="px-4 py-3 text-right border font-medium">VAT (15%)</td>
+                        <td className="px-4 py-3 text-right border font-medium">{formatCurrency(vat)}</td>
+                      </tr>
+                      <tr className="bg-gray-100">
+                        <td colSpan={3} className="px-4 py-3 text-right border font-bold">TOTAL (incl. VAT)</td>
+                        <td className="px-4 py-3 text-right border font-bold text-lg">{formatCurrency(totalWithVat)}</td>
+                      </tr>
+                    </tfoot>
+                  </table>
+
+                  {/* Reserved Chassis */}
+                  {selectedProforma.productUnits.length > 0 && (
+                    <div className="mb-8">
+                      <p className="text-xs font-bold text-gray-400 uppercase mb-2">Reserved Units (Chassis Numbers):</p>
+                      <div className="flex flex-wrap gap-2 p-3 bg-gray-50 rounded-lg border">
+                        {selectedProforma.productUnits.map(unit => (
+                          <span key={unit.id} className="px-3 py-1 bg-white border border-gray-200 rounded text-sm font-mono">
+                            {unit.chassisNumber}
+                          </span>
+                        ))}
+                      </div>
+                    </div>
+                  )}
+
+                  {/* Notes */}
+                  {selectedProforma.notes && (
+                    <div className="mb-8 p-4 bg-gray-50 rounded-lg">
+                      <p className="text-xs font-bold text-gray-400 uppercase mb-1">Notes:</p>
+                      <p className="text-sm text-gray-600">{selectedProforma.notes}</p>
+                    </div>
+                  )}
+
+                  {/* Footer */}
+                  <div className="border-t pt-6 mt-8 text-center text-sm text-gray-500">
+                    <p>This is a proforma invoice. Payment must be made before the expiration date.</p>
+                    <p className="mt-1">Thank you for your business!</p>
+                  </div>
+                </div>
+
+                <DialogFooter className="print:hidden">
+                  <Button variant="outline" onClick={() => setShowPrintDialog(false)}>Close</Button>
+                  <Button onClick={printProforma} className="bg-gray-900 hover:bg-gray-800">
+                    <Printer className="w-4 h-4 mr-2" /> Print
+                  </Button>
+                </DialogFooter>
+              </>
+            );
+          })()}
         </DialogContent>
       </Dialog>
     </div>

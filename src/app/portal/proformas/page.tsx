@@ -32,6 +32,7 @@ import {
   CreditCard,
   Upload,
   Image,
+  ExternalLink,
 } from 'lucide-react';
 
 interface ProformaItem {
@@ -690,15 +691,36 @@ export default function AgentProformasPage() {
                   {selectedProforma.paymentReceipt && (
                     <div>
                       <p className="text-xs font-bold text-gray-500 uppercase mb-3">Payment Receipt</p>
-                      <div className="p-4 bg-gray-50 rounded-xl">
+                      <div className="p-4 bg-gray-50 rounded-xl space-y-3">
+                        {/* Show image preview */}
+                        <div className="border rounded-lg overflow-hidden bg-white">
+                          <img 
+                            src={selectedProforma.paymentReceipt} 
+                            alt="Payment Receipt"
+                            className="max-w-full max-h-48 mx-auto object-contain"
+                            onError={(e) => {
+                              (e.target as HTMLImageElement).style.display = 'none';
+                              const parent = (e.target as HTMLImageElement).parentElement;
+                              if (parent) {
+                                parent.innerHTML = `
+                                  <div class="p-6 text-center text-gray-500">
+                                    <svg class="w-10 h-10 mx-auto mb-2 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path>
+                                    </svg>
+                                    <p class="text-sm">Receipt uploaded</p>
+                                  </div>
+                                `;
+                              }
+                            }}
+                          />
+                        </div>
                         <a 
                           href={selectedProforma.paymentReceipt} 
                           target="_blank" 
                           rel="noopener noreferrer"
-                          className="flex items-center gap-2 text-blue-600 hover:text-blue-700"
+                          className="flex items-center justify-center gap-2 text-sm text-blue-600 hover:text-blue-700"
                         >
-                          <Image className="w-5 h-5" />
-                          <span className="text-sm font-medium">View Uploaded Receipt</span>
+                          <ExternalLink className="w-4 h-4" /> Open in new tab
                         </a>
                       </div>
                     </div>

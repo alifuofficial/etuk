@@ -1,11 +1,10 @@
+// NextAuth configuration for ETUK platform
 import type { NextAuthOptions } from 'next-auth';
 import CredentialsProvider from 'next-auth/providers/credentials';
-import { PrismaAdapter } from '@next-auth/prisma-adapter';
 import { db } from '@/lib/db';
 import bcrypt from 'bcryptjs';
 
 export const authOptions: NextAuthOptions = {
-  adapter: PrismaAdapter(db),
   providers: [
     CredentialsProvider({
       name: 'credentials',
@@ -37,6 +36,22 @@ export const authOptions: NextAuthOptions = {
 
         if (!user.isActive) {
           return null;
+        }
+
+        // If user is an AGENT, verify they have an approved agent profile
+        if (user.role === 'AGENT') {
+          const agent = await db.agent.findFirst({
+            where: {
+              OR: [
+                { userId: user.id },
+                { email: user.email }
+              ]
+            }
+          });
+
+          if (!agent || agent.status !== 'APPROVED') {
+            return null; // Reject login for non-approved agents
+          }
         }
 
         return {

@@ -27,16 +27,25 @@ import {
   X,
   ChevronDown,
   Bell,
+  Boxes,
+  MessageSquare,
+  Warehouse,
+  FileText,
 } from 'lucide-react';
 import { signOut } from 'next-auth/react';
 
 const navItems = [
-  { href: '/admin', label: 'Dashboard', icon: LayoutDashboard },
-  { href: '/admin/agents', label: 'Agents', icon: Users, roles: ['ADMIN', 'MARKETING_MANAGER'] },
-  { href: '/admin/locations', label: 'Locations', icon: MapPin, roles: ['ADMIN', 'MARKETING_MANAGER'] },
+  { href: '/admin', label: 'Dashboard', icon: LayoutDashboard, roles: ['ADMIN', 'MARKETING_MANAGER'] },
+  { href: '/admin/warehouse', label: 'Dashboard', icon: LayoutDashboard, roles: ['WAREHOUSE_MANAGER'] },
+  { href: '/admin/agents', label: 'Agents', icon: Users, roles: ['ADMIN', 'MARKETING_MANAGER', 'WAREHOUSE_MANAGER'] },
+  { href: '/admin/proforma', label: 'Proforma', icon: FileText, roles: ['ADMIN', 'MARKETING_MANAGER'] },
+  { href: '/admin/locations', label: 'Locations', icon: MapPin, roles: ['ADMIN'] },
   { href: '/admin/users', label: 'Users', icon: UserCircle, roles: ['ADMIN'] },
   { href: '/admin/products', label: 'Products', icon: Package, roles: ['ADMIN'] },
-  { href: '/admin/settings', label: 'Settings', icon: Settings, roles: ['ADMIN', 'MARKETING_MANAGER'] },
+  { href: '/admin/inventory', label: 'Inventory', icon: Boxes, roles: ['ADMIN'] },
+  { href: '/admin/warehouse', label: 'Warehouse', icon: Warehouse, roles: ['ADMIN', 'WAREHOUSE_MANAGER'] },
+  { href: '/admin/notifications', label: 'Notifications', icon: MessageSquare, roles: ['ADMIN', 'MARKETING_MANAGER'] },
+  { href: '/admin/settings', label: 'Settings', icon: Settings, roles: ['ADMIN', 'MARKETING_MANAGER', 'WAREHOUSE_MANAGER'] },
 ];
 
 export default function AdminLayout({
@@ -53,12 +62,16 @@ export default function AdminLayout({
     if (status === 'unauthenticated') {
       router.push('/auth/login');
     }
-  }, [status, router]);
+    // Redirect agents to their portal
+    if (status === 'authenticated' && session?.user?.role === 'AGENT') {
+      router.push('/portal');
+    }
+  }, [status, session, router]);
 
   if (status === 'loading') {
     return (
       <div className="min-h-screen flex items-center justify-center bg-gray-50">
-        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-deepSkyBlue" />
+        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-deep-sky-blue" />
       </div>
     );
   }
@@ -109,7 +122,7 @@ export default function AdminLayout({
                   href={item.href}
                   className={`flex items-center gap-3 px-4 py-3 rounded-lg transition-colors ${
                     isActive
-                      ? 'bg-deepSkyBlue/10 text-deepSkyBlue'
+                      ? 'bg-deep-sky-blue/10 text-deep-sky-blue'
                       : 'text-gray-600 hover:bg-gray-50 hover:text-gray-900'
                   }`}
                   onClick={() => setSidebarOpen(false)}
@@ -161,7 +174,7 @@ export default function AdminLayout({
                     {session.user?.name}
                   </span>
                   <Avatar className="w-8 h-8">
-                    <AvatarFallback className="bg-deepSkyBlue text-white text-xs font-bold uppercase">
+                    <AvatarFallback className="bg-deep-sky-blue text-white text-xs font-bold uppercase">
                       {session.user?.name?.[0] || 'U'}
                     </AvatarFallback>
                   </Avatar>

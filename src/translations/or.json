@@ -54,6 +54,14 @@
       "title": "Guddaa fi Bal'aa",
       "description": "Bakka ija'uu mijataa dandeettii fe'umsaa ol'aanaa (hanga 750kg)"
     },
+    "load": {
+      "title": "Fe'umsa Ol'aanaa",
+      "description": "Deeggarsa fe'umsa ulfaataa hanga 750kg"
+    },
+    "sds": {
+      "title": "Sirna Hidhaa Amayyaa",
+      "description": "Sirna konkolaachisummaa balaa irraa eegu"
+    },
     "tech": {
       "battery": "Liitiyeem Ayiraan Foosfeetii (7.6 kWh)",
       "power": "4000W / 960 N.M Max Torque",

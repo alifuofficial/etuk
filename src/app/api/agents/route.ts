@@ -1,19 +1,49 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { db } from '@/lib/db';
+import { triggerTemplateSms } from '@/lib/sms';
 import { writeFile, mkdir } from 'node:fs/promises';
 import { join } from 'node:path';
 import { v4 as uuidv4 } from 'uuid';
+import { getServerSession } from 'next-auth';
+import { authOptions } from '@/lib/auth';
 
-// GET - List all agents
+function normalizePhone(phone: string | null): string | null {
+  if (!phone) return null;
+  // Strip spaces, dashes, and leading +
+  let cleaned = phone.toString().replace(/[\s\-]/g, '').replace(/^\+/, '');
+  // If starts with 09 or 07 convert to 2519/2517
+  if (cleaned.startsWith('09') || cleaned.startsWith('07')) {
+    cleaned = '251' + cleaned.slice(1);
+  }
+  return cleaned;
+}
+
+// GET - List all agents (Protected - Admin only)
 export async function GET(request: NextRequest) {
   try {
+    // Check authentication
+    const session = await getServerSession(authOptions);
+    
+    if (!session?.user) {
+      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+    }
+    
+    // ADMIN and MARKETING_MANAGER can see all agents, WAREHOUSE_MANAGER can only see approved agents
+    const allowedRoles = ['ADMIN', 'MARKETING_MANAGER', 'WAREHOUSE_MANAGER'];
+    if (!allowedRoles.includes(session.user.role)) {
+      return NextResponse.json({ error: 'Forbidden' }, { status: 403 });
+    }
+    
     const { searchParams } = new URL(request.url);
     const status = searchParams.get('status');
     const region = searchParams.get('region');
     
     const where: Record<string, unknown> = {};
     
-    if (status) {
+    // WAREHOUSE_MANAGER can only see approved agents
+    if (session.user.role === 'WAREHOUSE_MANAGER') {
+      where.status = 'APPROVED';
+    } else if (status) {
       where.status = status;
     }
     
@@ -23,7 +53,36 @@ export async function GET(request: NextRequest) {
     
     const agents = await db.agent.findMany({
       where,
-      include: {
+      select: {
+        id: true,
+        firstName: true,
+        lastName: true,
+        email: true,
+        phone: true,
+        alternativePhone: true,
+        businessName: true,
+        businessType: true,
+        experience: true,
+        region: true,
+        city: true,
+        woreda: true,
+        kebele: true,
+        address: true,
+        hasWarehouse: true,
+        warehouseSize: true,
+        existingBrands: true,
+        staffCount: true,
+        estimatedCapital: true,
+        bankName: true,
+        accountNumber: true,
+        tradeLicense: true,
+        tinNumber: true,
+        status: true,
+        message: true,
+        howDidYouHear: true,
+        createdAt: true,
+        reviewedAt: true,
+        reviewNotes: true,
         reviewer: {
           select: {
             id: true,
@@ -31,6 +90,13 @@ export async function GET(request: NextRequest) {
             email: true,
           },
         },
+        user: {
+          select: {
+            id: true,
+            isActive: true,
+          },
+        },
+        userId: true,
       },
       orderBy: {
         createdAt: 'desc',
@@ -47,60 +113,140 @@ export async function GET(request: NextRequest) {
   }
 }
 
-// POST - Create new agent application
+// POST - Create new agent application (Public)
 export async function POST(request: NextRequest) {
   try {
-    const formData = await request.formData();
-    
-    // Extract text fields
-    const data: Record<string, any> = {};
-    formData.forEach((value, key) => {
-      if (typeof value === 'string') {
-        data[key] = value;
+    const contentType = request.headers.get('content-type') || '';
+    let data: Record<string, any> = {};
+    let tradeLicensePath: string | null = null;
+
+    if (contentType.includes('multipart/form-data')) {
+      const formData = await request.formData();
+      
+      // Extract text fields
+      formData.forEach((value, key) => {
+        if (typeof value === 'string') {
+          data[key] = value || null;
+        }
+      });
+
+      // Handle file upload
+      const file = formData.get('tradeLicense') as File | null;
+      if (file && file.size > 0) {
+        // Validate file size (max 5MB)
+        if (file.size > 5 * 1024 * 1024) {
+          return NextResponse.json(
+            { error: 'File too large. Maximum size is 5MB' },
+            { status: 400 }
+          );
+        }
+
+        // Validate file type
+        const allowedTypes = ['image/jpeg', 'image/png', 'image/webp', 'application/pdf'];
+        if (!allowedTypes.includes(file.type)) {
+          return NextResponse.json(
+            { error: 'Invalid file type. Allowed: JPEG, PNG, WebP, PDF' },
+            { status: 400 }
+          );
+        }
+
+        const bytes = await file.arrayBuffer();
+        const buffer = Buffer.from(bytes);
+
+        // Create unique filename
+        const extension = file.name.split('.').pop()?.toLowerCase() || 'pdf';
+        const filename = `${uuidv4()}.${extension}`;
+        const uploadDir = join(process.cwd(), 'data/uploads/agents');
+        
+        // Ensure directory exists
+        await mkdir(uploadDir, { recursive: true });
+        
+        const path = join(uploadDir, filename);
+        await writeFile(path, buffer);
+        
+        tradeLicensePath = `/api/uploads/agents/${filename}`;
+      }
+    } else {
+      // Assume JSON
+      data = await request.json();
+    }
+
+    // Validate required fields
+    const requiredFields = ['firstName', 'lastName', 'email', 'phone', 'region', 'city'];
+    for (const field of requiredFields) {
+      if (!data[field]) {
+        return NextResponse.json(
+          { error: `Missing required field: ${field}` },
+          { status: 400 }
+        );
+      }
+    }
+
+    // Validate email format
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    if (!emailRegex.test(data.email || '')) {
+      return NextResponse.json(
+        { error: 'Invalid email format' },
+        { status: 400 }
+      );
+    }
+
+    // Validate phone format (basic)
+    const phone = (data.phone || '').toString();
+    if (phone.length < 9 || phone.length > 20) {
+      return NextResponse.json(
+        { error: 'Invalid phone number' },
+        { status: 400 }
+      );
+    }
+
+    // Normalize identifiers for duplicate checks
+    const normalizedEmail = data.email!.toLowerCase().trim();
+    const normalizedPhone = normalizePhone(data.phone)!;
+    const tinNumber = data.tinNumber ? data.tinNumber.toString().trim() : null;
+
+    // Check for existing agent with same email, phone, or TIN
+    const existingAgent = await db.agent.findFirst({
+      where: {
+        OR: [
+          { email: normalizedEmail },
+          { phone: normalizedPhone },
+          ...(tinNumber ? [{ tinNumber }] : [])
+        ]
       }
     });
 
-    // Handle file upload
-    let tradeLicensePath: string | null = null;
-    const file = formData.get('tradeLicense') as File | null;
-    
-    if (file) {
-      const bytes = await file.arrayBuffer();
-      const buffer = Buffer.from(bytes);
+    if (existingAgent) {
+      let conflictField = 'information';
+      if (existingAgent.email === normalizedEmail) conflictField = 'email address';
+      else if (existingAgent.phone === normalizedPhone) conflictField = 'phone number';
+      else if (existingAgent.tinNumber === tinNumber) conflictField = 'TIN number';
 
-      // Create unique filename
-      const extension = file.name.split('.').pop();
-      const filename = `${uuidv4()}.${extension}`;
-      const uploadDir = join(process.cwd(), 'public/uploads/agents');
-      
-      // Ensure directory exists
-      await mkdir(uploadDir, { recursive: true });
-      
-      const path = join(uploadDir, filename);
-      await writeFile(path, buffer);
-      
-      tradeLicensePath = `/uploads/agents/${filename}`;
+      return NextResponse.json(
+        { error: `This ${conflictField} is already registered. Please use a different one or contact support.` },
+        { status: 400 }
+      );
     }
-    
+
     const agent = await db.agent.create({
       data: {
-        firstName: data.firstName,
-        lastName: data.lastName,
-        email: data.email,
-        phone: data.phone,
-        alternativePhone: data.alternativePhone || null,
+        firstName: data.firstName!,
+        lastName: data.lastName!,
+        email: normalizedEmail,
+        phone: normalizedPhone,
+        alternativePhone: normalizePhone(data.alternativePhone),
         businessName: data.businessName || null,
         businessType: data.businessType || null,
         experience: data.experience || null,
-        region: data.region,
-        city: data.city,
+        region: data.region!,
+        city: data.city!,
         woreda: data.woreda || null,
         kebele: data.kebele || null,
         address: data.address || null,
-        hasWarehouse: data.hasWarehouse === 'true',
+        hasWarehouse: data.hasWarehouse === true || data.hasWarehouse === 'true',
         warehouseSize: data.warehouseSize || null,
         existingBrands: data.existingBrands || null,
-        staffCount: data.staffCount ? parseInt(data.staffCount) : null,
+        staffCount: data.staffCount ? parseInt(data.staffCount.toString()) : null,
         estimatedCapital: data.estimatedCapital || null,
         bankName: data.bankName || null,
         accountNumber: data.accountNumber || null,
@@ -108,10 +254,31 @@ export async function POST(request: NextRequest) {
         idDocument: data.idDocument || null,
         tinNumber: data.tinNumber || null,
         message: data.message || null,
-        howDidYouHear: data.howDidYouHear || null,
-        status: 'PENDING',
+        howDidYouHear: data.howDidYouHear || 'WEB',
+        status: data.status || 'PENDING',
+      },
+      select: {
+        id: true,
+        firstName: true,
+        lastName: true,
+        email: true,
+        phone: true,
+        status: true,
+        createdAt: true,
       },
     });
+    
+    // Trigger SMS notification
+    try {
+      if (agent.phone) {
+        await triggerTemplateSms('AGENT_APPLIED', agent.phone, agent.id, {
+          NAME: `${agent.firstName} ${agent.lastName}`
+        });
+      }
+    } catch (smsError) {
+      console.error('Failed to trigger application SMS:', smsError);
+      // Don't fail the whole request
+    }
     
     return NextResponse.json(agent, { status: 201 });
   } catch (error) {

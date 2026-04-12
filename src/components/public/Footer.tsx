@@ -18,6 +18,7 @@ export default function Footer() {
     twitter: '',
     instagram: '',
     youtube: '',
+    footerContactTitle: 'Performance',
   });
 
   useEffect(() => {
@@ -104,7 +105,9 @@ export default function Footer() {
 
           {/* Reach Us */}
           <div>
-            <h4 className="text-slate-900 font-black mb-6 uppercase tracking-widest text-xs">{t('specs.performance')}</h4>
+            <h4 className="text-slate-900 font-black mb-6 uppercase tracking-widest text-xs">
+              {settings.footerContactTitle || t('specs.performance')}
+            </h4>
             <ul className="space-y-5">
               <li className="flex items-start gap-4">
                 <Building2 className="w-5 h-5 text-deep-sky-blue shrink-0" />

@@ -1,0 +1,882 @@
+'use client';
+
+import { useEffect, useState, useRef } from 'react';
+import { Card, CardContent } from '@/components/ui/card';
+import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
+import { Badge } from '@/components/ui/badge';
+import { Label } from '@/components/ui/label';
+import { Textarea } from '@/components/ui/textarea';
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogFooter,
+  DialogDescription,
+} from '@/components/ui/dialog';
+import { toast } from '@/hooks/use-toast';
+import {
+  FileText,
+  Eye,
+  Clock,
+  Search,
+  DollarSign,
+  Package,
+  Calendar,
+  Loader2,
+  Printer,
+  CheckCircle,
+  XCircle,
+  AlertCircle,
+  CreditCard,
+  Upload,
+  Image,
+  ExternalLink,
+} from 'lucide-react';
+
+interface ProformaItem {
+  id: string;
+  productId: string;
+  productName: string;
+  quantity: number;
+  unitPrice: number;
+  totalPrice: number;
+}
+
+interface ProformaUnit {
+  id: string;
+  chassisNumber: string;
+  product: { name: string };
+}
+
+interface Proforma {
+  id: string;
+  number: string;
+  status: string;
+  totalAmount: number;
+  notes: string | null;
+  expiresAt: string;
+  paidAt: string | null;
+  paymentRef: string | null;
+  paymentReceipt: string | null;
+  paymentNotes: string | null;
+  createdAt: string;
+  items: ProformaItem[];
+  productUnits: ProformaUnit[];
+}
+
+const VAT_RATE = 0.15;
+
+export default function AgentProformasPage() {
+  const [proformas, setProformas] = useState<Proforma[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [search, setSearch] = useState('');
+  const [statusFilter, setStatusFilter] = useState('all');
+  const [selectedProforma, setSelectedProforma] = useState<Proforma | null>(null);
+  const [showDetailDialog, setShowDetailDialog] = useState(false);
+  const [showUploadDialog, setShowUploadDialog] = useState(false);
+  const [uploading, setUploading] = useState(false);
+  const [selectedFile, setSelectedFile] = useState<File | null>(null);
+  const [paymentRef, setPaymentRef] = useState('');
+  const [uploadNotes, setUploadNotes] = useState('');
+  const fileInputRef = useRef<HTMLInputElement>(null);
+
+  useEffect(() => {
+    fetchProformas();
+  }, []);
+
+  const fetchProformas = async () => {
+    setLoading(true);
+    try {
+      const res = await fetch('/api/agent/proformas');
+      if (res.ok) {
+        const data = await res.json();
+        setProformas(Array.isArray(data) ? data : []);
+      }
+    } catch (error) {
+      console.error('Failed to fetch proformas:', error);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const getStatusBadge = (status: string) => {
+    const styles: Record<string, string> = {
+      PENDING: 'bg-amber-50 text-amber-700 border-amber-200',
+      PAYMENT_PENDING: 'bg-blue-50 text-blue-700 border-blue-200',
+      PAID: 'bg-emerald-50 text-emerald-700 border-emerald-200',
+      EXPIRED: 'bg-gray-100 text-gray-600 border-gray-200',
+      CANCELLED: 'bg-red-50 text-red-700 border-red-200',
+      REJECTED: 'bg-red-50 text-red-700 border-red-200',
+    };
+    return styles[status] || 'bg-gray-50 text-gray-700 border-gray-200';
+  };
+
+  const getStatusIcon = (status: string) => {
+    switch (status) {
+      case 'PENDING':
+        return <Clock className="w-4 h-4 text-amber-600" />;
+      case 'PAYMENT_PENDING':
+        return <CreditCard className="w-4 h-4 text-blue-600" />;
+      case 'PAID':
+        return <CheckCircle className="w-4 h-4 text-emerald-600" />;
+      case 'EXPIRED':
+      case 'CANCELLED':
+      case 'REJECTED':
+        return <XCircle className="w-4 h-4 text-red-600" />;
+      default:
+        return <FileText className="w-4 h-4 text-gray-500" />;
+    }
+  };
+
+  const getStatusLabel = (status: string) => {
+    const labels: Record<string, string> = {
+      PENDING: 'Pending',
+      PAYMENT_PENDING: 'Payment Pending',
+      PAID: 'Paid',
+      EXPIRED: 'Expired',
+      CANCELLED: 'Cancelled',
+      REJECTED: 'Rejected',
+    };
+    return labels[status] || status;
+  };
+
+  const formatDate = (dateString: string) => new Date(dateString).toLocaleDateString();
+  const formatCurrency = (amount: number) => `ETB ${amount.toLocaleString('en-US', { minimumFractionDigits: 2 })}`;
+
+  const filteredProformas = proformas.filter(p => {
+    const q = search.toLowerCase();
+    const matchesSearch = p.number.toLowerCase().includes(q);
+    const matchesStatus = statusFilter === 'all' || p.status === statusFilter;
+    return matchesSearch && matchesStatus;
+  });
+
+  const statusCounts = {
+    all: proformas.length,
+    PENDING: proformas.filter(p => p.status === 'PENDING').length,
+    PAYMENT_PENDING: proformas.filter(p => p.status === 'PAYMENT_PENDING').length,
+    PAID: proformas.filter(p => p.status === 'PAID').length,
+  };
+
+  const handleFileSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (file) {
+      // Validate file type
+      const allowedTypes = ['image/jpeg', 'image/png', 'image/gif', 'image/webp', 'application/pdf'];
+      if (!allowedTypes.includes(file.type)) {
+        toast({
+          title: 'Invalid File',
+          description: 'Please upload an image (JPEG, PNG, GIF, WebP) or PDF',
+          variant: 'destructive',
+        });
+        return;
+      }
+      // Validate file size (max 5MB)
+      if (file.size > 5 * 1024 * 1024) {
+        toast({
+          title: 'File Too Large',
+          description: 'File size must be less than 5MB',
+          variant: 'destructive',
+        });
+        return;
+      }
+      setSelectedFile(file);
+    }
+  };
+
+  const handleUploadPayment = async () => {
+    if (!selectedProforma || !selectedFile) return;
+
+    setUploading(true);
+    try {
+      const formData = new FormData();
+      formData.append('receipt', selectedFile);
+      formData.append('paymentRef', paymentRef);
+      formData.append('notes', uploadNotes);
+
+      const res = await fetch(`/api/proforma/${selectedProforma.id}/upload-payment`, {
+        method: 'POST',
+        body: formData,
+      });
+
+      if (res.ok) {
+        toast({
+          title: 'Payment Uploaded',
+          description: 'Your payment receipt has been submitted for verification.',
+        });
+        setShowUploadDialog(false);
+        setSelectedFile(null);
+        setPaymentRef('');
+        setUploadNotes('');
+        fetchProformas();
+      } else {
+        const error = await res.json();
+        throw new Error(error.error || 'Failed to upload payment');
+      }
+    } catch (error: any) {
+      toast({
+        title: 'Upload Failed',
+        description: error.message,
+        variant: 'destructive',
+      });
+    } finally {
+      setUploading(false);
+    }
+  };
+
+  const openUploadDialog = (proforma: Proforma) => {
+    setSelectedProforma(proforma);
+    setSelectedFile(null);
+    setPaymentRef('');
+    setUploadNotes('');
+    setShowUploadDialog(true);
+  };
+
+  const handlePrint = async (proforma: Proforma) => {
+    const subtotal = proforma.items.reduce((sum, item) => sum + item.totalPrice, 0);
+    const vat = subtotal * VAT_RATE;
+    const totalWithVat = subtotal + vat;
+
+    // Fetch company settings
+    let companySettings = {
+      companyName: 'ETUK',
+      companyTin: '',
+      companyVatNumber: '',
+      companyBankName: 'Commercial Bank of Ethiopia',
+      companyBankAccount: '',
+      companyBankBranch: '',
+      companyRegistrationNumber: '',
+      address: 'Modjo, Oromia, Ethiopia',
+      phone: '+251 911 234 567',
+      supportEmail: 'support@etuk.et',
+      companyLogo: '',
+    };
+
+    try {
+      const res = await fetch('/api/settings');
+      if (res.ok) {
+        const data = await res.json();
+        companySettings = { ...companySettings, ...data };
+      }
+    } catch (error) {
+      console.error('Failed to fetch company settings:', error);
+    }
+
+    const printWindow = window.open('', '_blank');
+    if (!printWindow) return;
+
+    printWindow.document.write(`
+      <!DOCTYPE html>
+      <html>
+      <head>
+        <title>Proforma Invoice - ${proforma.number}</title>
+        <style>
+          body { font-family: Arial, sans-serif; padding: 40px; max-width: 800px; margin: 0 auto; font-size: 14px; }
+          
+          .header { display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 30px; border-bottom: 2px solid #333; padding-bottom: 24px; }
+          .header-left h1 { font-size: 24px; font-weight: bold; color: #111; margin: 0; }
+          .header-left .proforma-number { font-size: 18px; font-weight: 600; color: #0ea5e9; margin-top: 4px; }
+          .header-left .dates { margin-top: 12px; color: #666; font-size: 13px; }
+          .header-left .dates p { margin: 4px 0; }
+          .header-right { text-align: right; }
+          .header-right .company-logo { height: 48px; object-contain; margin-bottom: 8px; }
+          .header-right .company-name { font-size: 18px; font-weight: bold; color: #111; }
+          .header-right .company-info { color: #666; font-size: 12px; margin-top: 4px; }
+          .header-right .company-info p { margin: 2px 0; }
+          
+          .bill-to { margin-bottom: 24px; }
+          .bill-to .label { font-size: 11px; font-weight: bold; color: #999; text-transform: uppercase; margin-bottom: 8px; }
+          .bill-to .name { font-weight: bold; color: #111; }
+          .bill-to .details { color: #666; font-size: 13px; margin-top: 4px; }
+          
+          table { width: 100%; border-collapse: collapse; margin-bottom: 24px; }
+          th, td { border: 1px solid #ddd; padding: 12px; text-align: left; }
+          th { background: #f3f4f6; font-weight: bold; color: #4b5563; font-size: 11px; text-transform: uppercase; }
+          td { font-size: 13px; }
+          .text-right { text-align: right; }
+          tfoot tr:nth-child(1) td, tfoot tr:nth-child(2) td { background: #f9fafb; }
+          tfoot tr:last-child { background: #f3f4f6; }
+          tfoot tr:last-child td { font-weight: bold; font-size: 14px; }
+          
+          .section { margin-bottom: 24px; }
+          .section .label { font-size: 11px; font-weight: bold; color: #999; text-transform: uppercase; margin-bottom: 8px; }
+          .chassis-list { display: flex; flex-wrap: wrap; gap: 8px; padding: 12px; background: #f9fafb; border: 1px solid #e5e7eb; border-radius: 8px; }
+          .chassis-item { padding: 4px 12px; background: white; border: 1px solid #d1d5db; border-radius: 4px; font-family: monospace; font-size: 12px; }
+          
+          .notes-box { padding: 16px; background: #f9fafb; border-radius: 8px; }
+          .notes-box .label { font-size: 11px; font-weight: bold; color: #999; text-transform: uppercase; margin-bottom: 8px; }
+          .notes-box p { color: #4b5563; font-size: 13px; }
+          
+          .bank-details { padding: 16px; background: #eff6ff; border: 1px solid #bfdbfe; border-radius: 8px; margin-bottom: 24px; }
+          .bank-details .label { font-size: 11px; font-weight: bold; color: #2563eb; text-transform: uppercase; margin-bottom: 12px; }
+          .bank-details .grid { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+          .bank-details .item p { margin: 0; font-size: 12px; color: #666; }
+          .bank-details .item .value { font-weight: 500; color: #111; font-size: 13px; }
+          
+          .footer { border-top: 1px solid #e5e7eb; padding-top: 24px; margin-top: 32px; text-align: center; color: #9ca3af; font-size: 12px; }
+          .footer p { margin: 4px 0; }
+          .footer .company-line { font-size: 11px; margin-top: 8px; }
+          
+          @media print { 
+            body { padding: 20px; } 
+            .no-print { display: none; }
+          }
+        </style>
+      </head>
+      <body>
+        <!-- Header -->
+        <div class="header">
+          <div class="header-left">
+            <h1>PROFORMA INVOICE</h1>
+            <p class="proforma-number">${proforma.number}</p>
+            <div class="dates">
+              <p><strong>Date:</strong> ${new Date(proforma.createdAt).toLocaleDateString()}</p>
+              <p><strong>Valid Until:</strong> ${new Date(proforma.expiresAt).toLocaleDateString()}</p>
+            </div>
+          </div>
+          <div class="header-right">
+            ${companySettings.companyLogo ? 
+              `<img src="${companySettings.companyLogo}" alt="${companySettings.companyName}" class="company-logo" />` : 
+              `<p class="company-name">${companySettings.companyName}</p>`
+            }
+            <div class="company-info">
+              <p>${companySettings.address}</p>
+              <p>${companySettings.phone}</p>
+              <p>${companySettings.supportEmail}</p>
+              ${companySettings.companyTin ? `<p>TIN: ${companySettings.companyTin}</p>` : ''}
+              ${companySettings.companyVatNumber ? `<p>VAT: ${companySettings.companyVatNumber}</p>` : ''}
+              ${companySettings.companyRegistrationNumber ? `<p>Reg: ${companySettings.companyRegistrationNumber}</p>` : ''}
+            </div>
+          </div>
+        </div>
+
+        <!-- Bill To -->
+        <div class="bill-to">
+          <p class="label">Bill To:</p>
+          <p class="name">${proforma.agent ? `${proforma.agent.firstName} ${proforma.agent.lastName}` : 'Agent'}</p>
+          <p class="details">Agent Portal</p>
+        </div>
+
+        <!-- Items Table -->
+        <table>
+          <thead>
+            <tr>
+              <th>Product</th>
+              <th class="text-right">Qty</th>
+              <th class="text-right">Unit Price</th>
+              <th class="text-right">Total</th>
+            </tr>
+          </thead>
+          <tbody>
+            ${proforma.items.map(item => `
+              <tr>
+                <td>${item.productName}</td>
+                <td class="text-right">${item.quantity}</td>
+                <td class="text-right">${formatCurrency(item.unitPrice)}</td>
+                <td class="text-right">${formatCurrency(item.totalPrice)}</td>
+              </tr>
+            `).join('')}
+          </tbody>
+          <tfoot>
+            <tr>
+              <td colspan="3" class="text-right">Subtotal</td>
+              <td class="text-right">${formatCurrency(subtotal)}</td>
+            </tr>
+            <tr>
+              <td colspan="3" class="text-right">VAT (15%)</td>
+              <td class="text-right">${formatCurrency(vat)}</td>
+            </tr>
+            <tr>
+              <td colspan="3" class="text-right">TOTAL (incl. VAT)</td>
+              <td class="text-right">${formatCurrency(totalWithVat)}</td>
+            </tr>
+          </tfoot>
+        </table>
+
+        ${proforma.productUnits.length > 0 ? `
+          <div class="section">
+            <p class="label">Reserved Units (Chassis Numbers):</p>
+            <div class="chassis-list">
+              ${proforma.productUnits.map(u => `<span class="chassis-item">${u.chassisNumber}</span>`).join('')}
+            </div>
+          </div>
+        ` : ''}
+
+        ${proforma.notes ? `
+          <div class="notes-box">
+            <p class="label">Notes:</p>
+            <p>${proforma.notes}</p>
+          </div>
+        ` : ''}
+
+        <!-- Bank Details -->
+        <div class="bank-details">
+          <p class="label">Payment Information</p>
+          <div class="grid">
+            <div class="item">
+              <p>Bank Name</p>
+              <p class="value">${companySettings.companyBankName || '-'}</p>
+            </div>
+            <div class="item">
+              <p>Account Number</p>
+              <p class="value" style="font-family: monospace;">${companySettings.companyBankAccount || '-'}</p>
+            </div>
+            ${companySettings.companyBankBranch ? `
+              <div class="item">
+                <p>Branch</p>
+                <p class="value">${companySettings.companyBankBranch}</p>
+              </div>
+            ` : ''}
+            <div class="item">
+              <p>Account Name</p>
+              <p class="value">${companySettings.companyName}</p>
+            </div>
+          </div>
+        </div>
+
+        <!-- Footer -->
+        <div class="footer">
+          <p>This is a proforma invoice. Payment must be made before the expiration date.</p>
+          <p>Thank you for your business!</p>
+          <p class="company-line">${companySettings.companyName} | ${companySettings.phone} | ${companySettings.supportEmail}</p>
+        </div>
+      </body>
+      </html>
+    `);
+    printWindow.document.close();
+    printWindow.print();
+  };
+
+  return (
+    <div className="space-y-6">
+      <div>
+        <h1 className="text-2xl font-bold text-gray-900">My Proformas</h1>
+        <p className="text-sm text-gray-500 mt-1">View and track your proforma invoices</p>
+      </div>
+
+      {/* Stats */}
+      <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+        {[
+          { label: 'All', count: statusCounts.all, color: 'gray' },
+          { label: 'Pending', count: statusCounts.PENDING, color: 'amber' },
+          { label: 'Payment Due', count: statusCounts.PAYMENT_PENDING, color: 'blue' },
+          { label: 'Paid', count: statusCounts.PAID, color: 'emerald' },
+        ].map(stat => (
+          <Card 
+            key={stat.label} 
+            className={`border-gray-200/60 cursor-pointer hover:border-gray-300 transition-colors ${statusFilter === (stat.label === 'All' ? 'all' : stat.label === 'Payment Due' ? 'PAYMENT_PENDING' : stat.label.toUpperCase()) ? 'ring-2 ring-gray-900' : ''}`}
+            onClick={() => setStatusFilter(stat.label === 'All' ? 'all' : stat.label === 'Payment Due' ? 'PAYMENT_PENDING' : stat.label.toUpperCase())}
+          >
+            <CardContent className="p-4 text-center">
+              <p className="text-2xl font-bold text-gray-900">{stat.count}</p>
+              <p className="text-xs text-gray-500 font-medium">{stat.label}</p>
+            </CardContent>
+          </Card>
+        ))}
+      </div>
+
+      {/* Search */}
+      <div className="relative">
+        <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
+        <Input
+          placeholder="Search by proforma number..."
+          value={search}
+          onChange={e => setSearch(e.target.value)}
+          className="h-10 pl-10 bg-white"
+        />
+      </div>
+
+      {/* Proforma List */}
+      <Card className="border-gray-200/60 shadow-sm">
+        <CardContent className="p-0">
+          {loading ? (
+            <div className="flex items-center justify-center py-20">
+              <Loader2 className="w-8 h-8 animate-spin text-gray-400" />
+            </div>
+          ) : filteredProformas.length === 0 ? (
+            <div className="flex flex-col items-center justify-center py-20 text-gray-400">
+              <FileText className="w-12 h-12 mb-4" />
+              <p className="font-medium">No proformas found</p>
+            </div>
+          ) : (
+            <div className="divide-y divide-gray-100">
+              {filteredProformas.map(proforma => {
+                const subtotal = proforma.items.reduce((sum, item) => sum + item.totalPrice, 0);
+                const vat = subtotal * VAT_RATE;
+                const totalWithVat = subtotal + vat;
+                const expiresAt = new Date(proforma.expiresAt);
+                const now = new Date();
+                const daysLeft = Math.ceil((expiresAt.getTime() - now.getTime()) / (1000 * 60 * 60 * 24));
+                const isExpiringSoon = daysLeft <= 3 && daysLeft > 0 && proforma.status !== 'PAID';
+                
+                return (
+                  <div
+                    key={proforma.id}
+                    className="flex items-center justify-between p-4 hover:bg-gray-50/50 transition-colors"
+                  >
+                    <div className="flex items-center gap-4 min-w-0 flex-1">
+                      <div className={`w-10 h-10 rounded-full flex items-center justify-center shrink-0 ${
+                        proforma.status === 'PAID' ? 'bg-emerald-100' : 
+                        proforma.status === 'PAYMENT_PENDING' ? 'bg-blue-100' :
+                        isExpiringSoon ? 'bg-amber-100' : 'bg-gray-100'
+                      }`}>
+                        {getStatusIcon(proforma.status)}
+                      </div>
+                      <div className="min-w-0 flex-1">
+                        <div className="flex items-center gap-2">
+                          <span className="font-semibold text-gray-900">{proforma.number}</span>
+                          <Badge variant="outline" className={getStatusBadge(proforma.status)}>
+                            {getStatusLabel(proforma.status)}
+                          </Badge>
+                          {isExpiringSoon && (
+                            <Badge variant="outline" className="bg-amber-50 text-amber-700 border-amber-200">
+                              {daysLeft}d left
+                            </Badge>
+                          )}
+                        </div>
+                        <div className="flex items-center gap-4 mt-1 text-xs text-gray-500">
+                          <span className="flex items-center gap-1">
+                            <Package className="w-3 h-3" /> {proforma.items.length} items
+                          </span>
+                          <span className="flex items-center gap-1">
+                            <Calendar className="w-3 h-3" /> {formatDate(proforma.createdAt)}
+                          </span>
+                          {proforma.productUnits.length > 0 && (
+                            <span className="flex items-center gap-1">
+                              <FileText className="w-3 h-3" /> {proforma.productUnits.length} chassis
+                            </span>
+                          )}
+                        </div>
+                      </div>
+                    </div>
+                    <div className="flex items-center gap-4 shrink-0">
+                      <div className="text-right">
+                        <p className="font-bold text-gray-900">{formatCurrency(totalWithVat)}</p>
+                        <p className="text-xs text-gray-500">incl. VAT</p>
+                      </div>
+                      <div className="flex items-center gap-1">
+                        {proforma.status === 'PENDING' && (
+                          <Button 
+                            variant="outline" 
+                            size="sm" 
+                            className="text-emerald-600 border-emerald-200 hover:bg-emerald-50"
+                            onClick={() => openUploadDialog(proforma)}
+                          >
+                            <Upload className="w-4 h-4 mr-1" /> Pay
+                          </Button>
+                        )}
+                        <Button 
+                          variant="ghost" 
+                          size="sm" 
+                          onClick={() => { setSelectedProforma(proforma); setShowDetailDialog(true); }}
+                        >
+                          <Eye className="w-4 h-4" />
+                        </Button>
+                        <Button 
+                          variant="ghost" 
+                          size="sm" 
+                          onClick={() => handlePrint(proforma)}
+                          title="Print"
+                        >
+                          <Printer className="w-4 h-4" />
+                        </Button>
+                      </div>
+                    </div>
+                  </div>
+                );
+              })}
+            </div>
+          )}
+        </CardContent>
+      </Card>
+
+      {/* Detail Dialog */}
+      <Dialog open={showDetailDialog} onOpenChange={setShowDetailDialog}>
+        <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
+          {selectedProforma && (() => {
+            const subtotal = selectedProforma.items.reduce((sum, item) => sum + item.totalPrice, 0);
+            const vat = subtotal * VAT_RATE;
+            const totalWithVat = subtotal + vat;
+            
+            return (
+              <>
+                <DialogHeader>
+                  <div className="flex items-center justify-between">
+                    <div>
+                      <DialogTitle className="text-xl">{selectedProforma.number}</DialogTitle>
+                      <p className="text-sm text-gray-500 mt-1">
+                        Created {formatDate(selectedProforma.createdAt)}
+                      </p>
+                    </div>
+                    <Badge variant="outline" className={getStatusBadge(selectedProforma.status)}>
+                      {getStatusLabel(selectedProforma.status)}
+                    </Badge>
+                  </div>
+                </DialogHeader>
+
+                <div className="space-y-6 py-4">
+                  <div className="grid grid-cols-2 gap-4 p-4 bg-gray-50 rounded-xl">
+                    <div>
+                      <p className="text-xs text-gray-500">Valid Until</p>
+                      <p className="text-sm font-medium">{formatDate(selectedProforma.expiresAt)}</p>
+                    </div>
+                    {selectedProforma.paidAt && (
+                      <div>
+                        <p className="text-xs text-gray-500">Paid On</p>
+                        <p className="text-sm font-medium text-emerald-600">{formatDate(selectedProforma.paidAt)}</p>
+                      </div>
+                    )}
+                    {selectedProforma.paymentRef && (
+                      <div>
+                        <p className="text-xs text-gray-500">Payment Reference</p>
+                        <p className="text-sm font-medium">{selectedProforma.paymentRef}</p>
+                      </div>
+                    )}
+                  </div>
+
+                  <div>
+                    <p className="text-xs font-bold text-gray-500 uppercase mb-3">Items</p>
+                    <div className="border rounded-xl overflow-hidden">
+                      <table className="w-full">
+                        <thead className="bg-gray-50">
+                          <tr>
+                            <th className="px-4 py-2 text-left text-xs font-bold text-gray-500">Product</th>
+                            <th className="px-4 py-2 text-center text-xs font-bold text-gray-500">Qty</th>
+                            <th className="px-4 py-2 text-right text-xs font-bold text-gray-500">Unit Price</th>
+                            <th className="px-4 py-2 text-right text-xs font-bold text-gray-500">Total</th>
+                          </tr>
+                        </thead>
+                        <tbody className="divide-y">
+                          {selectedProforma.items.map(item => (
+                            <tr key={item.id}>
+                              <td className="px-4 py-3 text-sm">{item.productName}</td>
+                              <td className="px-4 py-3 text-sm text-center">{item.quantity}</td>
+                              <td className="px-4 py-3 text-sm text-right">{formatCurrency(item.unitPrice)}</td>
+                              <td className="px-4 py-3 text-sm text-right font-medium">{formatCurrency(item.totalPrice)}</td>
+                            </tr>
+                          ))}
+                        </tbody>
+                        <tfoot className="bg-gray-50">
+                          <tr>
+                            <td colSpan={3} className="px-4 py-2 text-sm text-right">Subtotal</td>
+                            <td className="px-4 py-2 text-sm text-right font-medium">{formatCurrency(subtotal)}</td>
+                          </tr>
+                          <tr>
+                            <td colSpan={3} className="px-4 py-2 text-sm text-right">VAT (15%)</td>
+                            <td className="px-4 py-2 text-sm text-right font-medium">{formatCurrency(vat)}</td>
+                          </tr>
+                          <tr className="border-t-2 border-gray-300">
+                            <td colSpan={3} className="px-4 py-3 text-sm font-bold text-right">Total (incl. VAT)</td>
+                            <td className="px-4 py-3 text-sm font-bold text-right">{formatCurrency(totalWithVat)}</td>
+                          </tr>
+                        </tfoot>
+                      </table>
+                    </div>
+                  </div>
+
+                  {selectedProforma.productUnits.length > 0 && (
+                    <div>
+                      <p className="text-xs font-bold text-gray-500 uppercase mb-3">Reserved Chassis Numbers</p>
+                      <div className="flex flex-wrap gap-2">
+                        {selectedProforma.productUnits.map(unit => (
+                          <span key={unit.id} className="px-3 py-1 bg-blue-50 text-blue-700 rounded-full text-xs font-mono font-medium">
+                            {unit.chassisNumber}
+                          </span>
+                        ))}
+                      </div>
+                    </div>
+                  )}
+
+                  {selectedProforma.paymentReceipt && (
+                    <div>
+                      <p className="text-xs font-bold text-gray-500 uppercase mb-3">Payment Receipt</p>
+                      <div className="p-4 bg-gray-50 rounded-xl space-y-3">
+                        {/* Show image preview using API endpoint */}
+                        <div className="border rounded-lg overflow-hidden bg-white">
+                          <img 
+                            src={`/api/uploads/payments/${selectedProforma.paymentReceipt.split('/').pop()}`} 
+                            alt="Payment Receipt"
+                            className="max-w-full max-h-48 mx-auto object-contain"
+                            onError={(e) => {
+                              (e.target as HTMLImageElement).style.display = 'none';
+                              const parent = (e.target as HTMLImageElement).parentElement;
+                              if (parent) {
+                                parent.innerHTML = `
+                                  <div class="p-6 text-center text-gray-500">
+                                    <svg class="w-10 h-10 mx-auto mb-2 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path>
+                                    </svg>
+                                    <p class="text-sm">Receipt uploaded</p>
+                                    <p class="text-xs text-gray-400 mt-1">File: ${selectedProforma.paymentReceipt}</p>
+                                  </div>
+                                `;
+                              }
+                            }}
+                          />
+                        </div>
+                        <a 
+                          href={`/api/uploads/payments/${selectedProforma.paymentReceipt.split('/').pop()}`} 
+                          target="_blank" 
+                          rel="noopener noreferrer"
+                          className="flex items-center justify-center gap-2 text-sm text-blue-600 hover:text-blue-700"
+                        >
+                          <ExternalLink className="w-4 h-4" /> Open in new tab
+                        </a>
+                      </div>
+                    </div>
+                  )}
+
+                  {selectedProforma.notes && (
+                    <div className="p-4 bg-gray-50 rounded-xl">
+                      <p className="text-xs text-gray-500">Notes</p>
+                      <p className="text-sm mt-1">{selectedProforma.notes}</p>
+                    </div>
+                  )}
+
+                  {selectedProforma.status === 'PAYMENT_PENDING' && (
+                    <div className="p-4 bg-blue-50 border border-blue-200 rounded-xl">
+                      <div className="flex items-center gap-2 text-blue-700">
+                        <AlertCircle className="w-5 h-5" />
+                        <p className="font-medium">Payment Verification Pending</p>
+                      </div>
+                      <p className="text-sm text-blue-600 mt-1">
+                        Your payment is being verified by our accounting team. You will be notified once approved.
+                      </p>
+                    </div>
+                  )}
+
+                  {selectedProforma.status === 'PAID' && (
+                    <div className="p-4 bg-emerald-50 border border-emerald-200 rounded-xl">
+                      <div className="flex items-center gap-2 text-emerald-700">
+                        <CheckCircle className="w-5 h-5" />
+                        <p className="font-medium">Payment Verified</p>
+                      </div>
+                      <p className="text-sm text-emerald-600 mt-1">
+                        Your payment has been verified. Your units will be prepared for delivery.
+                      </p>
+                    </div>
+                  )}
+
+                  {selectedProforma.status === 'REJECTED' && (
+                    <div className="p-4 bg-red-50 border border-red-200 rounded-xl">
+                      <div className="flex items-center gap-2 text-red-700">
+                        <XCircle className="w-5 h-5" />
+                        <p className="font-medium">Payment Rejected</p>
+                      </div>
+                      <p className="text-sm text-red-600 mt-1">
+                        {selectedProforma.paymentNotes || 'Your payment was rejected. Please contact support for more information.'}
+                      </p>
+                    </div>
+                  )}
+                </div>
+
+                <div className="flex justify-between">
+                  {selectedProforma.status === 'PENDING' && (
+                    <Button onClick={() => openUploadDialog(selectedProforma)}>
+                      <Upload className="w-4 h-4 mr-2" /> Upload Payment
+                    </Button>
+                  )}
+                  <Button variant="outline" onClick={() => handlePrint(selectedProforma)}>
+                    <Printer className="w-4 h-4 mr-2" /> Print Invoice
+                  </Button>
+                </div>
+              </>
+            );
+          })()}
+        </DialogContent>
+      </Dialog>
+
+      {/* Upload Payment Dialog */}
+      <Dialog open={showUploadDialog} onOpenChange={setShowUploadDialog}>
+        <DialogContent className="max-w-md">
+          <DialogHeader>
+            <DialogTitle>Upload Payment Receipt</DialogTitle>
+            <DialogDescription>
+              Upload your payment receipt for proforma {selectedProforma?.number}
+            </DialogDescription>
+          </DialogHeader>
+
+          <div className="space-y-4 py-4">
+            <div className="p-4 bg-amber-50 border border-amber-200 rounded-xl">
+              <p className="text-sm text-amber-700">
+                <strong>Total to Pay:</strong> {selectedProforma && formatCurrency(
+                  selectedProforma.items.reduce((sum, item) => sum + item.totalPrice, 0) * (1 + VAT_RATE)
+                )}
+              </p>
+            </div>
+
+            <div className="space-y-2">
+              <Label>Payment Receipt *</Label>
+              <div 
+                className="border-2 border-dashed border-gray-300 rounded-xl p-6 text-center hover:border-gray-400 transition-colors cursor-pointer"
+                onClick={() => fileInputRef.current?.click()}
+              >
+                {selectedFile ? (
+                  <div className="flex items-center justify-center gap-2">
+                    <FileText className="w-8 h-8 text-emerald-500" />
+                    <div className="text-left">
+                      <p className="text-sm font-medium text-gray-900">{selectedFile.name}</p>
+                      <p className="text-xs text-gray-500">{(selectedFile.size / 1024).toFixed(1)} KB</p>
+                    </div>
+                  </div>
+                ) : (
+                  <>
+                    <Upload className="w-8 h-8 text-gray-400 mx-auto mb-2" />
+                    <p className="text-sm text-gray-600">Click to upload or drag and drop</p>
+                    <p className="text-xs text-gray-400 mt-1">PNG, JPG, GIF, WebP or PDF (max 5MB)</p>
+                  </>
+                )}
+                <input
+                  ref={fileInputRef}
+                  type="file"
+                  accept="image/*,application/pdf"
+                  onChange={handleFileSelect}
+                  className="hidden"
+                />
+              </div>
+            </div>
+
+            <div className="space-y-2">
+              <Label htmlFor="paymentRef">Payment Reference</Label>
+              <Input
+                id="paymentRef"
+                placeholder="e.g., Bank transfer reference number"
+                value={paymentRef}
+                onChange={e => setPaymentRef(e.target.value)}
+              />
+            </div>
+
+            <div className="space-y-2">
+              <Label htmlFor="uploadNotes">Notes (Optional)</Label>
+              <Textarea
+                id="uploadNotes"
+                placeholder="Any additional notes about your payment..."
+                value={uploadNotes}
+                onChange={e => setUploadNotes(e.target.value)}
+                rows={2}
+              />
+            </div>
+          </div>
+
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setShowUploadDialog(false)} disabled={uploading}>
+              Cancel
+            </Button>
+            <Button onClick={handleUploadPayment} disabled={!selectedFile || uploading}>
+              {uploading ? (
+                <>
+                  <Loader2 className="w-4 h-4 mr-2 animate-spin" /> Uploading...
+                </>
+              ) : (
+                <>
+                  <Upload className="w-4 h-4 mr-2" /> Submit Payment
+                </>
+              )}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+    </div>
+  );
+}

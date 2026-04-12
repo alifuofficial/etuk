@@ -8,24 +8,25 @@ datasource db {
 }
 
 model User {
-  id        String   @id @default(cuid())
-  email     String   @unique
-  name      String
-  password  String
-  role      String   @default("MARKETING_OFFICER")
-  phone     String?
-  isActive  Boolean  @default(true)
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
-  agents    Agent[]
+  id             String   @id @default(cuid())
+  email          String   @unique
+  name           String
+  password       String
+  role           String   @default("MARKETING_OFFICER")
+  phone          String?
+  isActive       Boolean  @default(true)
+  createdAt      DateTime @default(now())
+  updatedAt      DateTime @updatedAt
+  agentProfile   Agent?   @relation("AgentUser")
+  reviewedAgents Agent[]  @relation("AgentReviewer")
 }
 
 model Agent {
-  id               String    @id @default(cuid())
+  id               String        @id @default(cuid())
   firstName        String
   lastName         String
-  email            String
-  phone            String
+  email            String        @unique
+  phone            String        @unique
   alternativePhone String?
   businessName     String?
   businessType     String?
@@ -35,7 +36,7 @@ model Agent {
   woreda           String?
   kebele           String?
   address          String?
-  hasWarehouse     Boolean   @default(false)
+  hasWarehouse     Boolean       @default(false)
   warehouseSize    String?
   existingBrands   String?
   staffCount       Int?
@@ -44,22 +45,29 @@ model Agent {
   accountNumber    String?
   tradeLicense     String?
   idDocument       String?
-  tinNumber        String?
-  status           String    @default("PENDING")
+  tinNumber        String?       @unique
+  status           String        @default("PENDING")
   reviewedBy       String?
   reviewedAt       DateTime?
   reviewNotes      String?
   message          String?
   howDidYouHear    String?
-  createdAt        DateTime  @default(now())
-  updatedAt        DateTime  @updatedAt
+  createdAt        DateTime      @default(now())
+  updatedAt        DateTime      @updatedAt
   contactPerson    String?
   contactPhone     String?
-  reviewer         User?     @relation(fields: [reviewedBy], references: [id])
+  userId           String?       @unique
+  user             User?         @relation("AgentUser", fields: [userId], references: [id])
+  reviewer         User?         @relation("AgentReviewer", fields: [reviewedBy], references: [id])
+  customers        Customer[]
+  inventory        Inventory[]
+  units            ProductUnit[]
+  sales            Sale[]
+  proformas        Proforma[]
 }
 
 model Product {
-  id             String   @id @default(cuid())
+  id             String                 @id @default(cuid())
   name           String
   nameAm         String?
   nameOr         String?
@@ -70,10 +78,60 @@ model Product {
   specifications String?
   price          Float?
   images         String?
-  isActive       Boolean  @default(true)
-  featured       Boolean  @default(false)
-  createdAt      DateTime @default(now())
-  updatedAt      DateTime @updatedAt
+  isActive       Boolean                @default(true)
+  featured       Boolean                @default(false)
+  isSerialized   Boolean                @default(false)
+  createdAt      DateTime               @default(now())
+  updatedAt      DateTime               @updatedAt
+  inventory      Inventory[]
+  transactions   InventoryTransaction[]
+  units          ProductUnit[]
+  proformaItems  ProformaItem[]
+}
+
+model ProductUnit {
+  id             String                 @id @default(cuid())
+  productId      String
+  chassisNumber  String                 @unique
+  currentAgentId String?
+  proformaId     String?                // Reserved for proforma
+  status         String                 @default("AVAILABLE") // AVAILABLE, WITH_AGENT, SOLD, RESERVED
+  isSold         Boolean                @default(false)
+  soldAt         DateTime?
+  notes          String?
+  createdAt      DateTime               @default(now())
+  updatedAt      DateTime               @updatedAt
+  agent          Agent?                 @relation(fields: [currentAgentId], references: [id])
+  product        Product                @relation(fields: [productId], references: [id], onDelete: Cascade)
+  proforma       Proforma?              @relation(fields: [proformaId], references: [id], onDelete: SetNull)
+  sales          Sale[]                 @relation("UnitSales")
+  transactions   InventoryTransaction[] @relation("TransactionUnits")
+}
+
+model Inventory {
+  id        String   @id @default(cuid())
+  productId String
+  agentId   String?
+  quantity  Int      @default(0)
+  updatedAt DateTime @updatedAt
+  agent     Agent?   @relation(fields: [agentId], references: [id], onDelete: Cascade)
+  product   Product  @relation(fields: [productId], references: [id], onDelete: Cascade)
+
+  @@unique([productId, agentId])
+}
+
+model InventoryTransaction {
+  id          String        @id @default(cuid())
+  productId   String
+  fromAgentId String?
+  toAgentId   String?
+  quantity    Int
+  type        String
+  notes       String?
+  createdAt   DateTime      @default(now())
+  performedBy String?
+  product     Product       @relation(fields: [productId], references: [id], onDelete: Cascade)
+  units       ProductUnit[] @relation("TransactionUnits")
 }
 
 model Region {
@@ -137,4 +195,92 @@ model Translation {
   language   Language @relation(fields: [languageId], references: [id], onDelete: Cascade)
 
   @@unique([key, languageId])
+}
+
+model SmsLog {
+  id           String   @id @default(cuid())
+  agentId      String?
+  recipient    String
+  message      String
+  status       String
+  errorMessage String?
+  sentBy       String?
+  createdAt    DateTime @default(now())
+}
+
+model SmsTemplate {
+  id        String   @id @default(cuid())
+  name      String   @unique
+  content   String
+  isActive  Boolean  @default(true)
+  updatedAt DateTime @updatedAt
+}
+
+model Sale {
+  id            String      @id @default(cuid())
+  productUnitId String
+  agentId       String
+  customerId    String?
+  customerName  String
+  customerPhone String
+  soldAt        DateTime    @default(now())
+  notes         String?
+  createdAt     DateTime    @default(now())
+  updatedAt     DateTime    @updatedAt
+  customer      Customer?   @relation(fields: [customerId], references: [id])
+  agent         Agent       @relation(fields: [agentId], references: [id])
+  productUnit   ProductUnit @relation("UnitSales", fields: [productUnitId], references: [id])
+}
+
+model Customer {
+  id        String   @id @default(cuid())
+  agentId   String
+  fullName  String
+  phone     String
+  email     String?
+  address   String?
+  notes     String?
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  agent     Agent    @relation(fields: [agentId], references: [id], onDelete: Cascade)
+  sales     Sale[]
+
+  @@unique([agentId, phone])
+}
+
+model Proforma {
+  id              String        @id @default(cuid())
+  number          String        @unique
+  agentId         String
+  status          String        @default("PENDING") // PENDING, PAYMENT_PENDING, PAID, EXPIRED, CANCELLED, REJECTED
+  totalAmount     Float
+  notes           String?
+  expiresAt       DateTime
+  paidAt          DateTime?
+  paymentRef      String?       // Payment reference number
+  paymentReceipt  String?       // Path to uploaded payment receipt file
+  paymentNotes    String?       // Notes from accountant about payment
+  verifiedBy      String?       // Accountant who verified the payment
+  verifiedAt      DateTime?     // When payment was verified
+  createdAt       DateTime      @default(now())
+  updatedAt       DateTime      @updatedAt
+  agent           Agent         @relation(fields: [agentId], references: [id])
+  items           ProformaItem[]
+  productUnits    ProductUnit[]
+
+  @@index([agentId])
+  @@index([status])
+}
+
+model ProformaItem {
+  id           String   @id @default(cuid())
+  proformaId   String
+  productId    String
+  productName  String
+  quantity     Int
+  unitPrice    Float
+  totalPrice   Float
+  createdAt    DateTime @default(now())
+  proforma     Proforma @relation(fields: [proformaId], references: [id], onDelete: Cascade)
+  product      Product  @relation(fields: [productId], references: [id])
 }

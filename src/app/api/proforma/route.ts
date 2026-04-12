@@ -2,6 +2,10 @@ import { NextRequest, NextResponse } from 'next/server';
 import { db } from '@/lib/db';
 import { getServerSession } from 'next-auth';
 import { authOptions } from '@/lib/auth';
+import { triggerTemplateSms } from '@/lib/sms';
+
+// Bank details for proforma
+const BANK_DETAILS = `CBE 1000123456789 | Awash 123456789 | Dashen 987654321`;
 
 // Generate unique proforma number
 function generateProformaNumber(): string {
@@ -161,6 +165,24 @@ export async function POST(request: NextRequest) {
 
       return proforma;
     });
+
+    // Send SMS to agent with proforma details
+    try {
+      const vatAmount = totalAmount * 0.15;
+      const totalWithVat = totalAmount + vatAmount;
+      const expiresFormatted = expiresAt.toLocaleDateString();
+      
+      await triggerTemplateSms('PROFORMA_CREATED', agent.phone, result.id, {
+        NAME: `${agent.firstName} ${agent.lastName}`,
+        PROFORMA: result.number,
+        AMOUNT: totalWithVat.toLocaleString(),
+        DEADLINE: expiresFormatted,
+        BANK: BANK_DETAILS,
+      });
+    } catch (smsError) {
+      console.error('Failed to send proforma SMS:', smsError);
+      // Don't fail the request if SMS fails
+    }
 
     return NextResponse.json(result, { status: 201 });
   } catch (error) {

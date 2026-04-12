@@ -40,6 +40,7 @@ import {
   Calendar,
   AlertTriangle,
   Loader2,
+  Bell,
 } from 'lucide-react';
 
 const VAT_RATE = 0.15; // 15% VAT
@@ -114,6 +115,7 @@ export default function ProformaPage() {
   const [search, setSearch] = useState('');
   const [statusFilter, setStatusFilter] = useState('all');
   const printRef = useRef<HTMLDivElement>(null);
+  const [sendingReminders, setSendingReminders] = useState(false);
   
   // Dialogs
   const [showCreateDialog, setShowCreateDialog] = useState(false);
@@ -284,6 +286,30 @@ export default function ProformaPage() {
     }
   };
 
+  const handleSendReminders = async () => {
+    setSendingReminders(true);
+    try {
+      const res = await fetch('/api/proforma/send-reminders', {
+        method: 'POST',
+      });
+
+      if (res.ok) {
+        const data = await res.json();
+        toast({ 
+          title: 'Reminders Sent', 
+          description: `Sent ${data.remindersSent} reminder(s). ${data.expiredCount} proforma(s) expired.` 
+        });
+        fetchProformas();
+      } else {
+        throw new Error('Failed to send reminders');
+      }
+    } catch (error: any) {
+      toast({ title: 'Error', description: error.message, variant: 'destructive' });
+    } finally {
+      setSendingReminders(false);
+    }
+  };
+
   const handlePrint = (proforma: Proforma) => {
     setSelectedProforma(proforma);
     setShowPrintDialog(true);
@@ -367,9 +393,24 @@ export default function ProformaPage() {
           <h1 className="text-2xl font-bold text-gray-900">Proformas</h1>
           <p className="text-sm text-gray-500 mt-1">Manage agent proforma invoices</p>
         </div>
-        <Button onClick={() => { resetCreateForm(); setShowCreateDialog(true); }} className="h-10 bg-gray-900 hover:bg-gray-800 text-white">
-          <Plus className="w-4 h-4 mr-2" /> Create Proforma
-        </Button>
+        <div className="flex items-center gap-3">
+          <Button 
+            variant="outline" 
+            onClick={handleSendReminders} 
+            disabled={sendingReminders}
+            className="h-10 border-amber-200 text-amber-700 hover:bg-amber-50"
+          >
+            {sendingReminders ? (
+              <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+            ) : (
+              <Bell className="w-4 h-4 mr-2" />
+            )}
+            Send Reminders
+          </Button>
+          <Button onClick={() => { resetCreateForm(); setShowCreateDialog(true); }} className="h-10 bg-gray-900 hover:bg-gray-800 text-white">
+            <Plus className="w-4 h-4 mr-2" /> Create Proforma
+          </Button>
+        </div>
       </div>
 
       {/* Stats */}
@@ -585,32 +626,67 @@ export default function ProformaPage() {
             </div>
 
             {/* Chassis Selection */}
-            {selectedAgentId && availableUnits.length > 0 && (
-              <div>
-                <Label className="text-xs text-gray-500 mb-2 block">Reserve Chassis Numbers (Optional)</Label>
-                <div className="max-h-48 overflow-y-auto border rounded-xl p-3 space-y-2">
-                  {availableUnits.slice(0, 50).map(unit => (
-                    <label key={unit.id} className="flex items-center gap-3 p-2 hover:bg-gray-50 rounded-lg cursor-pointer">
-                      <input
-                        type="checkbox"
-                        checked={selectedUnitIds.includes(unit.id)}
-                        onChange={(e) => {
-                          if (e.target.checked) {
-                            setSelectedUnitIds([...selectedUnitIds, unit.id]);
-                          } else {
-                            setSelectedUnitIds(selectedUnitIds.filter(id => id !== unit.id));
-                          }
-                        }}
-                        className="rounded"
-                      />
-                      <span className="text-sm font-mono">{unit.chassisNumber}</span>
-                      <span className="text-xs text-gray-500">{unit.product.name}</span>
-                    </label>
-                  ))}
+            {selectedAgentId && availableUnits.length > 0 && (() => {
+              const totalQuantity = proformaItems.reduce((sum, item) => sum + (item.quantity || 0), 0);
+              const maxSelections = totalQuantity || 0;
+              const canSelectMore = selectedUnitIds.length < maxSelections;
+              
+              return (
+                <div>
+                  <Label className="text-xs text-gray-500 mb-2 block">
+                    Reserve Chassis Numbers (Optional)
+                    {maxSelections > 0 && (
+                      <span className="ml-2 text-deep-sky-blue font-medium">
+                        - Select up to {maxSelections} units (based on total quantity)
+                      </span>
+                    )}
+                  </Label>
+                  <div className="max-h-48 overflow-y-auto border rounded-xl p-3 space-y-2">
+                    {availableUnits.slice(0, 50).map(unit => {
+                      const isSelected = selectedUnitIds.includes(unit.id);
+                      const isDisabled = !isSelected && !canSelectMore;
+                      
+                      return (
+                        <label 
+                          key={unit.id} 
+                          className={`flex items-center gap-3 p-2 rounded-lg ${isDisabled ? 'opacity-50 cursor-not-allowed' : 'hover:bg-gray-50 cursor-pointer'}`}
+                        >
+                          <input
+                            type="checkbox"
+                            checked={isSelected}
+                            disabled={isDisabled}
+                            onChange={(e) => {
+                              if (e.target.checked && canSelectMore) {
+                                setSelectedUnitIds([...selectedUnitIds, unit.id]);
+                              } else if (!e.target.checked) {
+                                setSelectedUnitIds(selectedUnitIds.filter(id => id !== unit.id));
+                              }
+                            }}
+                            className="rounded"
+                          />
+                          <span className="text-sm font-mono">{unit.chassisNumber}</span>
+                          <span className="text-xs text-gray-500">{unit.product.name}</span>
+                        </label>
+                      );
+                    })}
+                  </div>
+                  <div className="flex justify-between mt-2">
+                    <p className="text-xs text-gray-400">
+                      {selectedUnitIds.length} of {maxSelections || 'unlimited'} selected
+                    </p>
+                    {maxSelections > 0 && selectedUnitIds.length > 0 && (
+                      <button 
+                        type="button"
+                        onClick={() => setSelectedUnitIds([])}
+                        className="text-xs text-red-500 hover:text-red-600"
+                      >
+                        Clear selection
+                      </button>
+                    )}
+                  </div>
                 </div>
-                <p className="text-xs text-gray-400 mt-1">Selected: {selectedUnitIds.length} units</p>
-              </div>
-            )}
+              );
+            })()}
 
             {/* Validity & Notes */}
             <div className="grid grid-cols-2 gap-4">
@@ -824,7 +900,7 @@ export default function ProformaPage() {
 
       {/* Print Dialog */}
       <Dialog open={showPrintDialog} onOpenChange={setShowPrintDialog}>
-        <DialogContent className="max-w-3xl print:max-w-none print:shadow-none">
+        <DialogContent className="max-w-3xl max-h-[90vh] overflow-y-auto print:max-w-none print:shadow-none p-0">
           {selectedProforma && (() => {
             const subtotal = selectedProforma.items.reduce((sum, item) => sum + item.totalPrice, 0);
             const vat = subtotal * VAT_RATE;
@@ -832,8 +908,13 @@ export default function ProformaPage() {
             
             return (
               <>
-                <DialogHeader className="print:hidden">
-                  <DialogTitle>Print Proforma</DialogTitle>
+                <DialogHeader className="print:hidden px-6 py-4 border-b sticky top-0 bg-white z-10">
+                  <div className="flex items-center justify-between">
+                    <DialogTitle>Print Proforma</DialogTitle>
+                    <Button onClick={printProforma} className="bg-gray-900 hover:bg-gray-800">
+                      <Printer className="w-4 h-4 mr-2" /> Print
+                    </Button>
+                  </div>
                 </DialogHeader>
 
                 {/* Printable Content */}
@@ -927,17 +1008,14 @@ export default function ProformaPage() {
                   )}
 
                   {/* Footer */}
-                  <div className="border-t pt-6 mt-8 text-center text-sm text-gray-500">
+                  <div className="border-t pt-6 mt-8 text-center text-sm text-gray-500 print:pb-4">
                     <p>This is a proforma invoice. Payment must be made before the expiration date.</p>
                     <p className="mt-1">Thank you for your business!</p>
                   </div>
                 </div>
 
-                <DialogFooter className="print:hidden">
+                <DialogFooter className="print:hidden px-6 py-4 border-t sticky bottom-0 bg-white">
                   <Button variant="outline" onClick={() => setShowPrintDialog(false)}>Close</Button>
-                  <Button onClick={printProforma} className="bg-gray-900 hover:bg-gray-800">
-                    <Printer className="w-4 h-4 mr-2" /> Print
-                  </Button>
                 </DialogFooter>
               </>
             );

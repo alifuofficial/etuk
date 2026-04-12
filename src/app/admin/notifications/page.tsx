@@ -602,7 +602,22 @@ export default function NotificationsPage() {
             <AlertTriangle className="w-5 h-5 shrink-0" />
             <div className="space-y-1">
               <p className="text-xs font-bold uppercase tracking-widest">Automatic Triggers Info</p>
-              <p className="text-sm">Templates named <code className="font-bold bg-amber-100 px-1 rounded">AGENT_APPLIED</code>, <code className="font-bold bg-amber-100 px-1 rounded">AGENT_APPROVED</code>, and <code className="font-bold bg-amber-100 px-1 rounded">AGENT_REJECTED</code> are automatically sent when those events occur if active.</p>
+              <p className="text-sm">Templates named <code className="font-bold bg-amber-100 px-1 rounded">AGENT_APPLIED</code>, <code className="font-bold bg-amber-100 px-1 rounded">AGENT_APPROVED</code>, <code className="font-bold bg-amber-100 px-1 rounded">AGENT_REJECTED</code>, <code className="font-bold bg-amber-100 px-1 rounded">PROFORMA_CREATED</code>, and <code className="font-bold bg-amber-100 px-1 rounded">PROFORMA_REMINDER</code> are automatically sent when those events occur if active.</p>
+            </div>
+          </div>
+          
+          <div className="bg-blue-50 border border-blue-100 rounded-xl p-4 flex gap-3 text-blue-800">
+            <MessageSquare className="w-5 h-5 shrink-0" />
+            <div className="space-y-1">
+              <p className="text-xs font-bold uppercase tracking-widest">Proforma Variables</p>
+              <p className="text-sm">
+                Available variables for proforma templates:<br />
+                <code className="font-bold bg-blue-100 px-1 rounded">[NAME]</code> - Agent name<br />
+                <code className="font-bold bg-blue-100 px-1 rounded">[PROFORMA]</code> - Proforma number<br />
+                <code className="font-bold bg-blue-100 px-1 rounded">[AMOUNT]</code> - Total amount (incl. VAT)<br />
+                <code className="font-bold bg-blue-100 px-1 rounded">[DEADLINE]</code> - Expiration date<br />
+                <code className="font-bold bg-blue-100 px-1 rounded">[BANK]</code> - Bank details
+              </p>
             </div>
           </div>
         </TabsContent>
